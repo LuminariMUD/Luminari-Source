@@ -1036,7 +1036,8 @@ transaction, with no gold moved. The acting character is judged from memory
 (outside `vessel_settlement_pay()` the marker in memory is the one in the
 file, since a failed save puts it back) and any other captain from his file,
 so a ship does not wait for an absent helmsman; a mob and a removed player
-have no file, so their settlements are undone. The undo moves the supply by
+have no file, so their settlements are undone (a mob's at once, in the
+command). The undo moves the supply by
 its delta inside the market's band, reopens the contract if it is still
 taken, changes the hold's lot by its delta (never below zero; goods with no
 free bay to return to are left ashore and logged) and writes the manifest,
@@ -1044,8 +1045,9 @@ and makes the fee owed again only if the hull owes none: a runtime save
 rewrites the balance from memory at any time, so the fee is restored, not
 added.
 
-The reconcile runs at login, beside the insurance and merchant deliveries,
-where a player whose settlement was undone is told; and as a gate
+The reconcile runs at login, from the insurance delivery every login makes
+(`vessel_deliver_pending_insurance()`), where a player whose settlement was
+undone is told; and as a gate
 (`vessel_settlement_gate()`) at the start of `cargobuy`, `cargosell`,
 `contractaccept`, `contractdeliver`, `contractabandon` and `dockfees pay`,
 which refuse while a settlement of the ship or the player stays open. The
@@ -1073,7 +1075,13 @@ schema. Where the server can stop:
   refuses, after trying the reconcile itself: a manifest written from memory
   under an open row would have the lot undone a second time after a reboot.
   A reboot forgets the id and reloads the hold from the manifest, which then
-  agrees with the row.
+  agrees with the row. A reconcile that reads no such row forgets the id only
+  after a locking read of it: a `COMMIT` that is still on its way would land
+  after a plain read had seen nothing.
+- A hull that is not in memory (boot could not rebuild her and left her
+  rows): her settlement is kept, since her manifest and fee cannot be undone
+  without her, and its captain's accounts wait. It is undone once she is
+  loaded, or deleted with her rows when she is purged.
 
 A purged hull's settlement is deleted with her other rows
 (`vessel_delete_persistence()`).

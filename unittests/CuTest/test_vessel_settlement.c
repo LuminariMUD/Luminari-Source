@@ -88,6 +88,27 @@ static long long settle_query_number(CuTest *tc, MYSQL *connection, const char *
   return strtoll(value, NULL, 10);
 }
 
+/* A connection made as the server's own are. */
+static MYSQL *settle_connect(CuTest *tc)
+{
+  const char *port_text = getenv("LUMINARI_TEST_MYSQL_PORT");
+  my_bool reconnect = 1;
+  MYSQL *connection;
+
+  connection = mysql_init(NULL);
+  CuAssertPtrNotNull(tc, connection);
+  mysql_options(connection, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
+  if (mysql_real_connect(
+          connection, getenv("LUMINARI_TEST_MYSQL_HOST"), getenv("LUMINARI_TEST_MYSQL_USER"),
+          getenv("LUMINARI_TEST_MYSQL_PASSWORD"), getenv("LUMINARI_TEST_MYSQL_DATABASE"),
+          port_text != NULL ? (unsigned int)strtoul(port_text, NULL, 10) : 3306, NULL, 0) == NULL)
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not connect to the explicitly configured test database");
+  }
+  return connection;
+}
+
 /* The test rows of the real tables. */
 static void settle_rows_end(MYSQL *connection)
 {
@@ -95,7 +116,7 @@ static void settle_rows_end(MYSQL *connection)
                           "OR player_id IN (4249, 4250)");
   mysql_query(connection, "DELETE FROM freight_contracts WHERE origin_vnum = 100 "
                           "AND destination_vnum = 101");
-  mysql_query(connection, "DELETE FROM ship_cargo_manifest WHERE ship_id = 486");
+  mysql_query(connection, "DELETE FROM ship_cargo_manifest WHERE ship_id IN (476, 486)");
   mysql_query(connection, "DELETE FROM ship_runtime_state WHERE ship_id = 486");
   mysql_query(connection, "DELETE FROM ship_interiors WHERE ship_id = 486");
   mysql_query(connection, "DELETE FROM port_commodities WHERE port_vnum = 100");
@@ -106,9 +127,7 @@ static void settle_rows_end(MYSQL *connection)
 static bool settle_begin(CuTest *tc, struct settle_fixture *fixture)
 {
   const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
-  const char *port_text = getenv("LUMINARI_TEST_MYSQL_PORT");
   struct greyhawk_ship_data *ship;
-  my_bool reconnect = 1;
   char query[256];
 
   if (enabled == NULL || strcmp(enabled, "1") != 0)
@@ -116,20 +135,7 @@ static bool settle_begin(CuTest *tc, struct settle_fixture *fixture)
     return FALSE;
   }
   memset(fixture, 0, sizeof(*fixture));
-
-  /* As the server's own connections are made. */
-  fixture->connection = mysql_init(NULL);
-  CuAssertPtrNotNull(tc, fixture->connection);
-  mysql_options(fixture->connection, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
-  if (mysql_real_connect(fixture->connection, getenv("LUMINARI_TEST_MYSQL_HOST"),
-                         getenv("LUMINARI_TEST_MYSQL_USER"), getenv("LUMINARI_TEST_MYSQL_PASSWORD"),
-                         getenv("LUMINARI_TEST_MYSQL_DATABASE"),
-                         port_text != NULL ? (unsigned int)strtoul(port_text, NULL, 10) : 3306,
-                         NULL, 0) == NULL)
-  {
-    mysql_close(fixture->connection);
-    CuFail(tc, "could not connect to the explicitly configured test database");
-  }
+  fixture->connection = settle_connect(tc);
   fixture->saved_conn = conn;
   fixture->saved_mysql_available = mysql_available;
   conn = fixture->connection;
@@ -232,6 +238,7 @@ static void settle_end(CuTest *tc, struct settle_fixture *fixture)
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
   memset(&greyhawk_ships[SETTLE_SHIP], 0, sizeof(greyhawk_ships[0]));
+  memset(&greyhawk_ships[SETTLE_LOST_SHIP], 0, sizeof(greyhawk_ships[0]));
 
   settle_rows_end(fixture->connection);
   conn = fixture->saved_conn;
@@ -264,13 +271,13 @@ static const char *settle_command_held(struct settle_fixture *fixture, ACMD_DECL
   return output;
 }
 
-/* Tern enters the game: what the login's reconcile tells him. */
+/* Tern enters the game: what the harbor office's login delivery tells him. */
 static const char *settle_login(struct settle_fixture *fixture)
 {
   memset(fixture->output, 0, sizeof(fixture->output));
   fixture->descriptor.bufptr = 0;
   fixture->descriptor.bufspace = sizeof(fixture->output) - 1;
-  vessel_settlements_reconcile(&fixture->captain, NULL);
+  vessel_deliver_pending_insurance(&fixture->captain);
   return fixture->output;
 }
 
@@ -434,6 +441,15 @@ void Test_vessel_settlement_pays_a_trade_and_closes_its_row(CuTest *tc)
   CuAssertIntEquals(tc, fixture.salt_id, fixture.ship->cargo[0].commodity_id);
   CuAssertTrue(tc, fixture.ship->settlement_unresolved == 0);
 
+  /* A mob has no player file, so its trade is undone the same way. */
+  GET_PFILEPOS(&fixture.captain) = 0;
+  SET_BIT_AR(MOB_FLAGS(&fixture.captain), MOB_ISNPC);
+  output = settle_command(&fixture, do_cargobuy, "salt 10");
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.captain), MOB_ISNPC);
+  CuAssertTrue(tc,
+               strstr(output, "Your gold could not be recorded, so the trade is undone.") != NULL);
+  settle_assert(tc, &fixture, gold, 6, 6, 94, 0);
+
   settle_end(tc, &fixture);
 }
 
@@ -458,10 +474,15 @@ void Test_vessel_settlement_undoes_a_trade_whose_gold_was_never_saved(CuTest *tc
   settle_assert(tc, &fixture, 1000, 0, 10, 90, 1);
   CuAssertTrue(tc, fixture.ship->settlement_unresolved != 0);
 
-  /* Her manifest is not written from memory while the undo still fails. */
+  /* Her manifest is not written from memory while the undo still fails, nor
+   * inside another transaction, where no reconcile can run. */
   mysql_test_drop_connection_at(SETTLE_DELETE, 1, FALSE);
   CuAssertTrue(tc, !vessel_db_save_cargo(fixture.ship));
+  CuAssertIntEquals(tc, 0, mysql_query(fixture.connection, "START TRANSACTION"));
+  CuAssertTrue(tc, !vessel_db_save_cargo(fixture.ship));
+  CuAssertIntEquals(tc, 0, mysql_query(fixture.connection, "ROLLBACK"));
   settle_assert(tc, &fixture, 1000, 0, 10, 90, 1);
+  CuAssertTrue(tc, fixture.ship->settlement_unresolved != 0);
 
   /* Booted again, she holds what the manifest lists. Before her captain is
    * back, other ships buy 30 salt at the port and customs take 3 of her 10. */
@@ -494,6 +515,17 @@ void Test_vessel_settlement_undoes_a_trade_whose_gold_was_never_saved(CuTest *tc
   output = settle_login(&fixture);
   CuAssertStrEquals(tc, "", output);
   settle_assert(tc, &fixture, 1000, 10, 10, 100, 0);
+
+  /* Goods he never paid for cannot be sold: the sale's gate takes them out
+   * of the hold before the sale looks for them. */
+  settle_stock(tc, &fixture, 0, 100);
+  settle_command_held(&fixture, do_cargobuy, "salt 10");
+  settle_reboot(&fixture);
+  settle_assert(tc, &fixture, 1000, 10, 10, 90, 1);
+  output = settle_command(&fixture, do_cargosell, "salt all");
+  CuAssertTrue(tc, strstr(output, "so it has been undone") != NULL);
+  CuAssertTrue(tc, strstr(output, "You carry no salt.") != NULL);
+  settle_assert(tc, &fixture, 1000, 0, 0, 100, 0);
 
   settle_end(tc, &fixture);
 }
@@ -706,6 +738,67 @@ void Test_vessel_settlement_settles_a_commit_without_a_reply(CuTest *tc)
   settle_end(tc, &fixture);
 }
 
+/* A COMMIT that got no reply and could not be read back may still be on its
+ * way. Until it lands or is rolled back the hull keeps remembering it: a
+ * reconcile that sees no row yet does not take it for never recorded. */
+void Test_vessel_settlement_waits_for_a_commit_still_on_its_way(CuTest *tc)
+{
+  struct settle_fixture fixture;
+  unsigned long long settlement;
+  const char *output;
+  MYSQL *pending;
+  long long revenue;
+  char query[256];
+
+  if (!settle_begin(tc, &fixture))
+  {
+    return;
+  }
+  pending = settle_connect(tc);
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(fixture.connection, "SET SESSION innodb_lock_wait_timeout = 1"));
+
+  /* Tern's sale of 4 of his 10 salt: its transaction is still open on the
+   * session he lost, the goods are back in his hold, and she remembers it. */
+  settle_stock(tc, &fixture, 10, 100);
+  CuAssertIntEquals(tc, 0, mysql_query(pending, "START TRANSACTION"));
+  snprintf(query, sizeof(query),
+           "INSERT INTO vessel_settlements (player_id, ship_id, port_vnum, commodity_id, "
+           "supply_delta, cargo_delta) VALUES (4249, 486, 100, %d, -4, 4)",
+           fixture.salt_id);
+  CuAssertIntEquals(tc, 0, mysql_query(pending, query));
+  settlement = mysql_insert_id(pending);
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(pending, "UPDATE port_commodities SET supply = 104 "
+                                         "WHERE port_vnum = 100"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(pending, "UPDATE ship_cargo_manifest SET item_count = 6 "
+                                         "WHERE ship_id = 486"));
+  fixture.ship->settlement_unresolved = settlement;
+
+  /* No row can be read yet, and the locking read cannot get past the open
+   * transaction: she is not settled, and her manifest is not written. */
+  CuAssertTrue(tc, !vessel_db_save_cargo(fixture.ship));
+  CuAssertTrue(tc, fixture.ship->settlement_unresolved == settlement);
+  output = settle_command(&fixture, do_cargosell, "salt 4");
+  CuAssertTrue(tc, strstr(output, "still settling an earlier account") != NULL);
+  settle_assert(tc, &fixture, 1000, 10, 10, 100, 0);
+
+  /* The COMMIT lands. The next account undoes the sale in the database
+   * only, and is then made on the ten units he holds. */
+  CuAssertIntEquals(tc, 0, mysql_query(pending, "COMMIT"));
+  settle_assert(tc, &fixture, 1000, 10, 6, 104, 1);
+  revenue = vessel_trade_sell_revenue(fixture.base_price, 100, 4);
+  output = settle_command(&fixture, do_cargosell, "salt 4");
+  CuAssertTrue(tc, strstr(output, "so it has been undone") != NULL);
+  CuAssertTrue(tc, strstr(output, "You sell 4 units of salt") != NULL);
+  settle_assert(tc, &fixture, 1000 + (int)revenue, 6, 6, 104, 0);
+  CuAssertTrue(tc, fixture.ship->settlement_unresolved == 0);
+
+  mysql_close(pending);
+  settle_end(tc, &fixture);
+}
+
 /* A settlement another captain left on the ship is judged from that
  * player's file, so the ship does not wait for him. */
 void Test_vessel_settlement_judges_another_captain_from_his_file(CuTest *tc)
@@ -887,10 +980,15 @@ void Test_vessel_settlement_covers_a_dock_fee_payment(CuTest *tc)
   CuAssertIntEquals(tc, 40, ship->dock_fee_balance);
   CuAssertIntEquals(tc, SETTLE_FAR_PORT, ship->dock_fee_port);
 
-  /* Saved, the payment takes the gold and closes its row. */
+  /* A payment begins by settling the last one: the fee it finds unpaid is
+   * owed again, and is then paid, saved, and its row closed. */
   ship->dock_fee_balance = 25;
   ship->dock_fee_port = SETTLE_PORT;
+  settle_command_held(&fixture, do_dockfees, "pay");
+  settle_reboot(&fixture);
+  ship->dock_fee_balance = 0;
   output = settle_command(&fixture, do_dockfees, "pay");
+  CuAssertTrue(tc, strstr(output, "so it has been undone") != NULL);
   CuAssertTrue(tc, strstr(output, "You settle 25 gold in dock fees.") != NULL);
   settle_assert(tc, &fixture, 975, 0, 0, 100, 0);
   CuAssertIntEquals(tc, 0, ship->dock_fee_balance);
@@ -901,10 +999,11 @@ void Test_vessel_settlement_covers_a_dock_fee_payment(CuTest *tc)
   settle_end(tc, &fixture);
 }
 
-/* A hull that is gone, a hold with no bay for returned goods, and a purged
- * hull's settlement. */
-void Test_vessel_settlement_outlives_its_ship(CuTest *tc)
+/* A hull that is not in memory, a hold with no bay for returned goods, and
+ * a purged hull's settlement. */
+void Test_vessel_settlement_waits_for_a_hull_not_in_memory(CuTest *tc)
 {
+  struct greyhawk_ship_data *unloaded = &greyhawk_ships[SETTLE_LOST_SHIP];
   struct settle_fixture fixture;
   const char *output;
   char query[256];
@@ -915,13 +1014,29 @@ void Test_vessel_settlement_outlives_its_ship(CuTest *tc)
     return;
   }
 
-  /* The hull is no longer in the fleet: the port's stock is put back and
-   * the row deleted. */
+  /* Boot could not rebuild the hull Tern bought ten salt aboard, and left
+   * her rows. Her settlement is not undone without her hold, and his
+   * accounts wait. */
   settle_stock(tc, &fixture, 0, 90);
   settle_open_purchase(tc, &fixture, SETTLE_TERN, SETTLE_LOST_SHIP);
   output = settle_login(&fixture);
-  CuAssertTrue(tc, strstr(output, "a cargo trade aboard a lost ship") != NULL);
+  CuAssertStrEquals(tc, "", output);
+  settle_assert(tc, &fixture, 1000, 0, 0, 90, 1);
+  output = settle_command(&fixture, do_cargobuy, "salt 1");
+  CuAssertTrue(tc, strstr(output, "still settling an earlier account") != NULL);
+  settle_assert(tc, &fixture, 1000, 0, 0, 90, 1);
+
+  /* A later boot loads her with the ten units, and his login undoes them. */
+  unloaded->active = TRUE;
+  unloaded->shipnum = SETTLE_LOST_SHIP;
+  strlcpy(unloaded->name, "the Wren", sizeof(unloaded->name));
+  unloaded->cargo[0].commodity_id = fixture.salt_id;
+  unloaded->cargo[0].quantity = 10;
+  output = settle_login(&fixture);
+  CuAssertTrue(tc, strstr(output, "a cargo trade aboard the Wren, so it has been undone") != NULL);
+  CuAssertIntEquals(tc, 0, unloaded->cargo[0].quantity);
   settle_assert(tc, &fixture, 1000, 0, 0, 100, 0);
+  memset(unloaded, 0, sizeof(*unloaded));
 
   /* Every bay holds other goods: the salt of an unpaid sale stays ashore,
    * and the rest of the undo is made. */

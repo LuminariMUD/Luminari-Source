@@ -276,11 +276,11 @@ static bool settlement_undo_write(struct greyhawk_ship_data *ship,
               mysql_stmt_execute_prepared(statement);
     mysql_stmt_cleanup(statement);
   }
-  if (written && ship != NULL && settlement->cargo_delta != 0)
+  if (written && settlement->cargo_delta != 0)
   {
     written = vessel_db_save_cargo(ship);
   }
-  if (written && ship != NULL && settlement->fee_amount > 0)
+  if (written && settlement->fee_amount > 0)
   {
     written = vessel_db_save_runtime(ship);
   }
@@ -303,6 +303,10 @@ static bool settlement_undo_write(struct greyhawk_ship_data *ship,
  * cannot be read back, memory stays undone and the hull remembers the
  * settlement for the next reconcile.
  *
+ * A hull that is not in memory (boot could not rebuild her and left her rows)
+ * keeps her settlement: her manifest and fee are not undone without her. It
+ * is undone once she is loaded, or deleted with her rows when she is purged.
+ *
  * @return TRUE once the undo is committed
  */
 static bool settlement_undo(const struct vessel_settlement *settlement)
@@ -311,21 +315,24 @@ static bool settlement_undo(const struct vessel_settlement *settlement)
   enum mysql_commit_result result;
 
   ship = settlement_ship(settlement->ship_id);
-  if (ship != NULL)
+  if (ship == NULL)
   {
-    if (settlement->cargo_delta != 0 && ship->settlement_unresolved != settlement->id)
-    {
-      settlement_restow(ship, settlement);
-    }
-    if (settlement->fee_amount > 0 && ship->dock_fee_balance == 0)
-    {
-      ship->dock_fee_balance = settlement->fee_amount;
-      ship->dock_fee_port = settlement->fee_port;
-      ship->dock_fee_clan = settlement->fee_clan;
-    }
-    /* The manifest is written from memory below. */
-    ship->settlement_unresolved = 0;
+    log("SYSERR: The %s settlement %llu waits for ship %d, which is not in memory",
+        settlement_account(settlement), settlement->id, settlement->ship_id);
+    return FALSE;
   }
+  if (settlement->cargo_delta != 0 && ship->settlement_unresolved != settlement->id)
+  {
+    settlement_restow(ship, settlement);
+  }
+  if (settlement->fee_amount > 0 && ship->dock_fee_balance == 0)
+  {
+    ship->dock_fee_balance = settlement->fee_amount;
+    ship->dock_fee_port = settlement->fee_port;
+    ship->dock_fee_clan = settlement->fee_clan;
+  }
+  /* The manifest is written from memory below. */
+  ship->settlement_unresolved = 0;
 
   result = MYSQL_COMMIT_REFUSED;
   if (mysql_query(conn, "START TRANSACTION") == 0)
@@ -345,10 +352,7 @@ static bool settlement_undo(const struct vessel_settlement *settlement)
     return TRUE;
   }
 
-  if (ship != NULL)
-  {
-    ship->settlement_unresolved = settlement->id;
-  }
+  ship->settlement_unresolved = settlement->id;
   log("SYSERR: Could not undo the %s settlement %llu of ship %d; her accounts are held until "
       "it is undone",
       settlement_account(settlement), settlement->id, settlement->ship_id);
@@ -505,7 +509,6 @@ static int settlement_covered(struct char_data *ch, const struct vessel_settleme
 bool vessel_settlements_reconcile(struct char_data *ch, struct greyhawk_ship_data *ship)
 {
   struct vessel_settlement rows[SETTLEMENT_ROWS];
-  struct greyhawk_ship_data *settled_ship;
   bool settled = TRUE;
   long player_id;
   int covered;
@@ -538,25 +541,28 @@ bool vessel_settlements_reconcile(struct char_data *ch, struct greyhawk_ship_dat
       continue;
     }
 
-    settled_ship = settlement_ship(rows[i].ship_id);
     if (ch != NULL && player_id != 0 && rows[i].player_id == player_id)
     {
       send_to_char(ch,
                    "The harbor office never recorded your gold for a %s aboard %s, so it has "
                    "been undone.\r\n",
-                   settlement_account(&rows[i]),
-                   settled_ship != NULL ? settled_ship->name : "a lost ship");
+                   settlement_account(&rows[i]), greyhawk_ships[rows[i].ship_id].name);
     }
     log("Info: Undid the unpaid %s settlement %llu of player %ld aboard ship %d",
         settlement_account(&rows[i]), rows[i].id, rows[i].player_id, rows[i].ship_id);
   }
 
-  /* Every row of the ship was read: one she remembers and that is not among
-   * them was never recorded. */
+  /* Every row of the ship was read. One she remembers and that is not among
+   * them was never recorded, unless its COMMIT is still on its way: the
+   * locking read waits for that. */
   settled = settled && count <= SETTLEMENT_ROWS;
-  if (ship != NULL && settled)
+  if (ship != NULL && settled && ship->settlement_unresolved != 0)
   {
-    ship->settlement_unresolved = 0;
+    settled = settlement_recorded(ship->settlement_unresolved) == 0;
+    if (settled)
+    {
+      ship->settlement_unresolved = 0;
+    }
   }
   return settled;
 }

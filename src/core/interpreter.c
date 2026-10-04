@@ -7877,7 +7877,6 @@ int enter_player_game(struct descriptor_data *d)
 
   vessel_deliver_pending_insurance(d->character);
   vessel_merchant_deliver_pending_consequences(d->character);
-  vessel_settlements_reconcile(d->character, NULL);
   new_mail_alert(d->character, FALSE);
 
   /* START PLAYER STAT HACKS */
