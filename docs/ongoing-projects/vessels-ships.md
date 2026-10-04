@@ -31,7 +31,7 @@ here records the merge.
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
 | S13 Transactions that survive a lost connection (work item #13) | Merged `9eb723913` (MR !20) | [Phase 13](vessels-ships-history.md#phase-13-s13-progress) |
 | S14 Two-phase vessel settlements (work item #12) | Merged `e7bc5242c` (MR !21) | [Phase 14](vessels-ships-history.md#phase-14-s14-progress) |
-| S15 Checked vessel purchases and payouts (work item #14) | In progress on `feat/vessels-s15`: built, being verified | [Phase 15](#phase-15-s15-progress) |
+| S15 Checked vessel purchases and payouts (work item #14) | Handed to review: tag `vessels-s15`, MR !22 | [Phase 15](#phase-15-s15-progress) |
 
 Production help is current through S14 (help sync plan `20d457173b87`, 2026-10-04). S1-S14 are
 merged: the study's steps, S1-S8; S-immediate, which readied the local Luminari Web client for
@@ -44,7 +44,7 @@ transaction whole when its connection is lost or its `COMMIT` goes unanswered (w
 and S14, which settles a cargo trade, a freight acceptance and a dock-fee payment in two phases,
 so a crash between the ship's side and the captain's gold leaves neither without the other (work
 item #12). One follow-up remains in the sequence, resolved in this worktree: S15 for work item
-#14, which is the active step.
+#14, which is built, verified and in review as MR !22.
 
 ## Working a step
 
@@ -235,7 +235,9 @@ ship data panel among them.
 
 ## Active step
 
-S15 is the active step and the last in the sequence. Its record follows the open items.
+S15 is the active step and the last in the sequence: built, verified and handed to review as
+MR !22, not merged. Its record follows the open items; "After the merge" at its end says what is
+left to do.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's,
 S12's, S13's and S14's code (S12's with schema Phase 24, which boot adds, S13's with migration
@@ -247,10 +249,12 @@ the guide.
 
 ### Phase 15 (S15) progress
 
-Planned and built (2026-10-04); the verification is under way. Branch `feat/vessels-s15` from the
-S14 merge `e7bc5242c` (tag `vessels-s15-base`); the S14 close-out `16c6611fb` comes first, then
-the plan `c295d6aa8`. Hand-off as in the routine: tag `vessels-s15` and a merge request that says
-`Closes #14`; review fixes go on top.
+Built, verified and handed to review (2026-10-04): tag `vessels-s15`, MR !22 (`Closes #14`,
+squash and remove-source-branch off), range `vessels-s15-base..vessels-s15`. Branch
+`feat/vessels-s15` from the S14 merge `e7bc5242c` (tag `vessels-s15-base`); the S14 close-out
+`16c6611fb` comes first, then the plan `c295d6aa8`, the build `aec826b19`, the gate step
+`6a1ada514` and `77cc74137`, and the fixes found before hand-off `bc2a45b69`. Review fixes go
+on top, one commit each.
 Scope: [work item #14](https://gitlab.com/max757/Luminari-Source/-/work_items/14) and its note.
 
 The model. Each of the fifteen movements has the captain's gold in the player file and a ship side
@@ -485,6 +489,42 @@ Found before hand-off, and fixed (`bc2a45b69`):
 - The local CI matrix's first run (`77cc74137`) passed 32 of 33 jobs: clang-tidy refused the
   tests' `memcmp()` of two hulls (a struct with padding has no unique representation). The
   comparison is one helper with a suppression: both are whole copies of one fleet slot.
+
+Verification (2026-10-04), on `bc3f39c30`, whose code is `bc2a45b69`'s (the commit between
+them changes this document only):
+
+- `make test-all` with the database cases on: 2,034 production tests and 32 protocol tests pass
+  (the test database is the `luminari-vessels-testdb` container, `master_schema.sql` plus what
+  the boot ensure functions add).
+- The vessel help verifier on the test database, after `help_vessel_entries.sql`: 7 checks
+  pass, 64 content phrases. No new SQL.
+- Live gates, in the private-namespace harness on a reload of the development dump
+  (`/tmp/claude-1000/vs4`, jobs `stage-s15/k01`-`k22`, run as `m01`-`m22`): 22 of 22 jobs pass
+  in 47 minutes. Merchant 39 s, campaign provisioning 146 s, Vailand merchant 20 s, builder,
+  gunnery 76 s, tactical 282 s, lookout 22 s, boarding 48 s, narrative 22 s, rules 36 s, events
+  41 s, movement 104 s, loss 84 s, damage 547 s, derelict 31 s, hunter 90 s, frontier 221 s,
+  raider 174 s, economy 240 s, client 25 s, and the economy gate with every database session
+  killed twice 313 s.
+- The loss gate's new step: with the database refusing the listed design's runtime row,
+  Vesselmate's `shipbuy` reported the rolled-back spawn and "Your 8000 gold is returned.", his
+  trade-in "The shipwrights cannot complete the trade, so it is undone: Losscheck Tern is
+  rebuilt as she was and no gold changes hands.", his purse was 57,938 before and after, the
+  boat was still a boat with her owner and her bosun, and the session's real trade-in then
+  rebuilt the same hull as a warship.
+- The local CI matrix, `scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass in
+  554 s. The first run, on `77cc74137`, passed 32 (see "Found before hand-off").
+- Before the fixes, on `77cc74137`: `make test-all` passed on the build, and the first eleven
+  gates of a batch passed before it was stopped to make the fixes.
+
+After the merge (merge commit, never a squash; keep the branch):
+
+- Help sync to production. Five entries changed: SHIPHIRE (the SHIP-CREW entry), SHIPBROWSE
+  (SHIP-OWNERSHIP), PLUNDER (the piracy entry, BOUNTY PAY and MARQUE), CONTRACTS, and SHIPFIRE
+  (SHIP-COMBAT, SHIPREPAIR). Apply `help_vessel_entries.sql` to the development database
+  first, then `sync --authorize-production`.
+- Move this section to the history document and set the status row to the merge.
+- S15 is the last step: close these study documents, as "Still open outside these steps" says.
+- The production deploy then also carries S15's code. It has no schema change.
 
 ## Estimate (remaining)
 

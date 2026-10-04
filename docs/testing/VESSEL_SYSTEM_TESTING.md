@@ -650,6 +650,15 @@ session no runtime row may name the refused design; the harness drops the
 constraint, also when a run fails, and the session's cleanup deletes the
 design.
 
+On 2026-10-04 the gate passed with this step in 84 seconds inside the private
+namespace described under the Vessel Rules Check, on source `bc3f39c30`:
+Vesselmate's purse was 57,938 gold before and after the two refused orders. In
+the same batch on the same binary all 22 jobs passed: both merchant gates, the
+campaign provisioning, builder, gunnery (76 s), tactical (282 s), lookout,
+boarding, narrative, rules, events, movement (104 s), damage (547 s),
+derelict, hunter (90 s), frontier (221 s), raider (174 s), economy (240 s),
+client, and the economy gate with every database session killed twice.
+
 On 2026-09-30 the gate passed in 79 seconds inside the private namespace
 described under the Vessel Rules Check, on source `398e23a7f`. In the same
 batch on the same binary the builder (73 s), gunnery (72 s), tactical (279 s),
