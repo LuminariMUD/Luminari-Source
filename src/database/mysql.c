@@ -749,13 +749,17 @@ void mysql_pool_stats(char *buf, size_t size)
  * Pool-aware query function that automatically manages connections.
  *
  * @param query SQL query to execute
- * @param result Pointer to store result set (can be NULL for non-SELECT)
+ * @param result Pointer to store result set (can be NULL for non-SELECT);
+ *               set to NULL when the query fails or has no result set
  * @return 0 on success, non-zero on error
  */
 int mysql_pool_query(const char *query, MYSQL_RES **result)
 {
   MYSQL_POOL_CONN *pc;
   int ret;
+
+  if (result)
+    *result = NULL;
 
   /* Acquire connection from pool */
   pc = mysql_pool_acquire();

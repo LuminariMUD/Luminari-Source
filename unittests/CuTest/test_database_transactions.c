@@ -439,6 +439,7 @@ void Test_database_pool_keeps_its_handles_and_never_waits_for_the_database(CuTes
   MYSQL_POOL pool;
   MYSQL_POOL_CONN entry;
   MYSQL_POOL_CONN *acquired;
+  MYSQL_RES *result;
   char *unix_socket;
   unsigned int tcp_port;
 
@@ -473,6 +474,11 @@ void Test_database_pool_keeps_its_handles_and_never_waits_for_the_database(CuTes
   /* With its one connection out the pool would open another. It cannot, and
    * says so instead of trying again without end. */
   CuAssertPtrEquals(tc, NULL, mysql_pool_acquire());
+
+  /* A query that gets no connection leaves its caller no result to free. */
+  result = (MYSQL_RES *)&pool;
+  CuAssertTrue(tc, mysql_pool_query("SELECT 1", &result) != 0);
+  CuAssertPtrEquals(tc, NULL, result);
   mysql_pool_release(acquired);
 
   /* The database is away: no connection, the entry still free and the
