@@ -550,6 +550,10 @@ does to a transaction, and they lose it for real:
   test-only keys and delete them afterwards. Tables that only boot creates need their ensure
   function first, outside any transaction.
 - Read the outcome with `LOCK IN SHARE MODE`: the lost session may still be finishing.
+- For a database that stays away, point the handle's `port` and `unix_socket` at nothing for
+  the call under test and put them back after it: every reconnect in between is refused.
+- A deadlock needs a second session. `Test_database_deadlock_victim_takes_no_statement_until_it_ends`
+  shows the order of the four writes.
 
 `mysql_test_fail_nth_query()` remains for a failure that is not a lost connection: it fails a
 query without sending it.

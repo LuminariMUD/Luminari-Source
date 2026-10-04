@@ -308,6 +308,13 @@ repeated renaming does not accumulate prior custom names. Saved eidolon identity
 is restored before considering legacy owner-description defaults. Malformed
 records remain saved for recovery; `pets restore` offers a bounded retry and skips already published pet IDs.
 
+The keeper commits before a pet leaves play or enters it. When that COMMIT gets no reply, the
+pet's row is read back; when the row cannot be read either, no state is chosen. The pet stays
+where it is (a stabled one in play, a reclaimed one unpublished), the roster goes back to
+"restore failed", which keeps every pet row and closes the keeper, and `pets restore` settles it
+from the rows: a pet whose row is active is published, and a follower in play whose row says
+the keeper has it leaves play.
+
 The category accounting lives in `src/core/utils.c`. Most categories have their own cap.
 Charmed mobiles and any follower that matches no named category share the general slots
 (`1 + max(0, Charisma bonus)`); ordinary summons fill their dedicated slots (one, or two for a
@@ -404,16 +411,22 @@ These systems maintain data in both locations for redundancy or different purpos
 - **Control**: `#ifdef OBJSAVE_DB` in `objsave.c`
 
 Every save (`Crash_crashsave()`, `Crash_rentsave()`, `Crash_idlesave()`, `Crash_cryosave()`) is
-one transaction: it deletes the character's rows, writes the header and a row for each object,
-and commits.
+one transaction, written by `objsave_write_player_save()`: it deletes the character's rows,
+writes the header and a row for each object worn, sorted into a bag or carried, and commits.
+Nothing leaves memory while it is written.
 
 - **A lost connection** loses the whole save, and the last save's rows stay as they were
   (`docs/systems/DATABASE_INTEGRATION.md`, Transaction Management).
 - **A row the database refuses** on a good connection is left out. The rest is committed, since
   rolling back would lose more; the staff see one line naming the owner and the count, and the
   log names each object.
-- **Retry.** `Crash_crashsave()` returns whether the save was complete. `PLR_CRASH` stays set
+- **Retry.** `Crash_crashsave()` returns whether the save was complete, and sets `PLR_CRASH`
   after a failed or incomplete one, so the next crash-save pass saves the player again.
+- **Leaving the game.** The rent, idle and cryo saves take the objects out of memory afterwards,
+  written or not: `extract_char()` would drop what the character still held in the room, beside
+  a save that holds it. A save that did not reach the database is therefore written a second
+  time first. After two failures the database keeps the last save that reached it, and the staff
+  are told.
 - **Record size.** A record stays under 36,767 bytes; the live `serialized_obj` columns hold
   65,535. Every bounded part of a record fits. Extra descriptions are the only part without a
   bound, and one that does not fit is left out whole and logged, so no object is refused.
@@ -431,8 +444,12 @@ and commits.
   not a unique key)
 
 `House_crashsave()` saves a house the way a player's objects are saved: one transaction, lost
-whole with its connection. A refused row is left out and reported to the staff, and
-`ROOM_HOUSE_CRASH` stays set so the next house-save pass saves the house again.
+whole with its connection. A refused row is left out and reported to the staff. After a failed
+or incomplete save `ROOM_HOUSE_CRASH` is set, so the next house-save pass saves the house again.
+
+A sheath's weapons are stored under their owner's name (`player_save_objs_sheathed`), and a
+house has no owner. A sheath lying in a house keeps its weapons while the server runs; the house
+save writes them as the house's own objects, so after a reboot they lie beside the sheath.
 
 ---
 

@@ -333,7 +333,8 @@ handles, so the pool never closes a handle to replace it: every connection is ma
 weather cache and wilderness descriptions. `mysql_pool_acquire()` checks a connection that has
 been idle longer than `MYSQL_POOL_TIMEOUT` seconds. When the database cannot be reached it returns
 `NULL`, and `mysql_pool_query()` reports a failed query: the pool never waits for the database,
-because the game runs on the thread that asks.
+because the game runs on the thread that asks. A failed query leaves its caller's result pointer
+`NULL`.
 
 ### Batch Operations
 
@@ -396,6 +397,8 @@ and a `COMMIT` would report success. The query layer prevents that for every cal
 - A command marks the connection when, with a transaction open, it fails with client error 2006
   or 2013, fails after the library gave the transaction up (a reconnect it refused or could not
   make), or reconnects (a ping does, and reports success).
+- A deadlock ends the same way with the connection up: the server rolls its victim's whole
+  transaction back and fails one statement with error 1213. That marks the connection too.
 - A marked connection sends nothing: queries and prepared statements fail at once.
 - The mark ends with the transaction. `ROLLBACK` is sent, on the new session if need be. A
   `COMMIT` fails and is answered with a `ROLLBACK`. A new `START TRANSACTION` starts clean.
@@ -411,7 +414,8 @@ them. At boot no pulse passes, and nothing heals.
 
 **A statement the server refuses** (a constraint, a missing table) loses nothing: the connection
 and the transaction go on, and the caller decides whether to roll back. The object and house
-saves commit the rest and count as incomplete (`docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`).
+saves commit the rest and count as incomplete (`docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`). The one
+exception is the deadlock above, where the refusal takes the transaction with it.
 
 **A `COMMIT` without a reply.** A connection lost while the reply is on its way leaves the
 outcome unknown: the server may have committed. `mysql_commit_transaction()` tells the three
@@ -424,10 +428,17 @@ endings apart and rolls back whatever is not confirmed:
 | `MYSQL_COMMIT_UNANSWERED` | No reply came | Writes again, or reads the database back |
 
 Use it wherever memory is changed, or left alone, on the strength of the commit. Where the writes
-set absolute values, write them again (cargo trades do). Otherwise read a row the transaction
-wrote, with `LOCK IN SHARE MODE`: the locking read waits until the lost session's transaction has
-ended on the server, so it sees the final state. Pet storage and retrieval, a hull's change of
-owner and the end of a vessel event do this.
+set absolute values, write them again (cargo trades do, and the object save a character leaves
+the game with). Otherwise read a row the transaction wrote, with `LOCK IN SHARE MODE`: the
+locking read waits until the lost session's transaction has ended on the server, so it sees the
+final state. Pet storage and retrieval, a hull's change of owner and the end of a vessel event do
+this.
+
+A reply is mostly lost to a server restart, and then the read-back cannot connect either. A site
+must not take that for a rollback. Either the work can be done again without harm (the vessel
+event's finish writes its scores only when its status write changed the event's row), or no state
+is chosen until the row can be read (the pet keeper puts the owner's roster back to "restore
+failed", and `pets restore` settles it from the rows).
 
 **Session locks.** `GET_LOCK()` belongs to the session, so a reconnect drops it without telling
 the holder. `help_sync_database_lock_held()` asks the server; the help writers call it inside

@@ -964,13 +964,16 @@ public warships at the staff coordinate through the normal prototype,
 interior, hull, weapon, and runtime persistence path. Damage and sinks score
 against those contacts, and the unique highest-scoring captain wins.
 
-Completion updates every leaderboard row and the terminal event status in one
-database transaction. When its COMMIT gets no reply (a connection lost while
-the reply is on its way), the event's row is read back: the terminal status
-there means the scores are recorded and the event ends, so a retry cannot add
-them a second time. A failed cleanup or score commit keeps the event in
-`recovery_failed` and blocks another start instead of repeating work each
-tick. Every event has a one-hour ceiling. Events do not resume after process
+Completion writes the terminal event status and every leaderboard row in one
+database transaction. The status is written first, and only to an event that
+has not ended; the scores are written only when that changed the event's row,
+so finishing an event twice adds them once. When the COMMIT gets no reply (a
+connection lost while the reply is on its way), the event's row is read back:
+the terminal status there means the scores are recorded and the event ends.
+If the row cannot be read either, the staff retry `vevent end`, which finds
+the row as the first attempt left it. A failed cleanup or score commit keeps
+the event in `recovery_failed`, a mark that never replaces a terminal status,
+and blocks another start instead of repeating work each tick. Every event has a one-hour ceiling. Events do not resume after process
 restart: boot retires tracked ghost hulls and closes interrupted rows as
 `recovered`; a cleanup failure remains explicit for `vevent recover`. Captain
 IDs are gameplay player-file IDs, and leaderboard display resolves the current
@@ -1096,7 +1099,10 @@ offense path (plunder and NPC-merchant consequences) goes through
 `vessel_bounty_record_offense()`, which folds the decay into the stored amount
 before adding and restarts the clock. The row holds the whole bounty, so the
 offense is not recorded when the standing bounty cannot be read: read as
-none, the offense alone would replace it. `bounty pay` in any port room outside a
+none, the offense alone would replace it. `vessel_add_bounty()`, the form
+`plunder` uses outside a transaction, tries once more and reports the result:
+the raider is told of a bounty only when it was recorded, and otherwise the
+staff are told the amount to apply. `bounty pay` in any port room outside a
 pirate cove clears the bounty for `vessel_bounty_payoff_cost()`, 125% rounded
 up; WANTED captains may pay. WANTED, HUNTED, port refusal, and hunter
 eligibility all read the decayed amount.
