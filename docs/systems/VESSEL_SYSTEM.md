@@ -1097,13 +1097,22 @@ each writes the captain's gold to the player file and the ship's side to
 MariaDB inside the command and checks both, so only a crash between the two
 writes splits them, and always against the player.
 
-- A purchase takes the gold first. `vessel_charge()` debits it and saves with
-  `save_char_checked()`; a failed save puts the gold back and refuses the
-  purchase before anything aboard has changed ("Your payment could not be
-  recorded; no gold was taken."). Then the ship's side is written. If that
-  fails, the ship's side is put back and the gold returned (`vessel_refund()`;
-  a refund that cannot be saved stays with the captain in memory, and the
-  per-minute save of the player stores it).
+- A purchase takes the gold first. `vessel_charge()` checks that the database
+  answers ("The harbor's records cannot be reached; no gold was taken."), then
+  debits the gold and saves with `save_char_checked()`; a failed save puts the
+  gold back and refuses the purchase before anything aboard has changed ("Your
+  payment could not be recorded; no gold was taken."). Then the ship's side is
+  written. If that fails, the ship's side is put back and the gold returned
+  (`vessel_refund()`; a refund that cannot be saved stays with the captain in
+  memory, and the per-minute save of the player stores it).
+- A put-back that cannot be written lets the purchase stand, as a sale does
+  (below). The rows may hold the purchase, since a write whose reply is lost
+  has been made, and nothing saves the fleet periodically: `save_all_vessels()`
+  runs at copyover and at shutdown only. Returning the gold would leave work
+  nobody paid for in the rows until her next shipyard job. So the work stays
+  aboard, the price stays paid, the rows are written once more, and her next
+  save completes them if that fails too. "Nothing was done" is never said of
+  a purchase the rows may still hold.
 - A payout writes the ship's side first; a failed write puts the item back and
   pays nothing. Then `vessel_gold_saved()` pays and saves. A failed save takes
   the gold back and puts the item back, in memory and in the rows. If the
@@ -1121,22 +1130,34 @@ writes splits them, and always against the player.
   same way ("... so nothing was sold." or "Your payment could not be recorded,
   so the sale is undone.").
 - `shipbuy` charges, then spawns; the spawn rolls itself back when the hull
-  cannot be saved, and the price is returned. The spawn writes the runtime
-  row last: boot rebuilds only a hull that has one, so rows a failed rollback
-  leaves behind hold her slot instead of becoming a hull nobody paid for. A
-  trade-in charges what the captain owes before the fittings are counted,
+  cannot be saved, and the price is returned. The rollback deletes her rows
+  before it takes her out of play. Rows that cannot be deleted may hold all of
+  her (the reply to her runtime row lost), and boot would rebuild her for a
+  buyer who has the price back: the spawn then stands, for `vedit spawn` and
+  the NPC fleets as well, the price stays paid, and her next save writes her
+  rows. The spawn writes the runtime row last: boot rebuilds only a hull that
+  has one, so a crash in mid-spawn leaves rows that hold her slot, not a hull.
+  A trade-in charges what the captain owes before the fittings are counted,
   rebuilds and saves the hull, then pays for the fittings she cannot carry and
   any credit left over. If the rebuild, the save or that payment fails, the
   rebuild is undone: the new interior is reclaimed, the hull restored from the
   copy taken before the work, her old rooms recreated as boot recreates them
   (`restore_ship_interior()`), and the charge returned. Those aboard and the
-  vehicles in her bay stay on the dock.
+  vehicles in her bay stay on the dock. If the undo cannot be recorded (she
+  could not be written back, or her rooms could not be recreated), her rows
+  may hold the new hull: the charge is kept, and the captain and the staff
+  (`mudlog()`) are told, who settle it by hand.
 - `shipsummon` charges, then saves the summons (her emptied manifest, then
   the hull as stowed at the shipyard, cast off and with her autopilot
   stopped) before she leaves the world or anything alongside or aboard is
   touched. A summons that cannot be saved leaves her as she was, with her
   cargo, her course, the hull alongside and those aboard, and returns the
-  fee.
+  fee. She is written back the other way round, the hull before the manifest,
+  so a stop between the two writes leaves her where she was with an empty
+  manifest, never due at the shipyard with her hold full. If she cannot be
+  written back, the summons stands and the fee stays paid. Her vehicles are
+  put off at the position she left (the copy taken before the summons), not
+  at the shipyard's, which her own position already is.
 - `bounty pay` and `marque` charge, then write the `vessel_bounties` row. When
   the write reports a failure the row is read back, since a write whose reply
   was lost has been made; the fee is returned only if the row does not show
@@ -1149,8 +1170,8 @@ writes splits them, and always against the player.
   mid-command), the freight stays aboard, and the captain and the staff are
   told that the books may be wrong.
 
-A server without a database refuses these purchases, since the ship's side
-cannot be written.
+A database that does not answer refuses these purchases before any gold is
+taken, since the ship's side could be neither written nor put back.
 
 Staff can run `vtradecheck 1000` to execute the deterministic sustained-market
 gate without changing live port or character state. It must report all 1,000
@@ -1733,7 +1754,8 @@ renown gates came in S7 (Rewards, Renown and Contraband below).
   exterior room and stows. The fee and the summons are a checked purchase
   (S15). `vessel_summon_tick()`
   (service event) brings a due hull in: `vessel_create_runtime_hull()` at the
-  shipyard, berthed, saved, and scheduled again. `vessel_summon_announce()`
+  shipyard, berthed, saved (her manifest, then her runtime row, in case her
+  summons stood unrecorded), and scheduled again. `vessel_summon_announce()`
   tells the dock, and sends word to her owner if online elsewhere.
 - Trade-in and rename: `shipbuy <id> trade` rebuilds the owner's hull berthed
   at that dock (empty hold, not casting off or alongside) in place as the new
