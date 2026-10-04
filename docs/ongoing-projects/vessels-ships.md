@@ -29,7 +29,7 @@ here records the merge.
 | S10 Player guide | Merged `60ef66ad1` (MR !16) | [Phase 10](vessels-ships-history.md#phase-10-s10-progress) |
 | S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
-| S13 Transactions that survive a lost connection (work item #13) | In review (MR !20) | [Phase 13](#phase-13-s13-progress) |
+| S13 Transactions that survive a lost connection (work item #13) | In review (MR !20), round 1 fixed | [Phase 13](#phase-13-s13-progress) |
 | S14 Two-phase vessel settlements (work item #12) | Not started | [Part 5](#part-5-implementation-sequence) |
 | S15 Checked vessel purchases and payouts (work item #14) | Not started | [Part 5](#part-5-implementation-sequence) |
 
@@ -239,7 +239,7 @@ closes the item when it merges.
 
 ### Phase 13 (S13) progress
 
-In review (2026-10-04). Branch `feat/vessels-s13` from master `ec8f55b26` (the S12 review fixes'
+In review (2026-10-04); review round 1 is fixed (see below). Branch `feat/vessels-s13` from master `ec8f55b26` (the S12 review fixes'
 merge and its record), where the annotated tag `vessels-s13-base` stands. The four planning commits
 that put S13, S14 and S15 into Part 5 come first (`b15a8bc60`, `b1a42c2c3`, `5e4ee1425`,
 `92efc3d73`), then this plan. Hand-off as in the routine: tag `vessels-s13` and a merge request
@@ -477,6 +477,110 @@ its next deploy, and boot then applies `2026100401` (on the live `house_data`, w
 the key, it adds `idx_vnum`); move this section to the history; tag `vessels-s14-base` on the
 merge and branch `feat/vessels-s14` from it, whose first commit is the S14 plan. S14's freight
 acceptance reads its settlement row back through `mysql_commit_transaction()`.
+
+Review round 1 (2026-10-04, range `vessels-s13..feat/vessels-s13`): nine findings on MR !20,
+each reproduced or read by the reviewer on `a25b937e9`, all fixed, one commit each.
+
+- [P1] A sheath holding a weapon, lying in a house, stopped the server at the next house save
+  (`44b82187b`). The house save handed its NULL owner to the sheath writer. The crash predates
+  S13. `House_save()` now stores a sheath's weapons as the house's own objects, beside the
+  sheath, and the record writer leaves the sheath rows to saves that have an owner. The
+  reviewer's other half, emptying a sheath when it is removed, was not taken: the help entry
+  `DRAW-WEAPONS` says a player can keep several sheaths with weapons in them, and the player
+  save stores a carried sheath's weapons. With the weapons stored by the house, nothing is lost
+  there either.
+- [P2] The cryo and idle saves deleted the bag rows and never wrote them back (`69ecda7a4`).
+  The cryo save writes the bags like the other saves. The idle save lost its "nothing to store"
+  return, which looked only at what was worn and carried: it always writes what there is.
+- [P2] The rent, idle and cryo saves returned at a failed COMMIT, or a failed start, with the
+  objects still in memory, and `extract_char()` dropped them in the room beside a save that held
+  them (`4c54755ce`). The four player saves now share one writer,
+  `objsave_write_player_save()`, which leaves everything in memory and commits through
+  `mysql_commit_transaction()`; `objsave_commit_player_save()` went into it. A leaving save
+  (`objsave_save_and_extract()`) that did not reach the database is written once more on the
+  session the connection has by then: the save replaces the last one whole, so a second write is
+  safe. The objects then leave memory whether it was written or not. After two failures the
+  database keeps the last save that reached it and the staff are told. The crash save keeps its
+  one attempt: its flag is its retry.
+- [P2] A deadlock's victim loses its whole transaction with the connection up, and was not
+  marked (`796f9a8a8`). `transaction_watch_end()` marks on error 1213 too. This replaces the
+  planning ablation above, which left a deadlock out because the game is the only writer of
+  these tables: an outside writer (administrative SQL, tooling) is enough, and the writers go on
+  after a failed row by design.
+- [P2] When a COMMIT got no reply and the read-back could not run either, the vessel event and
+  the pet keeper took that for a rollback (`263f76864`). That is the usual case, not two faults
+  in a row: a reply is mostly lost to a server restart, and then the read-back cannot connect.
+  It replaces the planning interpretation above ("the site does what it did before").
+  - The event's finish is idempotent on its own row. The status is written first, only to an
+    event that has not ended, and the scores only when that changed a row; the `recovery_failed`
+    mark has the same condition. The retry the staff are told to make adds no score twice.
+  - The pet keeper chooses no state. The roster goes back to "restore failed", the state a
+    failed login restore leaves: no snapshot replaces the pet rows and the keeper is closed.
+    `pets restore` settles it from the rows. It publishes a pet whose row is active, as before,
+    and now takes a follower out of play whose row says the keeper has it.
+  - The hull's change of owner keeps taking an unreadable outcome for a rollback: the owner in
+    memory is written again, as an absolute value, by `save_all_vessels()` at shutdown and
+    copyover, so the database converges on what the players were told. Only a crash before that
+    save lets the database's owner stand.
+- [P3] An incomplete save left the crash flag as it found it, so a save made with the flag
+  clear (the `save` command, the crafting saves, the direct house saves) was never retried
+  (`5976699d8`). `Crash_crashsave()` and `House_crashsave()` set the flag after a failed or
+  incomplete save. The house save looks its room up before it opens the transaction.
+- [P3] `log_hint_usage()` freed an uninitialized pointer when its pool query failed
+  (`9ea0d4f94`). `mysql_pool_query()` clears the caller's result first. Predates S13.
+- [P3] `hedit` deleted another entry's keywords when it saved under a tag it had not loaded
+  (`456000371`). The editor keeps the tag of the entry it loaded, none for a new entry. A save
+  under any other tag locks that tag's row inside the transaction and is refused when the row
+  exists; the editor stays open for another tag. The help entry `HEDIT` already calls the tag
+  unique, so no help text changes.
+- [P3] A plunder's bounty that was not recorded was still announced and passed on as applied
+  (`1b4363645`). `vessel_add_bounty()` tries once more, since outside a transaction the
+  connection has reconnected by then, and reports the result. `plunder` announces and passes on
+  only a recorded bounty; otherwise the staff are told the amount to apply by hand.
+
+The system documents follow in `9a0e69438`: `DATABASE_INTEGRATION.md`,
+`SAVE_SYSTEMS_BREAKDOWN.md`, `VESSEL_SYSTEM.md` and the testing guide.
+
+Ablation (review fixes): no pending-outcome list for the pets (the roster's existing "restore
+failed" state is the pending state); no retry loops (one more attempt for a leaving save and for
+a plunder's bounty, none for the crash save); one error number added to the mark's rule instead
+of a general test for a transaction the server ended; no new table, column or editor field (the
+editor's unused storage field holds the loaded tag); no second copy of "remove a pet with its
+gear" (the keeper's two paths share `discard_unpublished_saved_pet()`).
+
+Filed, not S13's: [work item #16](https://gitlab.com/max757/Luminari-Source/-/work_items/16)
+(bagged objects stay in memory when their owner leaves the game) and
+[work item #17](https://gitlab.com/max757/Luminari-Source/-/work_items/17) (a loaded sheath
+loses its weapons on a pet and leaks them when extracted). Both were read from the code while
+fixing the sheath and bag findings.
+
+Verification (2026-10-04, on `1b4363645`, the final source, and `9a0e69438` with the documents):
+
+- New DB-backed tests, each a finding's reproduction turned around:
+  `Test_house_save_stores_a_sheaths_weapons_as_its_own`,
+  `Test_cryo_and_idle_saves_keep_what_is_in_the_bags`,
+  `Test_leaving_save_is_written_again_and_takes_the_objects_along` (a row lost, a COMMIT's
+  reply lost, and the database away for both attempts),
+  `Test_database_deadlock_victim_takes_no_statement_until_it_ends` (two sessions, 20 runs in a
+  row), and `Test_pet_keeper_waits_for_a_row_it_cannot_read_back`. Extended: the event test (the
+  database away at the read-back, then the retry), the object and house save tests (the flag is
+  no longer set by hand), the pool test, the hedit test (a new entry and a retagged one under an
+  existing tag), the bounty test and the plunder test.
+- `make test-all` with the database cases (S9's `testenv.sh`, the `luminari-vessels-testdb`
+  container): 2,020 CuTest cases OK (seed 1), the protocol harness's 32, and the Python suites
+  (542, 37 skipped); `check_sql_interpolation.py` within baseline (317 sites).
+- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) on `9a0e69438`: all 33
+  jobs passed in 1,334 s, clang-tidy with 0 findings, the changed lines covered at 95.93% in
+  `sql` (118 of 123) and 93.79% in `persistence` (136 of 145).
+- Live, in the namespace harness on a fresh reload of the development dump (job `r1-review`):
+  the events gate passed in 52 s through the changed finish. Then Kohdee loaded two objects,
+  sorted one into a bag and quit; at the next login the one was carried and the other came out
+  of the bag, through the rewritten rent save and its load.
+- The other gates were not rerun. The rest of this round is reached only on a failure path (a
+  lost connection, a deadlock, a refused row, a database that is away), which the DB-backed
+  tests drive with real faults.
+
+After the merge: as in the hand-off above. No help to sync: no entry changed.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's and
 S12's code (S12's with schema Phase 24, which boot adds) and the review fixes, the Open
