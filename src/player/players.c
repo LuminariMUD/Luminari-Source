@@ -2519,6 +2519,40 @@ void save_char_fail_fchmod_for_test(bool fail)
 #endif
 
 /**
+ * Put a player file's directory on disk, so the rename that installed the
+ * file survives a host crash: until then the directory can still name the
+ * file it replaced, after the caller was told the save succeeded.
+ *
+ * A failure is logged and not returned. The new file is in place by now, and
+ * a caller that undoes its work on FALSE would undo it against a file that
+ * holds the save.
+ */
+static void save_char_sync_directory(const char *filename)
+{
+  char directory[40];
+  char *slash;
+  int fd;
+
+  strlcpy(directory, filename, sizeof(directory));
+  slash = strrchr(directory, '/');
+  if (slash == NULL)
+  {
+    return;
+  }
+  *slash = '\0';
+
+  fd = open(directory, O_RDONLY | O_DIRECTORY);
+  if (fd < 0 || fsync(fd) != 0)
+  {
+    log("SYSERR: save_char: Failed to sync the directory of %s: %s", filename, strerror(errno));
+  }
+  if (fd >= 0)
+  {
+    close(fd);
+  }
+}
+
+/**
  * Write a player file, reporting whether the write actually succeeded.
  *
  * This is the real implementation; save_char() below is a result-discarding
@@ -4153,8 +4187,12 @@ save_char_restore:
   }
   if (!save_ok)
     unlink(temp_filename);
-  else if (ch->player_specials)
-    ch->player_specials->craft_migration_unsaved = FALSE;
+  else
+  {
+    save_char_sync_directory(filename);
+    if (ch->player_specials)
+      ch->player_specials->craft_migration_unsaved = FALSE;
+  }
 
   /* Free the write buffer */
   free(write_buffer);
