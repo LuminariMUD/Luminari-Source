@@ -246,9 +246,14 @@ void save_char(struct char_data *ch, int mode);
 ```
 
 `save_char_checked()` reports allocation, file, flush, close, and index
-failures. `save_char()` is the legacy wrapper used by call sites that do not
-consume a result. The player index follows the same pattern with
-`save_player_index_checked()` and `save_player_index()`.
+failures. It writes a temporary file, syncs it, renames it over the player
+file and syncs the directory, so a save it reports is not lost to a crash of
+the host. A directory sync that fails is logged and not reported: the new
+file is in place by then, and a caller that undoes its work on FALSE would
+undo it against a file that holds the save. `save_char()` is the legacy
+wrapper used by call sites that do not consume a result. The player index
+follows the same pattern with `save_player_index_checked()` and
+`save_player_index()`.
 
 Use the checked functions when the caller:
 

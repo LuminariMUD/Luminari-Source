@@ -1162,7 +1162,8 @@ every timber and line."*
 ![shippurge](vessel-guide/75-staff-shippurge.png)
 
 *`shippurge <slot>` removes a hull: "Purged ship 17 'Sablebranch Riverboat': reclaimed 2 rooms and
-released 0 vehicles."*
+released 0 vehicles." On a slot that `shiplist` shows holding only the stored records of a hull
+that is not in the game, it deletes the records and frees the slot.*
 
 ![vesseldebug balance](vessel-guide/76-staff-vesseldebug-balance.png)
 

@@ -1026,7 +1026,9 @@ port's supply and to the hold's lot, the `contract_id` to reopen, and the
 dock fee owed again (`fee_amount`, `fee_port`, `fee_clan`). Then
 `vessel_settlement_pay()` moves the gold, sets the character's marker
 (`GET_VESSEL_SETTLEMENT()`, the player file's `VSet` line) to the row's id,
-saves with `save_char_checked()`, and deletes the row.
+saves with `save_char_checked()`, and deletes the row. The save syncs the
+file and, after the rename that installs it, its directory, so the row is
+deleted only once the file that names it would survive a crash of the host.
 
 A row that is still there is settled by `vessel_settlements_reconcile()` from
 the player file of the captain it names: when the file's marker is the row's
@@ -1079,9 +1081,12 @@ schema. Where the server can stop:
   after a locking read of it: a `COMMIT` that is still on its way would land
   after a plain read had seen nothing.
 - A hull that is not in memory (boot could not rebuild her and left her
-  rows): her settlement is kept, since her manifest and fee cannot be undone
-  without her, and its captain's accounts wait. It is undone once she is
-  loaded, or deleted with her rows when she is purged.
+  rows, or her purge failed after she left the game): her settlement is kept,
+  since her manifest and fee cannot be undone without her, and its captain's
+  accounts wait. Her fleet slot is held for her rows (`vessel_slot_free()`,
+  Persistence Lifecycle below), so no other hull is spawned in it and the
+  settlement is never undone on a stranger. It is undone once a boot loads
+  her, or deleted with her rows when `shippurge` removes them.
 
 A purged hull's settlement is deleted with her other rows
 (`vessel_delete_persistence()`).
@@ -2389,7 +2394,14 @@ Maximum: 500 active vessels * 20 rooms = 10,000 rooms
    raider the restart restored (S6), so raiders never outlive a restart or a
    copyover.
 2. **Create**: A spawned or purchased vessel receives a fleet slot, object,
-   interior, and immediate database record.
+   interior, and immediate database record. A spawn takes the lowest free
+   slot (`vessel_slot_free()`): no hull in play or stowed, and no rows held.
+   A slot is held when its hull is not in memory while her rows may still be
+   in the database: boot could not rebuild her, or a purge failed and its
+   caller freed the slot (`vessel_delete_persistence()` marks it). A spawn
+   there would write over her rows and inherit the rest. `shiplist` shows a
+   held slot and counts it as in use, `shippurge` deletes the rows and frees
+   it, and the mark is runtime only, since every boot reads the rows again.
 3. **Operate**: Docking, route, cargo, trade, ownership, crew, upgrade, and
    insurance changes update their authoritative tables. Player autopilot
    `on`, `off`, `pause`, and `setroute` changes commit the runtime row before
