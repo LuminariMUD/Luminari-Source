@@ -1337,41 +1337,24 @@ static bool objsave_begin_player_save(struct char_data *ch)
   }
   return deleted;
 }
-
-/* Commit a player's object save. Objects whose rows the database refused are
- * not in it: the rest is committed, since rolling back would lose more, and
- * the staff are told whose they were.
- *
- * @return TRUE when the save was committed */
-static bool objsave_commit_player_save(struct char_data *ch, int unsaved)
-{
-  if (mysql_query(conn, "commit;"))
-  {
-    log("SYSERR: Unable to commit transaction for saving of player object data: %s",
-        mysql_error(conn));
-    mysql_query(conn, "rollback;");
-    return false;
-  }
-  if (unsaved > 0)
-    mudlog(BRF, LVL_STAFF, TRUE,
-           "SYSERR: %d of %s's objects could not be saved; the rest were. The log names them.",
-           unsaved, GET_NAME(ch));
-  return true;
-}
 #endif
 
-/* Save a player's objects while they play. FALSE when the save failed or was
- * incomplete: PLR_CRASH then stays set, so the next crash-save pass saves the
- * player again. */
-bool Crash_crashsave(struct char_data *ch)
+/* Write a player's whole object save as one transaction, in place of the
+ * last save's rows: the rent code, worn gear, bags and inventory. Objects
+ * whose rows the database refused are not in it: the rest is committed, since
+ * rolling back would lose more, and the staff are told whose they were.
+ * Nothing leaves memory, so a save that did not reach the database can be
+ * written again.
+ *
+ * @param unsaved set to the number of objects the database refused
+ * @return TRUE when the save was committed */
+static bool objsave_write_player_save(struct char_data *ch, int rentcode, int cost, int *unsaved)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
-  int unsaved = 0;
   int j;
   FILE *fp;
 
-  if (IS_NPC(ch))
-    return false;
+  *unsaved = 0;
 
   if (!get_filename(buf, sizeof(buf), CRASH_FILE, GET_NAME(ch)))
     return false;
@@ -1388,7 +1371,7 @@ bool Crash_crashsave(struct char_data *ch)
 #endif
 
   /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
-  if (!objsave_write_rentcode(fp, RENT_CRASH, 0, ch))
+  if (!objsave_write_rentcode(fp, rentcode, cost, ch))
   {
 #ifdef OBJSAVE_DB
     mysql_query(conn, "rollback;");
@@ -1401,15 +1384,15 @@ bool Crash_crashsave(struct char_data *ch)
     if (GET_EQ(ch, j))
     {
       /* recursive write-to-file function (like bags) */
-      unsaved += Crash_save(GET_EQ(ch, j), ch, fp, j + 1);
+      *unsaved += Crash_save(GET_EQ(ch, j), ch, fp, j + 1);
       /* makes sure containers have proper weight for carrying objects with weight value */
       Crash_restore_weight(GET_EQ(ch, j));
     }
 
-  unsaved += Crash_save_bags(ch, fp);
+  *unsaved += Crash_save_bags(ch, fp);
 
   /* inventory: recursive write-to-file function (like bags) */
-  unsaved += Crash_save(ch->carrying, ch, fp, 0);
+  *unsaved += Crash_save(ch->carrying, ch, fp, 0);
 
   /* makes sure containers have proper weight for carrying objects with weight value */
   Crash_restore_weight(ch->carrying);
@@ -1418,37 +1401,71 @@ bool Crash_crashsave(struct char_data *ch)
   fclose(fp);
 
 #ifdef OBJSAVE_DB
-  if (!objsave_commit_player_save(ch, unsaved) || unsaved > 0)
+  if (mysql_commit_transaction(conn) != MYSQL_COMMIT_DONE)
+  {
+    log("SYSERR: Unable to commit transaction for saving of player object data: %s",
+        mysql_error(conn));
     return false;
+  }
 #endif
+  if (*unsaved > 0)
+    mudlog(BRF, LVL_STAFF, TRUE,
+           "SYSERR: %d of %s's objects could not be saved; the rest were. The log names them.",
+           *unsaved, GET_NAME(ch));
+  return true;
+}
+
+/* The save a character leaves the game with: rent, idle and cryo. Its objects
+ * leave memory with it whether the save was written or not, because
+ * extract_char() drops what a character still holds in the room, beside a
+ * save that holds it too. So a save that did not reach the database is
+ * written once more, on the session the connection has by then: the save
+ * replaces the last one whole, whatever the first attempt left. If that
+ * fails too, the database keeps the last save that reached it, and the staff
+ * are told. */
+static void objsave_save_and_extract(struct char_data *ch, int rentcode, int cost)
+{
+  int unsaved;
+  int j;
+
+  if (!objsave_write_player_save(ch, rentcode, cost, &unsaved) &&
+      !objsave_write_player_save(ch, rentcode, cost, &unsaved))
+    mudlog(BRF, LVL_STAFF, TRUE,
+           "SYSERR: %s's objects could not be saved as the character left the game; the "
+           "database keeps the last save that reached it.",
+           GET_NAME(ch));
+
+  /* recursively remove objects and their contents */
+  for (j = 0; j < NUM_WEARS; j++)
+    if (GET_EQ(ch, j))
+      Crash_extract_objs(GET_EQ(ch, j));
+  Crash_extract_objs(ch->carrying);
+}
+
+/* Save a player's objects while they play. FALSE when the save failed or was
+ * incomplete: PLR_CRASH then stays set, so the next crash-save pass saves the
+ * player again. */
+bool Crash_crashsave(struct char_data *ch)
+{
+  int unsaved;
+
+  if (IS_NPC(ch))
+    return false;
+
+  if (!objsave_write_player_save(ch, RENT_CRASH, 0, &unsaved) || unsaved > 0)
+    return false;
+
   REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
   return true;
 }
 
 void Crash_idlesave(struct char_data *ch)
 {
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-  int unsaved = 0;
   int j;
   int cost, cost_eq;
-  FILE *fp;
 
   if (IS_NPC(ch))
     return;
-
-  if (!get_filename(buf, sizeof(buf), CRASH_FILE, GET_NAME(ch)))
-    return;
-
-  if (!(fp = fopen_restricted(buf, "w")))
-    return;
-
-#ifdef OBJSAVE_DB
-  if (!objsave_begin_player_save(ch))
-  {
-    fclose(fp);
-    return;
-  }
-#endif
 
   Crash_extract_norent_eq(ch);
   Crash_extract_norents(ch->carrying);
@@ -1478,115 +1495,21 @@ void Crash_idlesave(struct char_data *ch)
     }
   }
 
-  /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
-  if (!objsave_write_rentcode(fp, RENT_TIMEDOUT, cost, ch))
-  {
-#ifdef OBJSAVE_DB
-    mysql_query(conn, "rollback;");
-#endif
-    fclose(fp);
-    return;
-  }
-
-  for (j = 0; j < NUM_WEARS; j++)
-  {
-    if (GET_EQ(ch, j))
-    {
-      /* recursive write-to-file function (like bags) */
-      unsaved += Crash_save(GET_EQ(ch, j), ch, fp, j + 1);
-      /* makes sure containers have proper weight for carrying objects with weight value */
-      Crash_restore_weight(GET_EQ(ch, j));
-      /* recursively remove objects and their contents */
-      Crash_extract_objs(GET_EQ(ch, j));
-    }
-  }
-
-  unsaved += Crash_save_bags(ch, fp);
-
-  /* inventory: recursive write-to-file function (like bags) */
-  unsaved += Crash_save(ch->carrying, ch, fp, 0);
-  fprintf(fp, "$~\n");
-  fclose(fp);
-
-#ifdef OBJSAVE_DB
-  if (!objsave_commit_player_save(ch, unsaved))
-    return;
-#endif
-
-  /* recursively remove objects and their contents */
-  Crash_extract_objs(ch->carrying);
+  objsave_save_and_extract(ch, RENT_TIMEDOUT, cost);
 }
 
 /* primary function for saving player object file, will extract objs once
- * file is closed */
+ * the save is written */
 void Crash_rentsave(struct char_data *ch, int cost)
 {
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-  int unsaved = 0;
-  int j;
-  FILE *fp;
-
   if (IS_NPC(ch))
     return;
-
-  if (!get_filename(buf, sizeof(buf), CRASH_FILE, GET_NAME(ch)))
-    return;
-
-  if (!(fp = fopen_restricted(buf, "w")))
-    return;
-
-#ifdef OBJSAVE_DB
-  if (!objsave_begin_player_save(ch))
-  {
-    fclose(fp);
-    return;
-  }
-#endif
 
   /* get rid of all !rent items */
   Crash_extract_norent_eq(ch);
   Crash_extract_norents(ch->carrying);
 
-  /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
-  if (!objsave_write_rentcode(fp, RENT_RENTED, cost, ch))
-  {
-#ifdef OBJSAVE_DB
-    mysql_query(conn, "rollback;");
-#endif
-    fclose(fp);
-    return;
-  }
-
-  /* go through all equipment worn and save */
-  for (j = 0; j < NUM_WEARS; j++)
-  {
-    if (GET_EQ(ch, j))
-    {
-      /* recursive save function (like bags) */
-      unsaved += Crash_save(GET_EQ(ch, j), ch, fp, j + 1);
-      /* makes sure containers have proper weight for carrying objects with weight value */
-      Crash_restore_weight(GET_EQ(ch, j));
-      /* recursively remove objects and their contents */
-      Crash_extract_objs(GET_EQ(ch, j));
-    }
-  }
-
-  unsaved += Crash_save_bags(ch, fp);
-
-  /* inventory: recursive save function (like bags) */
-  unsaved += Crash_save(ch->carrying, ch, fp, 0);
-
-  /* file terminating char and close */
-  fprintf(fp, "$~\n");
-  fclose(fp);
-
-#ifdef OBJSAVE_DB
-  if (!objsave_commit_player_save(ch, unsaved))
-    return;
-#endif
-
-  /* recursively remove objects and their contents */
-  Crash_extract_objs(ch->carrying);
+  objsave_save_and_extract(ch, RENT_RENTED, cost);
 }
 
 /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
@@ -1625,70 +1548,15 @@ static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, stru
 
 void Crash_cryosave(struct char_data *ch, int cost)
 {
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-  int unsaved = 0;
-  int j;
-  FILE *fp;
-
   if (IS_NPC(ch))
     return;
-
-  if (!get_filename(buf, sizeof(buf), CRASH_FILE, GET_NAME(ch)))
-    return;
-
-  if (!(fp = fopen_restricted(buf, "w")))
-    return;
-
-#ifdef OBJSAVE_DB
-  /* The rows replace the last save's, as in every other save. */
-  if (!objsave_begin_player_save(ch))
-  {
-    fclose(fp);
-    return;
-  }
-#endif
 
   Crash_extract_norent_eq(ch);
   Crash_extract_norents(ch->carrying);
 
   award_gold(ch, -cost);
 
-  /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
-  if (!objsave_write_rentcode(fp, RENT_CRYO, 0, ch))
-  {
-#ifdef OBJSAVE_DB
-    mysql_query(conn, "rollback;");
-#endif
-    fclose(fp);
-    return;
-  }
-
-  for (j = 0; j < NUM_WEARS; j++)
-    if (GET_EQ(ch, j))
-    {
-      /* recursive save function (like bags) */
-      unsaved += Crash_save(GET_EQ(ch, j), ch, fp, j + 1);
-      /* makes sure containers have proper weight for carrying objects with weight value */
-      Crash_restore_weight(GET_EQ(ch, j));
-      /* recursively remove objects and their contents */
-      Crash_extract_objs(GET_EQ(ch, j));
-    }
-
-  unsaved += Crash_save_bags(ch, fp);
-
-  /* inventory: recursive save function (like bags) */
-  unsaved += Crash_save(ch->carrying, ch, fp, 0);
-
-  fprintf(fp, "$~\n");
-  fclose(fp);
-
-#ifdef OBJSAVE_DB
-  if (!objsave_commit_player_save(ch, unsaved))
-    return;
-#endif
-
-  /* recursively remove objects and their contents */
-  Crash_extract_objs(ch->carrying);
+  objsave_save_and_extract(ch, RENT_CRYO, 0);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_CRYO);
 }
 

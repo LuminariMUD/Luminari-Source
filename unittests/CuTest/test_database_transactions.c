@@ -884,6 +884,75 @@ void Test_idle_and_cryo_saves_commit_in_place_of_the_last_save(CuTest *tc)
   transactions_world_end(tc, &w);
 }
 
+/* A character who leaves the game takes its objects along whether the save
+ * was written or not: what stayed in its hands would be dropped in the room,
+ * beside a save that holds it. So a save that did not reach the database is
+ * written a second time. */
+void Test_leaving_save_is_written_again_and_takes_the_objects_along(CuTest *tc)
+{
+  static char no_socket[] = "/nonexistent/s13.sock";
+  struct transactions_world w;
+  struct obj_data *worn;
+  char *unix_socket;
+  unsigned int tcp_port;
+
+  if (!transactions_world_begin(tc, &w))
+    return;
+
+  saves_carry(&w, "a first gem");
+  CuAssertTrue(tc, Crash_crashsave(&w.owner));
+  CuAssertIntEquals(tc, 1, saves_player_rows(&w));
+
+  /* The connection goes at the first row. The second attempt stores the
+   * worn gem with the two carried ones. */
+  saves_carry(&w, "a second gem");
+  worn = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
+  worn->short_description = strdup("a worn gem");
+  worn->worn_by = &w.owner;
+  worn->worn_on = WEAR_HOLD_1;
+  GET_EQ(&w.owner, WEAR_HOLD_1) = worn;
+  mysql_test_drop_connection_at("INSERT INTO player_save_objs (", 1, FALSE);
+  Crash_rentsave(&w.owner, 0);
+  CuAssertIntEquals(tc, 3, saves_player_rows(&w));
+  CuAssertIntEquals(
+      tc, 1,
+      transactions_value(w.observer,
+                         "SELECT COUNT(*) FROM player_save_objs WHERE name = '" SAVES_OWNER
+                         "' AND serialized_obj LIKE '%a worn gem%'"));
+  CuAssertPtrEquals(tc, NULL, w.owner.carrying);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&w.owner, WEAR_HOLD_1));
+  CuAssertStrEquals(tc, "", transactions_staff_heard(&w));
+
+  /* The COMMIT is run and its reply lost: written again, nothing twice. */
+  saves_carry(&w, "a first gem");
+  saves_carry(&w, "a second gem");
+  mysql_test_drop_connection_at("commit", 1, TRUE);
+  Crash_cryosave(&w.owner, 0);
+  REMOVE_BIT_AR(PLR_FLAGS(&w.owner), PLR_CRYO);
+  CuAssertIntEquals(tc, 2, saves_player_rows(&w));
+  CuAssertPtrEquals(tc, NULL, w.owner.carrying);
+  CuAssertStrEquals(tc, "", transactions_staff_heard(&w));
+
+  /* The database is away for both attempts: the last save stands, the gem
+   * leaves with the character, and the staff are told. */
+  saves_carry(&w, "a third gem");
+  tcp_port = conn->port;
+  unix_socket = conn->unix_socket;
+  conn->port = 1;
+  conn->unix_socket = no_socket;
+  transactions_drop_socket(conn);
+  Crash_idlesave(&w.owner);
+  conn->port = tcp_port;
+  conn->unix_socket = unix_socket;
+  CuAssertIntEquals(tc, 2, saves_player_rows(&w));
+  CuAssertPtrEquals(tc, NULL, w.owner.carrying);
+  CuAssertTrue(tc, strstr(transactions_staff_heard(&w),
+                          SAVES_OWNER "'s objects could not be saved "
+                                      "as the character left the game") != NULL);
+
+  transactions_world_end(tc, &w);
+}
+
 /* What a player sorted into a bag is held nowhere else. The cryo save and
  * the idle save replace the last save's rows, so they write the bags too. */
 void Test_cryo_and_idle_saves_keep_what_is_in_the_bags(CuTest *tc)
