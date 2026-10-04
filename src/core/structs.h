@@ -7048,6 +7048,9 @@ struct player_special_data_saved
   /* Highest NPC-merchant consequence applied to this player file. */
   unsigned long long vessel_merchant_consequence_id;
 
+  /* The newest vessel settlement whose gold this player file holds. */
+  unsigned long long vessel_settlement_id;
+
   struct player_invention inventions[MAX_PLAYER_INVENTIONS];
   int num_inventions;
 

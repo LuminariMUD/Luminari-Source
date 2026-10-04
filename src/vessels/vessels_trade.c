@@ -307,17 +307,24 @@ void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_roo
 ACMD(do_dockfees)
 {
   struct greyhawk_ship_data *ship;
+  struct vessel_settlement settlement;
   char arg[MAX_INPUT_LENGTH];
   clan_rnum owner_clan;
+  bool recorded;
   int amount;
   int credited;
-  int old_port;
-  int old_clan;
 
   ship = get_ship_from_room(IN_ROOM(ch));
   if (ship == NULL)
   {
     send_to_char(ch, "You must be aboard a vessel to inspect its dock fees.\r\n");
+    return;
+  }
+
+  /* An earlier payment that is undone here is owed again below. */
+  one_argument(argument, arg, sizeof(arg));
+  if (str_cmp(arg, "pay") == 0 && !vessel_settlement_gate(ch, ship))
+  {
     return;
   }
 
@@ -340,7 +347,6 @@ ACMD(do_dockfees)
                  CLAN_NAME(owner_clan));
   }
 
-  one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Use 'dockfees pay' to settle the balance before departure.\r\n");
@@ -368,47 +374,46 @@ ACMD(do_dockfees)
     return;
   }
 
+  /* The cleared balance and its settlement are recorded together, then the
+   * gold is saved with the settlement (vessel_settlement_pay()). */
   amount = ship->dock_fee_balance;
-  old_port = ship->dock_fee_port;
-  old_clan = ship->dock_fee_clan;
+  memset(&settlement, 0, sizeof(settlement));
+  settlement.fee_amount = amount;
+  settlement.fee_port = ship->dock_fee_port;
+  settlement.fee_clan = ship->dock_fee_clan;
   ship->dock_fee_balance = 0;
-  if (!vessel_db_save_runtime(ship))
+  recorded = mysql_available && conn != NULL && mysql_query(conn, "START TRANSACTION") == 0;
+  if (recorded && !vessel_db_save_runtime(ship))
+  {
+    mysql_query(conn, "ROLLBACK");
+    recorded = FALSE;
+  }
+  if (!recorded || !vessel_settlement_commit(ch, ship, &settlement))
   {
     ship->dock_fee_balance = amount;
     send_to_char(ch, "The harbor ledger is unavailable; no gold was taken.\r\n");
     return;
   }
-
-  award_gold(ch, -amount);
-  if (!save_char_checked(ch, 0))
+  if (!vessel_settlement_pay(ch, &settlement, -amount, "payment"))
   {
-    award_gold(ch, amount);
-    ship->dock_fee_balance = amount;
-    ship->dock_fee_port = old_port;
-    ship->dock_fee_clan = old_clan;
-    if (!vessel_db_save_runtime(ship))
-    {
-      log("SYSERR: Could not restore dock fee %d for ship %d after player-save failure", amount,
-          ship->shipnum);
-    }
-    send_to_char(ch, "The payment could not be saved; no gold was taken.\r\n");
     return;
   }
 
   credited = 0;
-  owner_clan = real_clan(old_clan);
+  owner_clan = real_clan(settlement.fee_clan);
   if (owner_clan != NO_CLAN && CLAN_BANK(owner_clan) < MAX_BANK)
   {
     credited = MIN(amount, (int)(MAX_BANK - CLAN_BANK(owner_clan)));
     CLAN_BANK(owner_clan) += credited;
     mark_clan_modified(owner_clan);
     save_single_clan(owner_clan);
-    log_clan_activity(old_clan, "%s paid %d gold in vessel dock fees", GET_NAME(ch), credited);
+    log_clan_activity(settlement.fee_clan, "%s paid %d gold in vessel dock fees", GET_NAME(ch),
+                      credited);
   }
 
   send_to_char(ch, "You settle %d gold in dock fees. %s may now depart.\r\n", amount, ship->name);
   log("Info: %s paid %d dock-fee gold for ship %d at port %d; clan %d received %d", GET_NAME(ch),
-      amount, ship->shipnum, old_port, old_clan, credited);
+      amount, ship->shipnum, settlement.fee_port, settlement.fee_clan, credited);
 }
 
 /**
@@ -427,6 +432,7 @@ void vessel_trade_ensure_schema(void)
   {
     return;
   }
+  vessel_settlement_ensure_schema();
 
   if (mysql_query(conn, "CREATE TABLE IF NOT EXISTS trade_commodities ("
                         "  commodity_id INT AUTO_INCREMENT PRIMARY KEY,"
@@ -1039,18 +1045,29 @@ static int port_supply(int port_vnum, int commodity_id)
 }
 
 /**
- * One transaction that sets the port's supply and the ship's whole manifest.
+ * Record a trade with its settlement: the port's supply of the commodity, the
+ * ship's manifest and the settlement row commit together or not at all. A
+ * port with no row for the commodity (contraband it does not stock) keeps
+ * none.
+ *
+ * @param settlement The trade's undo; its port and commodity name the supply
+ * @param supply The port's supply once the trade is made
+ * @return FALSE when the trade is not recorded (or there is no database)
  */
-static enum mysql_commit_result trade_write(struct greyhawk_ship_data *ship, int port_vnum,
-                                            int commodity_id, int supply)
+static bool trade_record(struct char_data *ch, struct greyhawk_ship_data *ship,
+                         struct vessel_settlement *settlement, int supply)
 {
   PREPARED_STMT *statement;
   bool recorded;
 
+  if (!mysql_available || conn == NULL)
+  {
+    return FALSE;
+  }
   if (mysql_query(conn, "START TRANSACTION"))
   {
-    log("SYSERR: Could not begin a trade at port %d: %s", port_vnum, mysql_error(conn));
-    return MYSQL_COMMIT_REFUSED;
+    log("SYSERR: Could not begin a trade at port %d: %s", settlement->port_vnum, mysql_error(conn));
+    return FALSE;
   }
 
   statement = mysql_stmt_create(conn);
@@ -1058,97 +1075,19 @@ static enum mysql_commit_result trade_write(struct greyhawk_ship_data *ship, int
              mysql_stmt_prepare_query(statement, "UPDATE port_commodities SET supply = ? "
                                                  "WHERE port_vnum = ? AND commodity_id = ?") &&
              mysql_stmt_bind_param_int(statement, 0, supply) &&
-             mysql_stmt_bind_param_int(statement, 1, port_vnum) &&
-             mysql_stmt_bind_param_int(statement, 2, commodity_id) &&
+             mysql_stmt_bind_param_int(statement, 1, settlement->port_vnum) &&
+             mysql_stmt_bind_param_int(statement, 2, settlement->commodity_id) &&
              mysql_stmt_execute_prepared(statement);
   mysql_stmt_cleanup(statement);
 
   if (recorded && vessel_db_save_cargo(ship))
   {
-    return mysql_commit_transaction(conn);
+    return vessel_settlement_commit(ch, ship, settlement);
   }
   mysql_query(conn, "ROLLBACK");
-  return MYSQL_COMMIT_REFUSED;
-}
-
-/**
- * Record a trade: the port's supply of the commodity and the ship's
- * manifest commit together or not at all. A port with no row for the
- * commodity (contraband it does not stock) keeps none.
- *
- * If the COMMIT goes unanswered, the trade may stand or not. Both writes set
- * absolute values, so the trade is written again on a live connection: once
- * that commits, it stands whichever way the first COMMIT went.
- *
- * @return FALSE when nothing was recorded (or there is no database)
- */
-static bool trade_record(struct greyhawk_ship_data *ship, int port_vnum, int commodity_id,
-                         int supply)
-{
-  enum mysql_commit_result result;
-
-  if (!mysql_available || conn == NULL)
-  {
-    return FALSE;
-  }
-  result = trade_write(ship, port_vnum, commodity_id, supply);
-  if (result == MYSQL_COMMIT_UNANSWERED)
-  {
-    log("SYSERR: A trade by ship %d at port %d went unanswered; writing it again", ship->shipnum,
-        port_vnum);
-    result = trade_write(ship, port_vnum, commodity_id, supply);
-    if (result != MYSQL_COMMIT_DONE)
-    {
-      log("SYSERR: Could not settle an unanswered trade by ship %d at port %d; the database's "
-          "manifest and port supply may not match her hold until they are next written",
-          ship->shipnum, port_vnum);
-    }
-  }
-  else if (result == MYSQL_COMMIT_REFUSED)
-  {
-    log("SYSERR: Could not record a trade by ship %d at port %d", ship->shipnum, port_vnum);
-  }
-  return result == MYSQL_COMMIT_DONE;
-}
-
-/**
- * Pay for a recorded trade: move the gold and save it with the captain. If
- * the save fails, the hold's lot goes back to saved_lot and the old supply
- * is recorded again. If that undo cannot be recorded either, the trade
- * stands as recorded, in memory too: the persistence service saves every
- * player each minute, retrying a failed save until it holds.
- *
- * @return FALSE when the trade was undone
- */
-static bool trade_settle(struct char_data *ch, struct greyhawk_ship_data *ship, int lot,
-                         struct cargo_lot saved_lot, int port_vnum, int commodity_id, int supply,
-                         int gold)
-{
-  struct cargo_lot traded_lot;
-  int old_gold;
-
-  old_gold = GET_GOLD(ch);
-  award_gold(ch, gold);
-  if (save_char_checked(ch, 0))
-  {
-    return TRUE;
-  }
-
-  traded_lot = ship->cargo[lot];
-  ship->cargo[lot] = saved_lot;
-  if (trade_record(ship, port_vnum, commodity_id, supply))
-  {
-    award_set_points(ch, AWARD_GOLD, old_gold);
-    send_to_char(ch, "Your gold could not be recorded, so the trade is undone.\r\n");
-    return FALSE;
-  }
-
-  ship->cargo[lot] = traded_lot;
-  log("SYSERR: Could not undo %s's unsaved trade aboard ship %d; it stands", GET_NAME(ch),
-      ship->shipnum);
-  send_to_char(ch, "Your gold could not be saved yet; the trade stands and will be saved "
-                   "shortly.\r\n");
-  return TRUE;
+  log("SYSERR: Could not record a trade by ship %d at port %d", ship->shipnum,
+      settlement->port_vnum);
+  return FALSE;
 }
 
 /**
@@ -1193,7 +1132,7 @@ int vessel_cargo_weight(const struct greyhawk_ship_data *ship)
  * @param create TRUE to claim an empty lot when none exists
  * @return Lot index, or -1 if the hold has no room for a new commodity
  */
-static int vessel_cargo_lot(struct greyhawk_ship_data *ship, int commodity_id, bool create)
+int vessel_cargo_lot(struct greyhawk_ship_data *ship, int commodity_id, bool create)
 {
   int i;
   int empty = -1;
@@ -1219,6 +1158,11 @@ static int vessel_cargo_lot(struct greyhawk_ship_data *ship, int commodity_id, b
  * Bulk lots ride in ship_cargo_manifest with item_vnum = commodity id and
  * cargo_room = 0, distinguishing them from crated object cargo.
  *
+ * Nothing is written while the hull remembers a settlement that may be
+ * recorded without being in her hold (settlement_unresolved): a manifest
+ * written from memory under its row would have the next boot undo its cargo
+ * a second time. The reconcile is tried first.
+ *
  * @return FALSE when a write failed (or there is no database), so a caller
  *         inside a transaction can roll back. It writes every lot it can.
  */
@@ -1232,6 +1176,13 @@ bool vessel_db_save_cargo(struct greyhawk_ship_data *ship)
 
   if (!mysql_available || conn == NULL || ship == NULL)
   {
+    return FALSE;
+  }
+  if (ship->settlement_unresolved != 0 && ((conn->server_status & SERVER_STATUS_IN_TRANS) != 0 ||
+                                           !vessel_settlements_reconcile(NULL, ship)))
+  {
+    log("SYSERR: The manifest of ship %d is not saved while her settlement %llu is unsettled",
+        ship->shipnum, ship->settlement_unresolved);
     return FALSE;
   }
 
@@ -1578,11 +1529,13 @@ ACMD(do_cargobuy)
   char *end;
   long parsed_quantity;
   long long added_weight;
+  struct vessel_settlement settlement;
   struct cargo_lot saved_lot;
   long long cost;
   int port_vnum;
   int quantity;
   int supply;
+  int new_supply;
   int average_price;
   int lot;
   int capacity;
@@ -1596,6 +1549,10 @@ ACMD(do_cargobuy)
   if (!vessel_helm_permitted(ch, ship))
   {
     send_to_char(ch, "You are not cleared to trade on this ship's account.\r\n");
+    return;
+  }
+  if (!vessel_settlement_gate(ch, ship))
+  {
     return;
   }
 
@@ -1653,19 +1610,26 @@ ACMD(do_cargobuy)
     return;
   }
 
-  /* The cargo and the port's stock are recorded before the gold moves (see
-   * trade_settle()). Buying drains the port's stock, nudging its price up. */
+  /* The cargo and the port's stock are recorded with a settlement before the
+   * gold moves, and the gold is saved with it (vessel_settlement_pay()).
+   * Buying drains the port's stock, nudging its price up. */
   saved_lot = ship->cargo[lot];
   ship->cargo[lot].commodity_id = def->id;
   ship->cargo[lot].quantity += quantity;
-  if (!trade_record(ship, port_vnum, def->id, vessel_trade_adjusted_supply(supply, -quantity)))
+  new_supply = vessel_trade_adjusted_supply(supply, -quantity);
+  memset(&settlement, 0, sizeof(settlement));
+  settlement.port_vnum = port_vnum;
+  settlement.commodity_id = def->id;
+  settlement.supply_delta = supply - new_supply;
+  settlement.cargo_delta = -quantity;
+  if (!trade_record(ch, ship, &settlement, new_supply))
   {
     ship->cargo[lot] = saved_lot;
     send_to_char(ch, "The harbor office cannot record that trade; no gold changed hands.\r\n");
     return;
   }
 
-  if (!trade_settle(ch, ship, lot, saved_lot, port_vnum, def->id, supply, -(int)cost))
+  if (!vessel_settlement_pay(ch, &settlement, -(int)cost, "trade"))
   {
     return;
   }
@@ -1712,11 +1676,13 @@ ACMD(do_cargosell)
   char arg2[MAX_INPUT_LENGTH];
   char *end;
   long parsed_quantity;
+  struct vessel_settlement settlement;
   struct cargo_lot saved_lot;
   long long revenue;
   int port_vnum;
   int quantity;
   int supply;
+  int new_supply;
   int average_price;
   int lot;
 
@@ -1729,6 +1695,10 @@ ACMD(do_cargosell)
   if (!vessel_helm_permitted(ch, ship))
   {
     send_to_char(ch, "You are not cleared to trade on this ship's account.\r\n");
+    return;
+  }
+  if (!vessel_settlement_gate(ch, ship))
+  {
     return;
   }
 
@@ -1812,14 +1782,20 @@ ACMD(do_cargosell)
   {
     ship->cargo[lot].commodity_id = 0;
   }
-  if (!trade_record(ship, port_vnum, def->id, vessel_trade_adjusted_supply(supply, quantity)))
+  new_supply = vessel_trade_adjusted_supply(supply, quantity);
+  memset(&settlement, 0, sizeof(settlement));
+  settlement.port_vnum = port_vnum;
+  settlement.commodity_id = def->id;
+  settlement.supply_delta = supply - new_supply;
+  settlement.cargo_delta = quantity;
+  if (!trade_record(ch, ship, &settlement, new_supply))
   {
     ship->cargo[lot] = saved_lot;
     send_to_char(ch, "The harbor office cannot record that trade; no gold changed hands.\r\n");
     return;
   }
 
-  if (!trade_settle(ch, ship, lot, saved_lot, port_vnum, def->id, supply, (int)revenue))
+  if (!vessel_settlement_pay(ch, &settlement, (int)revenue, "trade"))
   {
     return;
   }

@@ -668,6 +668,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_PVP_TIMER(ch) = 0;
     GET_VESSEL_INSURANCE_CLAIM(ch) = 0;
     GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = 0;
+    GET_VESSEL_SETTLEMENT(ch) = 0;
     GET_QUIT_SURVEY_DONE(ch) = FALSE;
     ch->player_specials->saved.last_device_recharge = 0;
 
@@ -2209,6 +2210,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_VESSEL_INSURANCE_CLAIM(ch) = strtoull(line, NULL, 10);
         else if (!strcmp(tag, "VMer"))
           GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = strtoull(line, NULL, 10);
+        else if (!strcmp(tag, "VSet"))
+          GET_VESSEL_SETTLEMENT(ch) = strtoull(line, NULL, 10);
         break;
 
       case 'W':
@@ -2936,6 +2939,8 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("VIns: %llu\n", GET_VESSEL_INSURANCE_CLAIM(ch));
   if (GET_VESSEL_MERCHANT_CONSEQUENCE(ch) != 0)
     BUFFER_WRITE("VMer: %llu\n", GET_VESSEL_MERCHANT_CONSEQUENCE(ch));
+  if (GET_VESSEL_SETTLEMENT(ch) != 0)
+    BUFFER_WRITE("VSet: %llu\n", GET_VESSEL_SETTLEMENT(ch));
 
   sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);

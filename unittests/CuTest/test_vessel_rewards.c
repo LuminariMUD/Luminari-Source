@@ -112,6 +112,7 @@ static struct greyhawk_ship_data *rewards_berth_begin(CuTest *tc, struct rewards
   berth->captain.player_specials = &berth->specials;
   berth->captain.player.name = CuMutableString("Tern");
   berth->captain.player.level = 20;
+  GET_IDNUM(&berth->captain) = 4249;
   IN_ROOM(&berth->captain) = 0;
   GET_POS(&berth->captain) = POS_STANDING;
   GET_GOLD(&berth->captain) = 100000;
@@ -220,29 +221,23 @@ static bool rewards_trade_tables(MYSQL *connection)
                                  "bounty INT NOT NULL DEFAULT 0, "
                                  "marque_until INT NOT NULL DEFAULT 0, "
                                  "last_offense_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) "
+                                 "ENGINE=InnoDB") == 0 &&
+         mysql_query(connection, "CREATE TEMPORARY TABLE vessel_settlements ("
+                                 "settlement_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
+                                 "player_id INT UNSIGNED NOT NULL, ship_id INT NOT NULL, "
+                                 "port_vnum INT NOT NULL DEFAULT 0, "
+                                 "commodity_id INT NOT NULL DEFAULT 0, "
+                                 "supply_delta INT NOT NULL DEFAULT 0, "
+                                 "cargo_delta INT NOT NULL DEFAULT 0, "
+                                 "contract_id INT NOT NULL DEFAULT 0, "
+                                 "fee_amount INT NOT NULL DEFAULT 0, "
+                                 "fee_port INT NOT NULL DEFAULT 0, "
+                                 "fee_clan INT NOT NULL DEFAULT 0, "
+                                 "UNIQUE KEY (ship_id), UNIQUE KEY (player_id)) "
                                  "ENGINE=InnoDB") == 0;
 }
 
 /* The tables a sinking's settlement writes, shadowing any real ones. */
-/* The trade rows of the test hull and port in the real tables, for a test
- * that loses its connection: a TEMPORARY table goes with its session. */
-static void rewards_trade_rows_end(MYSQL *connection)
-{
-  mysql_query(connection, "DELETE FROM ship_cargo_manifest WHERE ship_id = 490");
-  mysql_query(connection, "DELETE FROM ship_interiors WHERE ship_id = 490");
-  mysql_query(connection, "DELETE FROM port_commodities WHERE port_vnum = 100");
-  mysql_query(connection, "DELETE FROM vessel_bounties WHERE player_name = 'Tern'");
-}
-
-static void rewards_trade_rows_begin(CuTest *tc, MYSQL *connection)
-{
-  vessel_trade_ensure_schema();
-  vessel_piracy_ensure_schema();
-  rewards_trade_rows_end(connection);
-  CuAssertIntEquals(tc, 0,
-                    mysql_query(connection, "INSERT INTO ship_interiors (ship_id) VALUES (490)"));
-}
-
 static bool rewards_prize_tables(MYSQL *connection)
 {
   return mysql_query(connection, "CREATE TEMPORARY TABLE vessel_insurance_claims ("
@@ -705,7 +700,8 @@ void Test_vessel_freight_bond_pays_for_the_goods(CuTest *tc)
    * job, and the freight comes back out of the hold. */
   GET_PFILEPOS(&berth.captain) = -1;
   output = rewards_berth_command(&berth, do_contractaccept, "1");
-  CuAssertTrue(tc, strstr(output, "Your bond could not be recorded; no gold was taken.") != NULL);
+  CuAssertTrue(tc, strstr(output, "Your gold could not be recorded, so the contract is undone.") !=
+                       NULL);
   CuAssertIntEquals(tc, 1000, GET_GOLD(&berth.captain));
   CuAssertIntEquals(tc, 0, ship->cargo[0].quantity);
   rewards_query_value(tc, connection, "SELECT status FROM freight_contracts WHERE contract_id = 1",
@@ -736,286 +732,6 @@ void Test_vessel_freight_bond_pays_for_the_goods(CuTest *tc)
   rewards_pfiles_end(tc, &pfiles, &berth.captain);
 
   rewards_berth_end(&berth);
-  conn = saved_conn;
-  mysql_available = saved_mysql_available;
-  mysql_close(connection);
-}
-
-/* The captain's gold, the units in the hold's first lot, and what the
- * manifest and the port's stock record. */
-static void rewards_assert_trade(CuTest *tc, MYSQL *connection, struct rewards_berth *berth,
-                                 int gold, int units, int manifest, int supply)
-{
-  char value[64];
-
-  CuAssertIntEquals(tc, gold, GET_GOLD(&berth->captain));
-  CuAssertIntEquals(tc, units, greyhawk_ships[REWARDS_TARGET].cargo[0].quantity);
-  rewards_query_value(
-      tc, connection,
-      "SELECT COALESCE(SUM(item_count), 0) FROM ship_cargo_manifest WHERE ship_id = 490", value,
-      sizeof(value));
-  CuAssertIntEquals(tc, manifest, (int)strtol(value, NULL, 10));
-  rewards_query_value(tc, connection, "SELECT supply FROM port_commodities WHERE port_vnum = 100",
-                      value, sizeof(value));
-  CuAssertIntEquals(tc, supply, (int)strtol(value, NULL, 10));
-}
-
-/* Make the port's stock refuse the value a trade's undo would write back,
- * though the stock holds that value now. */
-static void rewards_refuse_undo(CuTest *tc, MYSQL *connection, const char *check)
-{
-  char query[256];
-
-  snprintf(query, sizeof(query),
-           "ALTER TABLE port_commodities ADD CONSTRAINT undo_refused CHECK (%s)", check);
-  CuAssertIntEquals(tc, 0, mysql_query(connection, "SET SESSION check_constraint_checks = 0"));
-  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
-  CuAssertIntEquals(tc, 0, mysql_query(connection, "SET SESSION check_constraint_checks = 1"));
-}
-
-/* A cargo trade and its gold are recorded together: a refused manifest
- * write or a failed save leaves the gold, the hold, the manifest and the
- * port's stock as they were, so no crash or failed write gives free cargo
- * or cargo sold twice. If even the undo cannot be written, the trade stands
- * as recorded. */
-void Test_vessel_cargo_trades_record_the_gold_with_the_goods(CuTest *tc)
-{
-  struct rewards_berth berth;
-  struct rewards_pfiles pfiles;
-  struct greyhawk_ship_data *ship;
-  const char *output;
-  MYSQL *saved_conn;
-  MYSQL *connection;
-  bool saved_mysql_available;
-  char salt[16];
-  char query[256];
-  char expected[128];
-  long long cost;
-  long long revenue;
-  int salt_id;
-  int base_price;
-  int gold;
-
-  if (!rewards_database_enabled())
-  {
-    return;
-  }
-  connection = rewards_open_test_database();
-  if (connection == NULL)
-  {
-    CuFail(tc, "could not connect to the explicitly configured test database");
-    return;
-  }
-  if (!rewards_trade_tables(connection))
-  {
-    mysql_close(connection);
-    CuFail(tc, "could not create the isolated trade fixture");
-    return;
-  }
-  saved_conn = conn;
-  saved_mysql_available = mysql_available;
-  conn = connection;
-  mysql_available = TRUE;
-  vessel_trade_ensure_schema();
-  rewards_query_value(tc, connection,
-                      "SELECT commodity_id FROM trade_commodities WHERE name = 'salt'", salt,
-                      sizeof(salt));
-  salt_id = (int)strtol(salt, NULL, 10);
-  base_price = vessel_commodity_base_price(salt_id);
-  snprintf(query, sizeof(query),
-           "INSERT INTO port_commodities (port_vnum, commodity_id, supply) VALUES (100, %d, 100)",
-           salt_id);
-  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
-
-  ship = rewards_berth_begin(tc, &berth, VESSEL_SHIP);
-  GET_GOLD(&berth.captain) = 1000;
-
-  /* The cargo cannot be written: nothing is loaded and no gold is taken. */
-  CuAssertIntEquals(tc, 0,
-                    mysql_query(connection, "ALTER TABLE ship_cargo_manifest ADD CONSTRAINT "
-                                            "trade_refused CHECK (item_count < 0)"));
-  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
-  CuAssertTrue(tc, strstr(output, "cannot record that trade; no gold changed hands") != NULL);
-  rewards_assert_trade(tc, connection, &berth, 1000, 0, 0, 100);
-  CuAssertIntEquals(tc, 0, ship->cargo[0].commodity_id);
-  CuAssertIntEquals(
-      tc, 0,
-      mysql_query(connection, "ALTER TABLE ship_cargo_manifest DROP CONSTRAINT trade_refused"));
-
-  /* The captain cannot be saved: the purchase is undone. */
-  GET_PFILEPOS(&berth.captain) = -1;
-  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
-  CuAssertTrue(tc,
-               strstr(output, "Your gold could not be recorded, so the trade is undone.") != NULL);
-  rewards_assert_trade(tc, connection, &berth, 1000, 0, 0, 100);
-  CuAssertIntEquals(tc, 0, ship->cargo[0].commodity_id);
-
-  /* Saved, the purchase moves the gold, the hold, the manifest and the
-   * port's stock. */
-  rewards_pfiles_begin(tc, &pfiles, &berth.captain);
-  cost = vessel_trade_buy_cost(base_price, 100, 10);
-  gold = 1000 - (int)cost;
-  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
-  snprintf(expected, sizeof(expected), "You load 10 units of salt for %lld gold", cost);
-  CuAssertTrue(tc, strstr(output, expected) != NULL);
-  rewards_assert_trade(tc, connection, &berth, gold, 10, 10, 90);
-
-  /* A sale whose cargo cannot be written keeps the goods and pays nothing:
-   * the manifest refuses a lot of fewer than ten units. */
-  CuAssertIntEquals(tc, 0,
-                    mysql_query(connection, "ALTER TABLE ship_cargo_manifest ADD CONSTRAINT "
-                                            "trade_refused CHECK (item_count >= 10)"));
-  output = rewards_berth_command(&berth, do_cargosell, "salt 4");
-  CuAssertTrue(tc, strstr(output, "cannot record that trade; no gold changed hands") != NULL);
-  rewards_assert_trade(tc, connection, &berth, gold, 10, 10, 90);
-  CuAssertIntEquals(
-      tc, 0,
-      mysql_query(connection, "ALTER TABLE ship_cargo_manifest DROP CONSTRAINT trade_refused"));
-
-  /* A sale of the whole hold that cannot be saved puts the goods back. */
-  GET_PFILEPOS(&berth.captain) = -1;
-  output = rewards_berth_command(&berth, do_cargosell, "salt all");
-  CuAssertTrue(tc,
-               strstr(output, "Your gold could not be recorded, so the trade is undone.") != NULL);
-  rewards_assert_trade(tc, connection, &berth, gold, 10, 10, 90);
-  CuAssertIntEquals(tc, salt_id, ship->cargo[0].commodity_id);
-  GET_PFILEPOS(&berth.captain) = 0;
-
-  /* Saved, the sale pays and records what remains. */
-  revenue = vessel_trade_sell_revenue(base_price, 90, 4);
-  output = rewards_berth_command(&berth, do_cargosell, "salt 4");
-  snprintf(expected, sizeof(expected), "You sell 4 units of salt for %lld gold", revenue);
-  CuAssertTrue(tc, strstr(output, expected) != NULL);
-  rewards_assert_trade(tc, connection, &berth, gold + (int)revenue, 6, 6, 94);
-  gold += (int)revenue;
-
-  /* The save fails and its undo cannot be written either: the sale stands
-   * as recorded, in memory too, for the persistence service to save. */
-  rewards_refuse_undo(tc, connection, "supply > 94");
-  GET_PFILEPOS(&berth.captain) = -1;
-  revenue = vessel_trade_sell_revenue(base_price, 94, 6);
-  output = rewards_berth_command(&berth, do_cargosell, "salt all");
-  CuAssertTrue(tc, strstr(output, "the trade stands and will be saved shortly") != NULL);
-  CuAssertTrue(tc, strstr(output, "undone") == NULL);
-  rewards_assert_trade(tc, connection, &berth, gold + (int)revenue, 0, 0, 100);
-  CuAssertIntEquals(
-      tc, 0, mysql_query(connection, "ALTER TABLE port_commodities DROP CONSTRAINT undo_refused"));
-  gold += (int)revenue;
-
-  /* So does a purchase. */
-  rewards_refuse_undo(tc, connection, "supply < 100");
-  cost = vessel_trade_buy_cost(base_price, 100, 10);
-  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
-  CuAssertTrue(tc, strstr(output, "the trade stands and will be saved shortly") != NULL);
-  CuAssertTrue(tc, strstr(output, "undone") == NULL);
-  rewards_assert_trade(tc, connection, &berth, gold - (int)cost, 10, 10, 90);
-  CuAssertIntEquals(
-      tc, 0, mysql_query(connection, "ALTER TABLE port_commodities DROP CONSTRAINT undo_refused"));
-  rewards_pfiles_end(tc, &pfiles, &berth.captain);
-
-  rewards_berth_end(&berth);
-  conn = saved_conn;
-  mysql_available = saved_mysql_available;
-  mysql_close(connection);
-}
-
-/* A trade COMMIT whose reply is lost may have taken effect or not; the
- * trade is written again, so the gold, the hold, the manifest and the port's
- * stock agree whichever way it went. The connection is really lost at the
- * COMMIT, after the server has it or before. */
-void Test_vessel_cargo_trades_settle_a_commit_without_a_reply(CuTest *tc)
-{
-  struct rewards_berth berth;
-  struct rewards_pfiles pfiles;
-  struct greyhawk_ship_data *ship;
-  const char *output;
-  MYSQL *saved_conn;
-  MYSQL *connection;
-  bool saved_mysql_available;
-  char salt[16];
-  char query[256];
-  long long cost;
-  long long revenue;
-  unsigned long session;
-  int salt_id;
-  int base_price;
-  int gold;
-
-  if (!rewards_database_enabled())
-  {
-    return;
-  }
-  connection = rewards_open_test_database();
-  if (connection == NULL)
-  {
-    CuFail(tc, "could not connect to the explicitly configured test database");
-    return;
-  }
-  saved_conn = conn;
-  saved_mysql_available = mysql_available;
-  conn = connection;
-  mysql_available = TRUE;
-  rewards_trade_rows_begin(tc, connection);
-  rewards_query_value(tc, connection,
-                      "SELECT commodity_id FROM trade_commodities WHERE name = 'salt'", salt,
-                      sizeof(salt));
-  salt_id = (int)strtol(salt, NULL, 10);
-  base_price = vessel_commodity_base_price(salt_id);
-  snprintf(query, sizeof(query),
-           "INSERT INTO port_commodities (port_vnum, commodity_id, supply) VALUES (100, %d, 100)",
-           salt_id);
-  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
-  ship = rewards_berth_begin(tc, &berth, VESSEL_SHIP);
-  rewards_pfiles_begin(tc, &pfiles, &berth.captain);
-  GET_GOLD(&berth.captain) = 1000;
-
-  /* The purchase was committed, though its reply was lost. */
-  session = mysql_thread_id(connection);
-  mysql_test_drop_connection_at("COMMIT", 1, TRUE);
-  cost = vessel_trade_buy_cost(base_price, 100, 10);
-  gold = 1000 - (int)cost;
-  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
-  CuAssertTrue(tc, strstr(output, "You load 10 units of salt") != NULL);
-  rewards_assert_trade(tc, connection, &berth, gold, 10, 10, 90);
-  CuAssertTrue(tc, session != mysql_thread_id(connection));
-
-  /* The sale's COMMIT never arrived, so the server rolled it back. */
-  mysql_test_drop_connection_at("COMMIT", 1, FALSE);
-  revenue = vessel_trade_sell_revenue(base_price, 90, 4);
-  gold += (int)revenue;
-  output = rewards_berth_command(&berth, do_cargosell, "salt 4");
-  CuAssertTrue(tc, strstr(output, "You sell 4 units of salt") != NULL);
-  rewards_assert_trade(tc, connection, &berth, gold, 6, 6, 94);
-
-  /* The captain cannot be saved, and the undo's reply is lost after it was
-   * committed: the purchase is undone. */
-  GET_PFILEPOS(&berth.captain) = -1;
-  mysql_test_drop_connection_at("COMMIT", 2, TRUE);
-  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
-  CuAssertTrue(tc,
-               strstr(output, "Your gold could not be recorded, so the trade is undone.") != NULL);
-  rewards_assert_trade(tc, connection, &berth, gold, 6, 6, 94);
-
-  /* And when it was rolled back, so is a sale of the whole hold. */
-  mysql_test_drop_connection_at("COMMIT", 2, FALSE);
-  output = rewards_berth_command(&berth, do_cargosell, "salt all");
-  CuAssertTrue(tc,
-               strstr(output, "Your gold could not be recorded, so the trade is undone.") != NULL);
-  rewards_assert_trade(tc, connection, &berth, gold, 6, 6, 94);
-  CuAssertIntEquals(tc, salt_id, ship->cargo[0].commodity_id);
-  GET_PFILEPOS(&berth.captain) = 0;
-
-  /* A connection lost at the manifest loses the whole trade: nothing after
-   * it is written on its own, and no gold moves. */
-  mysql_test_drop_connection_at("INSERT INTO ship_cargo_manifest", 1, FALSE);
-  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
-  CuAssertTrue(tc, strstr(output, "cannot record that trade; no gold changed hands") != NULL);
-  rewards_assert_trade(tc, connection, &berth, gold, 6, 6, 94);
-  mysql_test_drop_connection_at(NULL, 0, FALSE);
-  rewards_pfiles_end(tc, &pfiles, &berth.captain);
-
-  rewards_berth_end(&berth);
-  rewards_trade_rows_end(connection);
   conn = saved_conn;
   mysql_available = saved_mysql_available;
   mysql_close(connection);

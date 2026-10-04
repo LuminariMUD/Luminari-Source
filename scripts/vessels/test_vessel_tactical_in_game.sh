@@ -991,6 +991,15 @@ elif [[ "$acceptance_mode" == economy ]]; then
       fail "the economy session did not report '$expected_text'"
   done
 
+  # The captain's trades were settled in two phases (study step S14): no
+  # settlement is left open, and his player file names the last one.
+  economy_open_settlements=$(database_query "SELECT COUNT(*) FROM vessel_settlements;") ||
+    economy_open_settlements=unreadable
+  [[ "$economy_open_settlements" == 0 ]] ||
+    fail "the economy session left vessel settlements open: $economy_open_settlements"
+  grep -Eq '^VSet: [1-9][0-9]*$' "$secondary_player_file" ||
+    fail "$secondary_player's player file names no settlement after the economy session's trades"
+
   # With the dock's own stock of tomes lifted, its customs meet the ones
   # she carries back in.
   economy_ship_slot=$(economy_value economy_ship_slot)

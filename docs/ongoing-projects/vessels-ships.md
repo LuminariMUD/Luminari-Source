@@ -312,7 +312,7 @@ Items:
 09. Removal: a purged ship's row goes with her other rows (`vessel_delete_persistence()`); a removed
     player's row is judged as any other, and with no file left it is undone.
 10. Tests, DB-backed, in `unittests/CuTest/test_vessel_rewards.c` beside the S11 trade tests
-    they replace, at each crash point, for a purchase, a sale, a freight acceptance and a fee
+    they replace (a new file in the end, see "Decided while building"), at each crash point, for a purchase, a sale, a freight acceptance and a fee
     payment: stopped after the ship side committed (row open, file without the marker: undone at
     login, by deltas, after the supply and the hold moved meanwhile); stopped after the gold was
     saved (row open, marker in the file: deleted, nothing undone); a failed save (undone at
@@ -353,6 +353,57 @@ Planning ablation:
 - Kept: the file read for another player's row; `settlement_unresolved` and the cargo-save
   refusal (S13's review: an unreadable read-back is the usual case, so it needs a pending
   state); the gate on `contractdeliver` and `contractabandon`.
+
+Built (2026-10-04), items 01-12 as planned except where "Decided while building" says otherwise:
+
+- Phase 25 SQL (schema, rollback, verifier, manifest lines), `master_schema.sql`, and
+  `vessel_settlement_ensure_schema()`, called from `vessel_trade_ensure_schema()`.
+- `VSet` and `GET_VESSEL_SETTLEMENT()` in `structs.h`, `utils.h` and `players.c`.
+- `src/vessels/vessels_settlement.c`: `vessel_settlement_commit()`, `vessel_settlement_pay()`,
+  `vessel_settlements_reconcile()`, `vessel_settlement_gate()`, `vessel_settlement_forget_ship()`,
+  and `settlement_unresolved` on the hull.
+- `trade_record()` (supply, manifest and row in one transaction) replaces `trade_write()`, the old
+  `trade_record()` and `trade_settle()`; `do_cargobuy`, `do_cargosell`, `do_contractaccept` and
+  `do_dockfees` record and pay through the settlement; `contract_reopen()` is gone (the undo
+  reopens the job); the gate is in the six commands and the reconcile in the login path.
+- `vessel_db_save_cargo()` refuses for a hull that remembers a settlement, after trying the
+  reconcile, and always inside another transaction.
+- Help: MARKET (the SHIP TRADE entry) has a "Settling up" paragraph, CONTRACTS and VESSELS
+  (`contractaccept`, `dockfees`) a sentence each, in `help.hlp` and `help_vessel_entries.sql`; the
+  verifier checks the three phrases (58 content checks).
+- `VESSEL_SYSTEM.md`: a "Two-phase settlements" passage in the economy model, the freight and
+  dock-fee paragraphs, the table and file lists.
+- The economy gate checks that the session's trades left no settlement open and that
+  Vesselmate's file has a `VSet` line.
+
+Decided while building:
+
+- The tests are a new file, `unittests/CuTest/test_vessel_settlement.c` (nine tests), not more
+  cases in `test_vessel_rewards.c`: they lose real connections, so they need the real tables, and
+  the rewards file was already past 1,200 lines. S11's two trade tests moved there, rewritten;
+  the rewards file keeps the freight and contraband tests on TEMPORARY tables, with a TEMPORARY
+  `vessel_settlements`.
+- The gate comes before any check that reads the hold or the fee: the undo it may run changes
+  them. In `dockfees` it runs only for `pay`, before the balance is read.
+- The undo reopens a contract by its id and its taken status, without the taker's name: while
+  the settlement is open only its captain can hold the job, since delivering and abandoning wait.
+- `vessel_delete_persistence()` makes sure the table exists before its transaction, as it does
+  for the tables it already clears.
+- The verifier counts the columns and the unique keys and lists nothing: a query on the table
+  fails after the rollback.
+- `GET_VESSEL_SETTLEMENT()` parenthesizes its argument; the two older marker macros do not, and
+  are left alone.
+- A reconcile reads two rows, the most the unique keys allow. More than two (a table without the
+  keys) leaves the ship held until the next call.
+- `save_char_checked()` returns FALSE after the file is in place only for a character missing
+  from the player index, which no player in the game is; so a failed save means the file kept
+  its old gold and marker, which the undo relies on.
+- Messages. Paid: unchanged. Save failed and undone: "Your gold could not be recorded, so the
+  trade (contract, payment) is undone." Not undone yet: "... could not be undone yet. No gold
+  changed hands; the harbor office holds this ship's accounts until it is undone." Gate: "The
+  harbor office is still settling an earlier account. Try again shortly." Login or gate, to the
+  captain whose settlement was undone: "The harbor office never recorded your gold for a cargo
+  trade (freight contract, dock-fee payment) aboard <ship>, so it has been undone."
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's,
 S12's and S13's code (S12's with schema Phase 24, which boot adds, and S13's with migration

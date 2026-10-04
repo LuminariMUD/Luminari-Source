@@ -1418,11 +1418,15 @@ bool vessel_delete_persistence(int shipnum)
   }
 
   vessel_persistence_ensure_schema();
+  vessel_settlement_ensure_schema();
   if (mysql_query(conn, "START TRANSACTION"))
   {
     log("SYSERR: Unable to begin vessel purge transaction: %s", mysql_error(conn));
     return FALSE;
   }
+
+  if (!vessel_settlement_forget_ship(shipnum))
+    goto rollback;
 
   snprintf(query, sizeof(query), "DELETE FROM ship_docking WHERE ship1_id=%d OR ship2_id=%d",
            shipnum, shipnum);

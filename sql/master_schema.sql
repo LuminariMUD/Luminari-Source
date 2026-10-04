@@ -919,6 +919,23 @@ CREATE TABLE IF NOT EXISTS vessel_insurance_claims (
   INDEX idx_vessel_claim_ship (ship_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS vessel_settlements (
+  settlement_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  player_id INT UNSIGNED NOT NULL,
+  ship_id INT NOT NULL,
+  port_vnum INT NOT NULL DEFAULT 0,
+  commodity_id INT NOT NULL DEFAULT 0,
+  supply_delta INT NOT NULL DEFAULT 0,
+  cargo_delta INT NOT NULL DEFAULT 0,
+  contract_id INT NOT NULL DEFAULT 0,
+  fee_amount INT NOT NULL DEFAULT 0,
+  fee_port INT NOT NULL DEFAULT 0,
+  fee_clan INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_vessel_settlement_ship (ship_id),
+  UNIQUE KEY uk_vessel_settlement_player (player_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS ship_docking (
   dock_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   ship1_id INT NOT NULL,

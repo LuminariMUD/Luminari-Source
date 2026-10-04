@@ -89,7 +89,7 @@ and operator controls in one system.
 | Upgrades | Refits, wear, insurance settlement | vessels_upgrades.c |
 | Repair | Repair stores, crew and character repairs, dock repairs | vessels_repair.c |
 | Loss and Recovery | Wreck registry, automatic insurance, summons, trade-in rebuild | vessels_loss.c |
-| Economy | Cargo, markets, freight, piracy | vessels_trade.c, vessels_contracts.c, vessels_piracy.c |
+| Economy | Cargo, markets, freight, piracy, settlements | vessels_trade.c, vessels_contracts.c, vessels_piracy.c, vessels_settlement.c |
 | NPC Merchant Fleet | Durable definitions, assembly, consequences, respawn | vessels_merchants.c |
 | Bounty Hunters | HUNTED encounter policy, pursuit, durable lifecycle | vessels_hunters.c |
 | NPC Raiders | Ambushes, raider tiers, raider AI, boarding and looting, running merchants | vessels_raiders.c |
@@ -1010,22 +1010,73 @@ reverse. Buying drains local stock (price up), selling floods it (price down);
 inventory is clamped to 10-400, and `vessel_trade_restock_tick()` drifts all
 ports back toward baseline. Ports buy at 85% of ask, so same-port round trips
 lose money. Bulk lots persist in `ship_cargo_manifest` with
-`cargo_room = 0`. `cargobuy` and `cargosell` record the port's new supply and
-the manifest in one transaction before any gold moves, then save the gold
-with `save_char_checked()`; if that save fails the old supply and manifest
-are recorded again and the gold and the hold restored. If even that undo
-cannot be recorded, the trade stands as recorded, in memory too, and the
-persistence service's minute save stores the gold once it can; only a crash
-before then leaves cargo recorded without its price or a price without its
-cargo (work item #12). A refused write moves no gold, and without a database
-no trade is made. A COMMIT the server does not answer (a connection lost
-while its reply is on the way) may have taken effect or not; both writes set
-absolute values, so the trade or its undo is written again on a reconnected
-session, and once that commits it stands whichever way the first went. A
-connection lost inside the transaction loses the whole of it: the database
-layer refuses the statements that follow until the transaction is rolled
-back, so none of them commits on its own on a new session
-(`docs/systems/DATABASE_INTEGRATION.md`, Transaction Management).
+`cargo_room = 0`. `cargobuy` and `cargosell` are two-phase settlements (see
+Two-phase settlements below): the port's new supply, the manifest and a
+settlement row commit in one transaction before any gold moves, and the gold
+is saved with the row's id. A refused write moves no gold, and without a
+database no trade is made.
+
+Two-phase settlements (`src/vessels/vessels_settlement.c`, study step S14). A
+cargo trade, a freight acceptance and a dock-fee payment each write the
+ship's side to MariaDB and the captain's gold to the player file, and no
+transaction spans the two. A `vessel_settlements` row ties them. It is
+written in the ship-side transaction (`vessel_settlement_commit()`) and
+carries the undo: `supply_delta` and `cargo_delta`, signed and added to the
+port's supply and to the hold's lot, the `contract_id` to reopen, and the
+dock fee owed again (`fee_amount`, `fee_port`, `fee_clan`). Then
+`vessel_settlement_pay()` moves the gold, sets the character's marker
+(`GET_VESSEL_SETTLEMENT()`, the player file's `VSet` line) to the row's id,
+saves with `save_char_checked()`, and deletes the row.
+
+A row that is still there is settled by `vessel_settlements_reconcile()` from
+the player file of the captain it names: when the file's marker is the row's
+id, the gold is saved and the row is deleted; with any other marker the gold
+never reached the file and the ship's side is undone from the row, in one
+transaction, with no gold moved. The acting character is judged from memory
+(outside `vessel_settlement_pay()` the marker in memory is the one in the
+file, since a failed save puts it back) and any other captain from his file,
+so a ship does not wait for an absent helmsman; a mob and a removed player
+have no file, so their settlements are undone. The undo moves the supply by
+its delta inside the market's band, reopens the contract if it is still
+taken, changes the hold's lot by its delta (never below zero; goods with no
+free bay to return to are left ashore and logged) and writes the manifest,
+and makes the fee owed again only if the hull owes none: a runtime save
+rewrites the balance from memory at any time, so the fee is restored, not
+added.
+
+The reconcile runs at login, beside the insurance and merchant deliveries,
+where a player whose settlement was undone is told; and as a gate
+(`vessel_settlement_gate()`) at the start of `cargobuy`, `cargosell`,
+`contractaccept`, `contractdeliver`, `contractabandon` and `dockfees pay`,
+which refuse while a settlement of the ship or the player stays open. The
+table's unique keys on `ship_id` and `player_id` hold the same rule in the
+schema. Where the server can stop:
+
+- After the ship's side is committed and before the gold is saved: the row is
+  open and the file does not name it, so the settlement is undone at the
+  captain's next login or the ship's next account.
+- After the gold is saved and before the row is deleted: the file names the
+  row, so it is deleted and nothing is undone.
+- A save that fails: the gold and the marker go back and the settlement is
+  undone at once. The captain is told it is undone only once the undo is
+  committed; otherwise he is told the account is held.
+- A `COMMIT` that gets no reply (`mysql_commit_transaction()`,
+  `docs/systems/DATABASE_INTEGRATION.md`, Transaction Management): the row is
+  read back with a locking read, which says whether the transaction took
+  effect.
+- An outcome that cannot be told (the read-back fails too, the usual case
+  after a server restart, or an undo cannot be recorded): the settlement is
+  taken out of memory and the hull remembers its id
+  (`settlement_unresolved`, runtime only). If that row exists, its cargo is
+  not in the hold in memory, so the next reconcile undoes it in the database
+  only, or finds no row and forgets it. Until then `vessel_db_save_cargo()`
+  refuses, after trying the reconcile itself: a manifest written from memory
+  under an open row would have the lot undone a second time after a reboot.
+  A reboot forgets the id and reloads the hold from the manifest, which then
+  agrees with the row.
+
+A purged hull's settlement is deleted with her other rows
+(`vessel_delete_persistence()`).
 
 Staff can run `vtradecheck 1000` to execute the deterministic sustained-market
 gate without changing live port or character state. It must report all 1,000
@@ -1036,9 +1087,11 @@ the 100-unit baseline.
 Owned vessels receive one class-based dock fee on arrival at a port. Repeated
 room updates within the same visit do not assess another fee. An unpaid balance
 blocks manual departure and pauses autopilot; `dockfees pay` is limited to the
-owner or a permitted helmsman and saves both vessel and player state before
-confirming payment. Revenue assessed at a clan-owned port goes to that clan
-even if control changes before settlement. Public-port revenue leaves the
+owner or a permitted helmsman and is a two-phase settlement: the cleared
+balance and its settlement row commit together, the gold is saved with the
+row, and an unpaid payment is undone by making the fee owed again. The clan
+is credited once the gold is saved. Revenue assessed at a clan-owned port goes
+to that clan even if control changes before settlement. Public-port revenue leaves the
 economy. Unowned NPC and test hulls are exempt so public ferries cannot strand
 themselves. Departure clears and persists berth state only when an actual fee
 port or clan marker exists, avoiding false writes for public vessels.
@@ -1061,11 +1114,13 @@ room), with quantity and payout scaled from real wilderness distance between the
 dock rooms. The payout is the goods' base worth plus a distance premium.
 Accepting takes the goods' base worth as a bond (refused without the gold),
 loads the cargo (capacity-checked), and claims the row with a conditional
-UPDATE, so two captains racing for the same job cannot both win it. The claim
-and the manifest commit in one transaction before the bond is debited, and the
-debit is saved with `save_char_checked()`; if that save fails the gold is
-restored, the job reopened and the freight unloaded, so the record never keeps
-the freight without the bond or the bond without the freight. Abandoning
+UPDATE, so two captains racing for the same job cannot both win it. The claim,
+the manifest and a settlement row commit in one transaction before the bond is
+debited, and the bond is saved with the row (a two-phase settlement, above);
+if the bond is never saved the job is reopened and the freight unloaded, so
+the record never keeps the freight without the bond or the bond without the
+freight. Delivering and abandoning wait for an acceptance that is still
+unsettled. Abandoning
 returns the job to the board and leaves the bought freight aboard, so taking
 and dropping a job gains nothing. Delivering requires the freight still aboard.
 Boards refresh on a TTL; accepted contracts are never cleared by a refresh.
@@ -2025,6 +2080,7 @@ historical measurements, and the limits of the current evidence.
 | `vessel_region_law` | Legal-water metadata keyed to canonical geographic regions |
 | `vessel_encounters` | Region-keyed encounter definitions |
 | `vessel_insurance_claims` | Pending, paid, or void settlements: insurance, S5 premium refunds, and S7 prize money |
+| `vessel_settlements` | Open two-phase settlements (Phase 25): a trade, freight acceptance or dock-fee payment whose gold may not be saved yet, with its undo |
 | `vessel_npc_merchants` | NPC merchant prototype, route, cargo, faction, schedule, and live generation |
 | `vessel_merchant_consequences` | Deduplicated faction and bounty events with delivery state |
 | `vessel_hunter_encounters` | Hunter warship, pilot, bounty, pursuit, duration, grace, and cooldown policy |
@@ -2435,6 +2491,7 @@ and the trigger was removed.
 | `src/vessels/vessels_repair.c` | Repair stores, crew repairs, character and dock repairs (S5) |
 | `src/vessels/vessels_loss.c` | Hull value, automatic insurance, stowed hulls, wreck registry, summons, in-place rebuild (S5) |
 | `src/vessels/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07); contraband, customs, sale modifiers (S7) |
+| `src/vessels/vessels_settlement.c` | Two-phase settlements of trades, freight bonds and dock fees (S14) |
 | `src/vessels/vessels_rewards.c` | Renown, the rewards of a sinking, and the renown board (S7) |
 | `src/vessels/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
 | `src/vessels/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
@@ -2523,6 +2580,7 @@ and the trigger was removed.
 | `sql/components/vessels_phase22_*` | S6 raider tier table, verification, and rollback |
 | `sql/components/vessels_phase23_*` | S7 hull renown and the contraband flag, verification, and rollback |
 | `sql/components/vessels_phase24_*` | S12 waypoint and route creators, verification, and rollback |
+| `sql/components/vessels_phase25_*` | S14 settlement records, verification, and rollback |
 | `sql/components/vessels_contraband_content.sql` | Three contraband goods, each stocked at one sea port |
 | `sql/components/verify_vessels_contraband_content.sql` | Read-only contraband goods and stock checks |
 | `sql/components/vessels_contraband_content_rollback.sql` | Contraband goods, stock, and hold lots removal |
