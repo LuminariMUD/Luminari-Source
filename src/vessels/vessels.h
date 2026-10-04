@@ -1197,7 +1197,7 @@ int vessel_bounty_after_decay(int bounty, long long quiet_seconds);
 int vessel_bounty_payoff_cost(int bounty);
 int vessel_get_bounty(const char *player_name);
 bool vessel_bounty_record_offense(const char *player_name, int amount);
-void vessel_add_bounty(const char *player_name, int amount);
+bool vessel_add_bounty(const char *player_name, int amount);
 bool vessel_clear_bounty(const char *player_name);
 bool vessel_has_letter_of_marque(const char *player_name);
 const char *vessel_waters_type_name(int waters_type);

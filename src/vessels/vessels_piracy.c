@@ -700,14 +700,21 @@ bool vessel_bounty_record_offense(const char *player_name, int amount)
 }
 
 /**
- * Add to a player's bounty (creating the record if needed).
+ * Add to a player's bounty (creating the record if needed), outside any
+ * transaction. An offense that could not be recorded is tried once more: a
+ * connection that failed one statement has reconnected by then.
+ *
+ * @return TRUE when the offense was recorded
  */
-void vessel_add_bounty(const char *player_name, int amount)
+bool vessel_add_bounty(const char *player_name, int amount)
 {
-  if (vessel_bounty_record_offense(player_name, amount))
+  if (!vessel_bounty_record_offense(player_name, amount) &&
+      !vessel_bounty_record_offense(player_name, amount))
   {
-    log("Info: %s bounty increased by %d gold", player_name, amount);
+    return FALSE;
   }
+  log("Info: %s bounty increased by %d gold", player_name, amount);
+  return TRUE;
 }
 
 /**
@@ -1004,9 +1011,16 @@ ACMD(do_plunder)
   {
     send_to_char(ch, "Your letter of marque makes this a lawful prize.\r\n");
   }
+  else if (!vessel_add_bounty(GET_NAME(ch), bounty))
+  {
+    /* Nothing applies it later: the raid's record carries no bounty. */
+    mudlog(BRF, LVL_STAFF, TRUE,
+           "SYSERR: %s's bounty of %d gold for plundering ship %d '%s' could not be recorded; "
+           "it has to be applied by hand.",
+           GET_NAME(ch), bounty, prize->shipnum, prize->name);
+  }
   else
   {
-    vessel_add_bounty(GET_NAME(ch), bounty);
     applied_bounty = bounty;
     if (law.configured)
     {

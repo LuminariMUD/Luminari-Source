@@ -1188,6 +1188,12 @@ void Test_vessel_bounty_is_not_overwritten_when_it_cannot_be_read(CuTest *tc)
   CuAssertTrue(tc, vessel_bounty_record_offense("Sthirteen", 100));
   CuAssertIntEquals(tc, 500, vessel_get_bounty("Sthirteen"));
 
+  /* A plunder's bounty is tried once more, on the session the connection has
+   * by then, and reports whether it was recorded. */
+  mysql_test_drop_connection_at("SELECT bounty", 1, FALSE);
+  CuAssertTrue(tc, vessel_add_bounty("Sthirteen", 100));
+  CuAssertIntEquals(tc, 600, vessel_get_bounty("Sthirteen"));
+
   mysql_query(conn, "DELETE FROM vessel_bounties WHERE player_name = 'Sthirteen'");
   transactions_end(&database);
 }
