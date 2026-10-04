@@ -31,7 +31,7 @@ here records the merge.
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
 | S13 Transactions that survive a lost connection (work item #13) | Merged `9eb723913` (MR !20) | [Phase 13](vessels-ships-history.md#phase-13-s13-progress) |
 | S14 Two-phase vessel settlements (work item #12) | Merged `e7bc5242c` (MR !21) | [Phase 14](vessels-ships-history.md#phase-14-s14-progress) |
-| S15 Checked vessel purchases and payouts (work item #14) | In progress on `feat/vessels-s15`: planned, not built | [Phase 15](#phase-15-s15-progress) |
+| S15 Checked vessel purchases and payouts (work item #14) | In progress on `feat/vessels-s15`: built, being verified | [Phase 15](#phase-15-s15-progress) |
 
 Production help is current through S14 (help sync plan `20d457173b87`, 2026-10-04). S1-S14 are
 merged: the study's steps, S1-S8; S-immediate, which readied the local Luminari Web client for
@@ -247,9 +247,10 @@ the guide.
 
 ### Phase 15 (S15) progress
 
-Planned (2026-10-04), not built yet. Branch `feat/vessels-s15` from the S14 merge `e7bc5242c` (tag
-`vessels-s15-base`); the S14 close-out `16c6611fb` comes first, then this plan. Hand-off as in the
-routine: tag `vessels-s15` and a merge request that says `Closes #14`; review fixes go on top.
+Planned and built (2026-10-04); the verification is under way. Branch `feat/vessels-s15` from the
+S14 merge `e7bc5242c` (tag `vessels-s15-base`); the S14 close-out `16c6611fb` comes first, then
+the plan `c295d6aa8`. Hand-off as in the routine: tag `vessels-s15` and a merge request that says
+`Closes #14`; review fixes go on top.
 Scope: [work item #14](https://gitlab.com/max757/Luminari-Source/-/work_items/14) and its note.
 
 The model. Each of the fifteen movements has the captain's gold in the player file and a ship side
@@ -363,6 +364,76 @@ Planning ablation:
 - Kept: the write-back; "the sale stands" (a reviewer found its absence in S11); the undo of the
   trade-in and of the summons, without which a failed hull write would leave a paid fee and the
   old hull in the database until shutdown.
+
+Built (2026-10-04), items 01-11 as planned except where "Decided while building" says otherwise:
+
+- `src/vessels/vessels_payment.c` (both build lists): `vessel_gold_saved()`, `vessel_charge()`,
+  `vessel_refund()`, `vessel_purchase_recorded()` and `vessel_sale_recorded()`. The passenger
+  fare calls the first.
+- `vessel_save_hull()`; `vessel_save_one()` is that plus permits, cargo, pilot and schedule, so it
+  now stops at an owner, crew or refit write that fails. `vessel_db_save_crew()` and
+  `vessel_db_save_extras()` return their result.
+- The seven shipyard jobs, `shipbuy` and its trade-in (`vessel_trade_in_undo()`), `shipsummon`,
+  the bounty pay-off and `marque`, the two sales, and `contractdeliver` (`contract_record()`),
+  each in its own source file.
+- Tests: a new `unittests/CuTest/test_vessel_payment.c` (four tests: the seven jobs, the sales,
+  the admiralty's fees, the delivery) and the fixture `test_vessel_stores.c` and `.h` (the test
+  database as the game's connection with a hull's row, a scratch player directory, the gold a
+  player file holds). Cases for `shipsummon` in `test_vessel_loss.c` and for `shipbuy` and the
+  trade-in in `test_vessel_shipyard.c`. Seven tests that already bought or sold got both stores
+  (the weapons, hire, dock repair, summons, rename and hiring-hall tests, and the end-to-end
+  freight delivery), and the bounty test a player file.
+- Help: a "Paying the yard" paragraph in SHIP-CREW (the entry SHIPHIRE opens) and a sentence
+  each in SHIP-OWNERSHIP, PIRACY (BOUNTY PAY, MARQUE), CONTRACTS (CONTRACTDELIVER) and
+  SHIP-COMBAT (SHIPREPAIR), in `help.hlp` and `help_vessel_entries.sql`; the verifier checks the
+  five phrases (64 content checks).
+- `VESSEL_SYSTEM.md`: a "Checked purchases and payouts" passage in the economy model, the
+  freight, refit and summons paragraphs, the component and file lists.
+- The loss gate plays a purchase and a trade-in the database refuses to record
+  (`scripts/vessels/test_vessel_tactical_in_game.sh`, `VESSEL_SYSTEM_TESTING.md`).
+
+Decided while building:
+
+- What "a refused write" is. Outside a transaction, a statement sent on a connection that has
+  just been lost does not fail: the client library reconnects and sends it again. A single
+  statement fails only with its reply lost, after the server has run it. So the write-back is
+  what undoes a refused purchase in the rows, and the tests lose the reply of the
+  single-statement writes (`mysql_test_drop_connection_at(..., TRUE)`) and the connection before
+  the statements inside a transaction.
+- The bounty pay-off and `marque` read the row back when their write reports a failure, for the
+  same reason: the fee is returned only if the row does not show the write. An unreadable row
+  counts as not written, and the fee is returned.
+- `shipsummon` is saved before the hull leaves the world, so a summons that cannot be saved has
+  no hull object to recreate: the undo is the copy of the hull. For that,
+  `vessel_db_save_runtime()` saves a stowed hull's own location, not the room of a hull object
+  that still stands; the command writes `vessel_save_hull()` and the emptied manifest (checked,
+  which `vessel_save_one()` does not do for the manifest) and then takes her out with
+  `vessel_restow()`. `vessel_stow()` is left to the wreck registry.
+- A trade-in whose rebuild fails ("the shipwrights botch the work") returns the charge; the
+  hull is as broken as before S15.
+- The trade-in's undo and `shipbuy`'s refused hull write have no unit test: no unit world
+  generates ship interiors (the room vnums come from the fleet slot, the rooms from the zone
+  table and the runtime room list). `test_vessel_shipyard.c` covers the charge that cannot be
+  saved for both, and the refund of a hull the yard cannot deliver. The refused write is played
+  in the loss gate instead: the harness adds a CHECK constraint to `ship_runtime_state` that
+  refuses one design's runtime row, Kohdee buys that design and trades his raft in for it, and
+  the gate checks the two messages, his player file's gold, the rows, and the same trade-in
+  once the constraint is dropped.
+- Help in the five entries that hold the commands, not only the overview entry item 11 named:
+  a captain reads SHIPHIRE or CONTRACTS, not VESSELS, when a purchase is refused.
+- `scripts/ci/sql_interpolation_baseline.txt` drops by one: `contractdeliver`'s status update is
+  a prepared statement now.
+- Messages. Paid or sold: unchanged. A price that cannot be saved: "Your payment could not be
+  recorded; no gold was taken." A job that cannot be written: "The harbor office could not
+  record that, so nothing was done and your N gold is returned." A sale: "... so nothing was
+  sold." and "Your payment could not be recorded, so the sale is undone." `shipbuy`: the
+  spawn's own message, then "Your N gold is returned." The trade-in: "The shipwrights cannot
+  record the trade, so it is undone: <ship> is put back as she was and no gold changes hands."
+  `shipsummon`: "The harbor master cannot record the summons, so <ship> stays where she is and
+  your N gold is returned." The admiralty: "The clerk cannot record the settlement (complete
+  the commission); your N gold is returned." `contractdeliver`: "The freight office cannot
+  record the delivery; the freight stays aboard." and "Your payment could not be recorded, so
+  the delivery is undone."
 
 ## Estimate (remaining)
 
