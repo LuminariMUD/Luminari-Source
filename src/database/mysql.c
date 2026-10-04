@@ -21,6 +21,7 @@
 #include "core/perfmon.h"
 
 #include <mariadb/errmsg.h>
+#include <mariadb/mysqld_error.h>
 #ifdef LUMINARI_CUTEST
 #include <poll.h> /* poll(), recv() and shutdown(), for the test that loses a connection */
 #include <sys/socket.h>
@@ -110,7 +111,7 @@ static int mysql_test_dropped_query(MYSQL *mysql_conn, const char *query)
 #endif
 
 /* ========================================================================== */
-/* A transaction lost with its connection                                     */
+/* A transaction lost with its connection, or to a deadlock                   */
 /* ========================================================================== */
 /* Every connection reconnects by itself (MYSQL_OPT_RECONNECT). When one drops
  * inside a transaction, the server rolls the transaction back and one command
@@ -119,6 +120,10 @@ static int mysql_test_dropped_query(MYSQL *mysql_conn, const char *query)
  * that lost its transaction is marked here, and takes no statement until its
  * caller ends the transaction. The mark is kept on the handle: it survives
  * the reconnect, and a closed handle leaves none behind.
+ *
+ * A deadlock ends the same way with the connection up: the server rolls its
+ * victim's whole transaction back and fails one statement (1213), and the
+ * statements after it would commit one by one. The victim is marked too.
  *
  * The mark does not outlast the game pulse it was set in. All database work
  * is done within the pulse that starts it, so in a later pulse the caller of
@@ -154,8 +159,8 @@ static bool transaction_lost(MYSQL *mysql_conn)
   transaction_set_lost(mysql_conn, FALSE);
   mysql_conn->server_status &= ~SERVER_STATUS_IN_TRANS;
   (mysql_query)(mysql_conn, "ROLLBACK");
-  log("SYSERR: A database transaction lost with its connection was never ended by the code "
-      "that opened it; it is rolled back now, a pulse later");
+  log("SYSERR: A lost database transaction was never ended by the code that opened it; it is "
+      "rolled back now, a pulse later");
   return FALSE;
 }
 
@@ -176,22 +181,27 @@ static struct transaction_watch transaction_watch_begin(MYSQL *mysql_conn)
 }
 
 /* Mark the connection if the command lost the open transaction. It did if it
- * failed because the connection is gone (2006, 2013); if it failed and the
- * library no longer holds the transaction open, which is how the library
- * leaves a reconnect it refused or could not make; or if it reconnected (a
- * ping does, and reports success). A statement the server refuses is none of
- * these. `error` is the client's error number for the command, 0 for none. */
+ * failed because the connection is gone (2006, 2013); if the server rolled
+ * the transaction back as a deadlock's victim (1213), which leaves the
+ * library holding it open; if it failed and the library no longer holds the
+ * transaction open, which is how the library leaves a reconnect it refused
+ * or could not make; or if it reconnected (a ping does, and reports success).
+ * A statement the server refuses otherwise is none of these: it fails alone
+ * and the transaction stays. `error` is the error number for the command, 0
+ * for none. */
 static void transaction_watch_end(MYSQL *mysql_conn, struct transaction_watch watch,
                                   unsigned int error)
 {
   bool still_open = (mysql_conn->server_status & SERVER_STATUS_IN_TRANS) != 0;
 
-  if (!watch.open || (error != CR_SERVER_GONE_ERROR && error != CR_SERVER_LOST &&
-                      (error == 0 || still_open) && mysql_thread_id(mysql_conn) == watch.session))
+  if (!watch.open ||
+      (error != CR_SERVER_GONE_ERROR && error != CR_SERVER_LOST && error != ER_LOCK_DEADLOCK &&
+       (error == 0 || still_open) && mysql_thread_id(mysql_conn) == watch.session))
     return;
   transaction_set_lost(mysql_conn, TRUE);
-  log("SYSERR: A database transaction was lost with its connection (client error %u, 0 for a "
-      "silent reconnect); the connection takes no statement until the transaction is rolled back",
+  log("SYSERR: A database transaction was lost with its connection or to a deadlock (error %u, 0 "
+      "for a silent reconnect); the connection takes no statement until the transaction is rolled "
+      "back",
       error);
 }
 

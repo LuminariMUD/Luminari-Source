@@ -26,6 +26,7 @@
 
 #include <limits.h>
 #include <mariadb/errmsg.h>
+#include <mariadb/mysqld_error.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -306,6 +307,67 @@ void Test_database_lost_transaction_is_noticed_by_statements_closes_and_pings(Cu
   CuAssertIntEquals(tc, 9, transactions_row(conn));
 
   CuAssertIntEquals(tc, 0, mysql_query(conn, "DROP TABLE " TRANSACTIONS_TABLE));
+  transactions_end(&database);
+}
+
+/* A deadlock's victim loses its whole transaction with the connection up, and
+ * the library goes on holding the transaction open. The statements after it
+ * are refused all the same, and the COMMIT reports a refusal. */
+void Test_database_deadlock_victim_takes_no_statement_until_it_ends(CuTest *tc)
+{
+  struct transactions_database database;
+  MYSQL *other;
+  const char *blocked = "UPDATE " TRANSACTIONS_TABLE " SET v = 9 WHERE id = 1";
+  int failed;
+  unsigned int failed_errno;
+
+  if (!transactions_begin(tc, &database))
+    return;
+  transactions_table(tc, conn);
+  CuAssertIntEquals(
+      tc, 0, mysql_query(conn, "INSERT INTO " TRANSACTIONS_TABLE " VALUES (2, 0), (3, 0), (4, 0)"));
+  other = transactions_connect();
+  CuAssertPtrNotNull(tc, other);
+
+  /* The other session is the heavier transaction: it holds rows 2 and 3. */
+  CuAssertIntEquals(tc, 0, (mysql_query)(other, "START TRANSACTION"));
+  CuAssertIntEquals(
+      tc, 0, (mysql_query)(other, "UPDATE " TRANSACTIONS_TABLE " SET v = 9 WHERE id IN (2, 3)"));
+
+  CuAssertIntEquals(tc, 0, mysql_query(conn, "START TRANSACTION"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(conn, "UPDATE " TRANSACTIONS_TABLE " SET v = 1 WHERE id = 1"));
+
+  /* The other session asks for row 1, and the game's second write for row 2:
+   * whichever request closes the cycle, the lighter transaction is rolled
+   * back, and that is the game's. */
+  CuAssertIntEquals(tc, 0, mysql_send_query(other, blocked, (unsigned long)strlen(blocked)));
+  failed = mysql_query(conn, "UPDATE " TRANSACTIONS_TABLE " SET v = 1 WHERE id = 2");
+  failed_errno = mysql_errno(conn);
+  CuAssertTrue(tc, failed != 0);
+  CuAssertIntEquals(tc, ER_LOCK_DEADLOCK, (int)failed_errno);
+
+  /* Row 4 is not written on its own, and nothing is reported committed. */
+  CuAssertTrue(tc, mysql_query(conn, "UPDATE " TRANSACTIONS_TABLE " SET v = 7 WHERE id = 4") != 0);
+  CuAssertIntEquals(tc, MYSQL_COMMIT_REFUSED, mysql_commit_transaction(conn));
+
+  CuAssertIntEquals(tc, 0, mysql_read_query_result(other));
+  CuAssertIntEquals(tc, 0, (mysql_query)(other, "ROLLBACK"));
+  mysql_close(other);
+
+  CuAssertIntEquals(tc, 0, transactions_row(conn));
+  CuAssertIntEquals(tc, 0,
+                    transactions_value(conn, "SELECT v FROM " TRANSACTIONS_TABLE " WHERE id = 4"));
+
+  /* The transaction is over: the connection serves the next one. */
+  CuAssertIntEquals(tc, 0, mysql_query(conn, "START TRANSACTION"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(conn, "UPDATE " TRANSACTIONS_TABLE " SET v = 5 WHERE id = 4"));
+  CuAssertIntEquals(tc, MYSQL_COMMIT_DONE, mysql_commit_transaction(conn));
+  CuAssertIntEquals(tc, 5,
+                    transactions_value(conn, "SELECT v FROM " TRANSACTIONS_TABLE " WHERE id = 4"));
+
+  mysql_query(conn, "DROP TABLE IF EXISTS " TRANSACTIONS_TABLE);
   transactions_end(&database);
 }
 
