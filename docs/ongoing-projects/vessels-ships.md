@@ -31,7 +31,7 @@ here records the merge.
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
 | S13 Transactions that survive a lost connection (work item #13) | Merged `9eb723913` (MR !20) | [Phase 13](vessels-ships-history.md#phase-13-s13-progress) |
 | S14 Two-phase vessel settlements (work item #12) | Merged `e7bc5242c` (MR !21) | [Phase 14](vessels-ships-history.md#phase-14-s14-progress) |
-| S15 Checked vessel purchases and payouts (work item #14) | Handed to review: tag `vessels-s15`, MR !22 | [Phase 15](#phase-15-s15-progress) |
+| S15 Checked vessel purchases and payouts (work item #14) | In review: tag `vessels-s15`, MR !22, review round 1 fixed on top | [Phase 15](#phase-15-s15-progress) |
 
 Production help is current through S14 (help sync plan `20d457173b87`, 2026-10-04). S1-S14 are
 merged: the study's steps, S1-S8; S-immediate, which readied the local Luminari Web client for
@@ -236,8 +236,8 @@ ship data panel among them.
 ## Active step
 
 S15 is the active step and the last in the sequence: built, verified and handed to review as
-MR !22, not merged. Its record follows the open items; "After the merge" at its end says what is
-left to do.
+MR !22, its review round 1 fixed on top, not merged. Its record follows the open items; "After
+the merge" at its end says what is left to do.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's,
 S12's, S13's and S14's code (S12's with schema Phase 24, which boot adds, S13's with migration
@@ -515,6 +515,85 @@ them changes this document only):
   554 s. The first run, on `77cc74137`, passed 32 (see "Found before hand-off").
 - Before the fixes, on `77cc74137`: `make test-all` passed on the build, and the first eleven
   gates of a batch passed before it was stopped to make the fixes.
+
+Review round 1 (2026-10-04, range `vessels-s15..feat/vessels-s15`): four findings on MR !22, one
+[P2] and three [P3], two shown by the reviewer's probe tests on `6c0975cd1` and two read. All
+fixed, one commit each.
+
+- [P2] A summons put the carts aboard ashore with the shipyard's coordinates (`a1a02f325`). The
+  summons is saved before anything aboard is touched ("Found before hand-off"), so by the time
+  her vehicles were released the hull's own position was already the summoning shipyard's, and
+  `vehicle_release_all_from_vessel()` copies that position into each vehicle. A vehicle's
+  coordinates are where it drives from and where boot puts it: one `drive` carried the cart and
+  its riders to the shipyard, and after a boot the cart stood there. The vehicles are released
+  from the copy of the hull taken before the summons. The summons test carries a cart.
+- [P3] A purchase whose write-back failed was called undone and refunded while her rows kept it
+  (`c53d1601e`). The two failures are usually one event: a reply lost on a statement the server
+  ran is the start of an outage, and the write-back cannot reconnect. Nothing saves the fleet
+  periodically (`save_all_vessels()` runs at copyover and at shutdown), so the rows kept the
+  purchase until her next shipyard job. This replaces "a single failed write is undone and
+  reported" above for the case where the undo fails too:
+  - `vessel_purchase_recorded()` puts the bought hull back in memory, writes her once more and
+    keeps the price, as a sale stands. "Nothing was done" is said only after a write-back that
+    succeeded.
+  - `shipsummon` carries on as summoned and the fee stays paid. A summons can then stand with
+    none of its writes made, her full manifest still in the rows, so a hull that makes port
+    saves her manifest before her runtime row (`vessel_summon_arrive()`).
+  - The trade-in has rebuilt the old hull by then. `vessel_trade_in_undo()` reports whether she
+    is as she was in play and in her rows; if not, the charge is kept, and the captain and the
+    staff (`mudlog()`) are told, who settle it.
+  - `vessel_charge()` asks the database for an answer before it takes the gold, so one that is
+    away before the command refuses the purchase uncharged ("The harbor's records cannot be
+    reached; no gold was taken."). Without it every purchase in an outage would stand unsaved.
+- [P3] A refunded `shipbuy` could leave a hull the next boot rebuilt for the buyer
+  (`c584bdab0`). The spawn's rollback did not look at whether its delete committed. With the
+  reply to her runtime row lost (the last write, and made) and the database out of reach for
+  the delete, her whole record stayed with no hull in memory to write over it. The rollback
+  now deletes her rows before it takes her out of play, as `shippurge` does with a live hull;
+  when the delete does not commit she stays in play, the spawn returns her slot and the price
+  stays paid. This replaces "rows a failed rollback leaves behind hold her slot" above: the
+  runtime row still goes last, for a crash in mid-spawn.
+- [P3] A refused summons was written back manifest first (`e5fcba5d3`), the order the forward
+  path avoids: with her stowed runtime row written and its reply lost, a stop between the two
+  writes left her due at the shipyard with her hold full. The hull is written back first.
+
+New messages: "The harbor's records cannot be reached; no gold was taken." and, for the
+trade-in, "The shipwrights cannot complete the trade, and the harbor office cannot put its
+records of <ship> right. Your N gold stays paid until the staff settle it; they have been told."
+No help entry changes: what a captain is told when one write fails is as the entries say, and
+they do not describe a database outage. `VESSEL_SYSTEM.md` follows in `94c3c5a9a`.
+
+Ablation (review fixes): the database check lives in `vessel_charge()`, one place for twelve
+commands, not at each command; the trade-in keeps the charge for the staff instead of building
+the new hull a second time; no retry of the save in the spawn (its delete is one transaction
+and leaves her rows as the failed save left them); no second kind of record for a purchase that
+stands (the log line, and her next save); no test for the write-back's order (a unit test cannot
+stop between two writes, and a failed write-back is now followed by a second write of the
+summons); no permanent gate step for the two-fault cases (a trigger that refuses deletes belongs
+in a one-off job, not in the loss gate).
+
+Verification of the fixes (2026-10-04, on `94c3c5a9a`):
+
+- `make test-all` with the database cases: 2,036 production tests and the 32 protocol tests
+  pass. Two tests are new (a hire and a summons that stand: the reply lost with the database
+  out of reach for the write-back), and the fixture gained `vessel_test_database_away()`. With
+  the old argument the cart's check fails (`expected <10> but was <40>`).
+- Live, in the private-namespace harness on a reload of the development dump, a database that
+  refuses both a write and its undo: a CHECK constraint on `ship_runtime_state` refused the
+  runtime row of Kohdee's `Persistence_Goshawk` (ship 3) and of a new warship design, and a
+  trigger refused every delete from `ship_interiors`. `shiphire gunner green` signed the gunner
+  on and kept its 2,400 gold; `shipbuy <design> trade` reported that the records could not be
+  put right and kept its 2,654 gold, with the staff line in the log; `shipbuy <design>` handed
+  over the hull in slot 13 and kept its 44,000 gold; `shipsummon` from the west dock stood for
+  28 gold and she made port there. The log named each of the five cases. With the refusals
+  dropped, her next job (`shiphire bosun green`) wrote both hands and the west dock into her
+  rows, and the bought hull's christening wrote her runtime row.
+- The gates that run the changed commands, in the same harness on the same binary after a fresh
+  reload, all pass: loss (its refused purchase and trade-in undone and refunded as before),
+  gunnery 87 s, rules 47 s, damage 642 s and economy 220 s.
+- The local CI matrix, `scripts/ci/local/run.py --base gitlab/master`: all 33 jobs pass in 666 s
+  (`--jobs 3 --cpus 4`), the coverage policy, clang-tidy, both sanitizer jobs and the
+  memory-check job among them.
 
 After the merge (merge commit, never a squash; keep the branch):
 
