@@ -113,6 +113,7 @@ util/wld2html
 ####################
 # AI development guide and configuration
 .claude/
+.kilo/
 .cursorrules
 .cursorignore
 WORK.md
