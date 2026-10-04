@@ -988,84 +988,45 @@ elif [[ "$acceptance_mode" == loss ]]; then
   [[ "$loss_help_state" == 2 ]] ||
     fail "the authoritative vessel loss help is stale"
 
+  # A hull the harbor cannot record is refunded and undone (study step S15).
+  # Kohdee lists a design whose runtime row the database then refuses; in the
+  # loss session Vesselmate, who owns only the check's boat, buys a hull of
+  # that design and trades the boat in for one.
+  run_kohdee_commands "$run_dir/02-kohdee-payment-design.log" \
+    "vedit new 2 Losscheck Refused $(date +%s)" ||
+    fail "Kohdee could not create the design the database refuses"
+  payment_refused_id=$(payment_value "$run_dir/02-kohdee-payment-design.log" \
+    'Created Ship prototype ')
+  [[ -n "$payment_refused_id" ]] || fail "could not read the refused design's id"
+  run_kohdee_commands "$run_dir/02-kohdee-payment-listing.log" \
+    "vedit set $payment_refused_id forsale yes" ||
+    fail "Kohdee could not list the design the database refuses"
+  payment_refusal_planted=true
+  plant_payment_refusal "$payment_refused_id" ||
+    fail "could not have the database refuse the listed design's runtime row"
+
   timeout 300 env DEV_MUD_CHARACTER="$target_player" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-loss-check \
-    "$secondary_player" >"$run_dir/02-kohdee-vessel-loss.log" 2>&1 ||
+    "$secondary_player" "$payment_refused_id" >"$run_dir/02-kohdee-vessel-loss.log" 2>&1 ||
     fail "the actual Kohdee and Vesselmate vessel-loss session failed"
+  payment_refused_rows=$(database_query "
+    SELECT COUNT(*) FROM ship_runtime_state WHERE prototype_id = $payment_refused_id;") ||
+    payment_refused_rows=unreadable
+  remove_payment_refusal || fail "could not lift the refusal of the listed design's runtime row"
+  payment_refusal_planted=false
+  [[ "$payment_refused_rows" == 0 ]] ||
+    fail "the refused purchases left runtime rows behind: $payment_refused_rows"
 
   for expected_text in \
     'PASS: the retired SHIPINSURE command is gone.' \
     'was refused an able gunner and hired a green bosun' \
     'PASS: the first christening was free and the rename cost 60 gold.' \
+    'PASS: a hull and a trade-in the harbor could not record were undone, and nothing was charged.' \
     'PASS: summoned from sea to the east dock, the boat made port in 37 seconds.' \
     'PASS: traded in at the east dock, she became a warship design' \
     'PASS: the vessel loss check completed and purged all temporary hulls'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-loss.log" ||
       fail "the loss session did not report '$expected_text'"
-  done
-
-  # A hull the harbor cannot record is refunded and undone (study step S15).
-  # Kohdee lists two designs and buys a raft; then the database refuses the
-  # runtime row of the boat design, and he buys a boat and trades the raft in
-  # for one. Neither stands, his gold is as it was, and with the refusal
-  # lifted the same trade-in goes through.
-  payment_seed=$(date +%s)
-  run_kohdee_commands "$run_dir/03-kohdee-payment-designs.log" \
-    "vedit new 0 Losscheck Skiff $payment_seed" \
-    "vedit new 1 Losscheck Cutter $payment_seed" ||
-    fail "Kohdee could not create the payment-check designs"
-  payment_raft_id=$(payment_value "$run_dir/03-kohdee-payment-designs.log" \
-    'Created Raft prototype ')
-  payment_boat_id=$(payment_value "$run_dir/03-kohdee-payment-designs.log" \
-    'Created Boat prototype ')
-  [[ -n "$payment_raft_id" && -n "$payment_boat_id" ]] ||
-    fail "could not read the payment-check design ids"
-  run_kohdee_commands "$run_dir/04-kohdee-payment-raft.log" \
-    "vedit set $payment_raft_id forsale yes" "vedit set $payment_boat_id forsale yes" \
-    'goto 1000390' "shipbuy $payment_raft_id" 'goto 1204' ||
-    fail "Kohdee could not buy the payment-check raft"
-  payment_slot=$(payment_value "$run_dir/04-kohdee-payment-raft.log" ' as ship ')
-  [[ -n "$payment_slot" ]] || fail "could not read the payment-check raft's fleet slot"
-  payment_gold=$(sed -n 's/^Gold: //p' "$player_file")
-
-  payment_refusal_planted=true
-  plant_payment_refusal "$payment_boat_id" ||
-    fail "could not have the database refuse the boat design's runtime row"
-  run_kohdee_commands "$run_dir/05-kohdee-payment-refused.log" \
-    'goto 1000390' "shipbuy $payment_boat_id" "shipbuy $payment_boat_id trade" 'goto 1204' ||
-    fail "Kohdee could not order the hulls the harbor cannot record"
-  remove_payment_refusal || fail "could not lift the refusal of the boat design's runtime row"
-  payment_refusal_planted=false
-  for expected_text in \
-    'The ship could not be persisted, so the spawn was rolled back.' \
-    ' gold is returned.' \
-    'The shipwrights cannot record the trade, so it is undone:' \
-    'is put back as she was and no gold changes hands.'; do
-    grep -Fq "$expected_text" "$run_dir/05-kohdee-payment-refused.log" ||
-      fail "the refused purchases did not report '$expected_text'"
-  done
-  [[ $(sed -n 's/^Gold: //p' "$player_file") == "$payment_gold" ]] ||
-    fail "Kohdee's gold changed over two purchases the harbor could not record"
-  payment_state=$(database_query "
-    SELECT CONCAT(
-      (SELECT COUNT(*) FROM ship_runtime_state WHERE prototype_id = $payment_boat_id), ':',
-      (SELECT CONCAT(runtime.prototype_id, ':', interior.vessel_type)
-         FROM ship_runtime_state AS runtime
-         JOIN ship_interiors AS interior ON interior.ship_id = runtime.ship_id
-        WHERE runtime.ship_id = $payment_slot));") || payment_state=unreadable
-  [[ "$payment_state" == "0:$payment_raft_id:0" ]] ||
-    fail "the refused purchases left hull rows behind: $payment_state"
-
-  run_kohdee_commands "$run_dir/06-kohdee-payment-recorded.log" \
-    'goto 1000390' "shipbuy $payment_boat_id trade" 'goto 1204' "shippurge $payment_slot" \
-    "vedit delete $payment_raft_id" "vedit delete $payment_boat_id" ||
-    fail "Kohdee could not trade the raft in once the harbor could record it"
-  for expected_text in \
-    'and rebuild her as a Boat.' \
-    "Purged ship $payment_slot " \
-    "Prototype $payment_boat_id deleted."; do
-    grep -Fq "$expected_text" "$run_dir/06-kohdee-payment-recorded.log" ||
-      fail "the recorded trade-in did not report '$expected_text'"
   done
 elif [[ "$acceptance_mode" == economy ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \

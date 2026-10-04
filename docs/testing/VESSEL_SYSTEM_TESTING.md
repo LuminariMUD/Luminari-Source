@@ -614,8 +614,8 @@ After a clean candidate is built and installed, run:
 The wrapper runs the shared tactical harness in `--loss` mode, which reads the
 SHIPSUMMON and SHIPREPAIR help as Kohdee, checks the authoritative help rows,
 refuses to start if Vesselmate already owns a hull, and calls
-`--vessel-loss-check Vesselmate` in the login helper with the same snapshots
-and two-character restoration as the rules gate.
+`--vessel-loss-check Vesselmate <refused-design>` in the login helper with the
+same snapshots and two-character restoration as the rules gate.
 
 `shipinsure` must be unknown (`Huh!?!`). Kohdee launches a `Losscheck Boat`
 prototype at sea at `(-63, 82)`, one room west of the harbor's east dock, sets
@@ -633,20 +633,19 @@ large ballista on the bow, berthed, keeping her owner and her bosun. Cleanup
 purges the hull, deletes both prototypes, and returns both characters to
 room 1204.
 
-The harness then plays a hull the harbor cannot record (study step S15), in
-four `--commands` sessions as Kohdee. He creates a `Losscheck Skiff` raft and
-a `Losscheck Cutter` boat design, lists both, and buys a raft at the east
-dock. The harness adds a `vessel_payment_refused` CHECK constraint to
-`ship_runtime_state` that refuses the runtime row of the boat design, and
-Kohdee orders `shipbuy <boat>` and `shipbuy <boat> trade`. The first must
-report `The ship could not be persisted, so the spawn was rolled back.` and
-`gold is returned.`; the second
-`The shipwrights cannot record the trade, so it is undone:` with
-`is put back as she was and no gold changes hands.` The `Gold:` line of
-Kohdee's player file must be what it was after he bought the raft, no runtime
-row may name the boat design, and the raft's rows must still be a raft's. With
-the constraint dropped the same trade-in must rebuild her as a boat. Cleanup
-purges her and deletes both designs; a failed run drops the constraint.
+The session also plays a hull the harbor cannot record (study step S15).
+Before it starts, Kohdee creates and lists a `Losscheck Refused` ship design,
+and the harness adds a `vessel_payment_refused` CHECK constraint to
+`ship_runtime_state` that refuses the runtime row of that design; the design's
+id is the helper's second argument. On the dock, before the trade-in above,
+Vesselmate (who owns only the check's boat) orders `shipbuy <design>` and
+`shipbuy <design> trade`. The first must report
+`The ship could not be persisted, so the spawn was rolled back.` and
+`gold is returned.`; the second `The shipwrights cannot record the trade, so it is undone: Losscheck Tern is put back as she was and no gold changes hands.` `gold` must show the same purse before and after, `shiplist` must
+still list her as a boat, and `shipcrew` her owner and her bosun. After the
+session no runtime row may name the refused design; the harness drops the
+constraint, also when a run fails, and the session's cleanup deletes the
+design.
 
 On 2026-09-30 the gate passed in 79 seconds inside the private namespace
 described under the Vessel Rules Check, on source `398e23a7f`. In the same

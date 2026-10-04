@@ -100,7 +100,7 @@ if [[ $# -gt 0 ]]; then
       mode="vessel-customs-check"
       ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id> | --vessel-damage-check <warship-id> | --vessel-gunnery-check <warship-id> | --vessel-client-check <warship-id> | --vessel-loss-check <owner-character> | --vessel-raider-check <warship-id> | --vessel-economy-check <warship-id> <crew-character> | --vessel-customs-check <ship-slot> <prototype-id>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>] | --vessel-rules-check <warship-id> [<crew-character>] | --vessel-movement-check <warship-id> | --vessel-damage-check <warship-id> | --vessel-gunnery-check <warship-id> | --vessel-client-check <warship-id> | --vessel-loss-check <owner-character> [<refused-prototype-id>] | --vessel-raider-check <warship-id> | --vessel-economy-check <warship-id> <crew-character> | --vessel-customs-check <ship-slot> <prototype-id>]"
       ;;
   esac
   shift
@@ -192,8 +192,9 @@ if [[ $# -gt 0 ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-client-check requires one positive warship prototype id"
   elif [[ "$mode" == "vessel-loss-check" ]]; then
-    [[ $# -eq 1 && "$1" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
-      fail "--vessel-loss-check requires one owner character name"
+    [[ ($# -eq 1 || ($# -eq 2 && "$2" =~ ^[1-9][0-9]*$)) &&
+      "$1" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
+      fail "--vessel-loss-check requires one owner character name and, optionally, the id of a prototype whose hulls the database refuses"
   elif [[ "$mode" == "vessel-raider-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-raider-check requires one positive warship prototype id"
@@ -3005,7 +3006,7 @@ proc run_vessel_rules_check {warship_id requested_character} {
   puts "PASS: the vessel rules check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
-proc run_vessel_loss_check {requested_character} {
+proc run_vessel_loss_check {requested_character refused_id} {
   set workflow_started_at [clock milliseconds]
   set primary_session $::spawn_id
   set name_seed [clock seconds]
@@ -3103,6 +3104,39 @@ proc run_vessel_loss_check {requested_character} {
   require_game_output $output "forsale = yes" "warship listing"
   set ::spawn_id $secondary_session
   set output [run_game_command "disembark"]
+
+  # A hull the harbor cannot record (study step S15): the database refuses
+  # the runtime row of this design, so a hull bought from it and a trade-in
+  # for it are both undone, and nothing is charged.
+  if {$refused_id ne ""} {
+    set output [run_game_command "gold"]
+    if {![regexp {You have ([0-9]+) gold coins\.} $output ignored purse]} {
+      fail "could not read the captain's purse"
+    }
+    set output [run_game_command "shipbuy $refused_id"]
+    require_game_output $output "The ship could not be persisted, so the spawn was rolled back." \
+      "refused purchase"
+    require_game_output $output "gold is returned." "refused purchase refund"
+    set output [run_game_command "shipbuy $refused_id trade"]
+    require_game_output $output \
+      "The shipwrights cannot record the trade, so it is undone: Losscheck Tern is put back as she was and no gold changes hands." \
+      "refused trade-in"
+    set output [run_game_command "gold"]
+    require_game_output $output "You have $purse gold coins." "purse after the refused orders"
+    set ::spawn_id $primary_session
+    set output [run_game_command "shiplist"]
+    if {![regexp -line [format \
+        {^[[:space:]]*%d[[:space:]]+Losscheck Tern[[:space:]]+Boat[[:space:]]} \
+        $boat_slot] $output]} {
+      fail "shiplist did not show the boat as a boat after the refused trade-in"
+    }
+    set output [run_game_command "shipgoto $boat_slot"]
+    require_game_output $output "Aboard Losscheck Tern (slot $boat_slot)." "undone boat boarding"
+    set output [run_game_command "shipcrew"]
+    require_game_output $output "Owner : $captain" "undone trade-in owner"
+    require_game_output $output "bosun          green, 220 experience" "undone trade-in crew"
+    set ::spawn_id $secondary_session
+  }
   set output [run_game_command "shipbuy $warship_id trade"]
   require_game_output $output "The shipwrights take Losscheck Tern in trade for 540 gold" \
     "trade-in credit"
@@ -3123,7 +3157,7 @@ proc run_vessel_loss_check {requested_character} {
   run_game_command "trans $captain"
   set output [run_game_command "shippurge $boat_slot"]
   require_game_output $output "Purged ship $boat_slot 'Losscheck Tern'" "loss-check hull cleanup"
-  foreach temporary_id [list $prototype_id $warship_id] {
+  foreach temporary_id [concat [list $prototype_id $warship_id] $refused_id] {
     set output [run_game_command "vedit delete $temporary_id"]
     require_game_output $output "Prototype $temporary_id deleted." "loss-check prototype cleanup"
   }
@@ -3133,6 +3167,9 @@ proc run_vessel_loss_check {requested_character} {
   set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
   puts "\nPASS: the retired SHIPINSURE command is gone."
   puts "PASS: the first christening was free and the rename cost 60 gold."
+  if {$refused_id ne ""} {
+    puts "PASS: a hull and a trade-in the harbor could not record were undone, and nothing was charged."
+  }
   puts "PASS: summoned from sea to the east dock, the boat made port in 37 seconds."
   puts "PASS: $captain was refused an able gunner and hired a green bosun, whose experience SHIPCREW showed."
   puts "PASS: traded in at the east dock, she became a warship design with her name, owner, and crew."
@@ -3587,7 +3624,7 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     } elseif {$mode eq "vessel-client-check"} {
       run_vessel_client_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-loss-check"} {
-      run_vessel_loss_check [lindex $game_commands 0]
+      run_vessel_loss_check [lindex $game_commands 0] [lindex $game_commands 1]
     } elseif {$mode eq "vessel-raider-check"} {
       run_vessel_raider_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-economy-check"} {
