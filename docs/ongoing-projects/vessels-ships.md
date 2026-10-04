@@ -30,7 +30,7 @@ here records the merge.
 | S11 Checked cargo trades (work item #10) | Merged `f18208549` (MR !17) | [Phase 11](vessels-ships-history.md#phase-11-s11-progress) |
 | S12 Owned waypoints and routes (work item #11) | Merged `e6881c1d1` (MR !18), review fixes `bde4a0f44` (MR !19) | [Phase 12](vessels-ships-history.md#phase-12-s12-progress) |
 | S13 Transactions that survive a lost connection (work item #13) | Merged `9eb723913` (MR !20) | [Phase 13](vessels-ships-history.md#phase-13-s13-progress) |
-| S14 Two-phase vessel settlements (work item #12) | In review: tag `vessels-s14`, merge request from `feat/vessels-s14` | [Phase 14](#phase-14-s14-progress) |
+| S14 Two-phase vessel settlements (work item #12) | In review: tag `vessels-s14`, merge request from `feat/vessels-s14`; review round 1 fixed on top | [Phase 14](#phase-14-s14-progress) |
 | S15 Checked vessel purchases and payouts (work item #14) | Not started | [Part 5](#part-5-implementation-sequence) |
 
 Production help is current through S12 and its review fixes (help sync plan `e0d8a08faa27`,
@@ -476,10 +476,69 @@ Verification (2026-10-04). The first round ran on `8ed5d8a3a`; what the fixes to
   clang-tidy, both warning budgets, the sanitizer and memory-check jobs and the migration job
   passed in both runs.
 
-After the merge: sync the three help entries to production (MARKET, CONTRACTS, VESSELS), move
-this section to the history document, set the status row, and tag `vessels-s15-base` and branch
-`feat/vessels-s15` from the merge. Production gets the table at boot
-(`vessel_settlement_ensure_schema()`); the Phase 25 SQL is for a manual apply.
+Review round 1 (2026-10-04, range `vessels-s14..feat/vessels-s14`): two [P3] findings on MR !21,
+each reproduced or read by the reviewer on `5293b0ac0`, both fixed, one commit each.
+
+- [P3] A settlement was undone on whatever hull held the fleet slot (`bf82f7c93`). A slot can be
+  empty in memory while its rows remain: boot could not rebuild the hull, or a purge failed and
+  its caller freed the slot anyway (a sinking, a merchant rollback, a removed owner's stowed
+  hull, a spawn rollback). The next spawn took the lowest such slot and wrote over her rows,
+  which predates S14; with S14 her open settlement was then undone on the stranger (goods in a
+  hold that never traded them, or a dock fee on an unowned hull), `shippurge` called the slot
+  empty, and her captain's accounts waited for good. This replaces "a settlement never outlives
+  its hull's rows" above: it did, when the purge that should have deleted it failed.
+  `vessel_delete_persistence()` now marks the slot until a purge of it commits, boot marks it at
+  the two places it gives up on a persisted hull, and a spawn takes only a slot that
+  `vessel_slot_free()` passes. `shiplist` shows a held slot and counts it as in use; `shippurge`
+  deletes its rows, the settlement among them, and frees it. The mark is runtime only: every
+  boot reads the rows again. The fee restore is unchanged: it now reaches only the hull that
+  paid, and a hull whose owner is removed already keeps a fee she owes.
+- [P3] The row was deleted on a save that a host crash could still lose (`74ee6fe5d`).
+  `save_char_checked()` synced the temporary file and renamed it over the player file, and never
+  synced the directory, so the rename was durable only at the filesystem's next journal commit
+  while the row's delete was durable at once. The directory is now synced after the rename. A
+  failure is logged and not returned: the new file is in place by then, and a FALSE would send
+  the undo against a file that holds the gold. Every caller of the checked save gets it.
+- The reviewer's four probes of paths no test ran, all of which came out right, are a test now
+  (`a5abda25b`): a dock-fee payment whose `COMMIT` reply is lost (paid once), one whose `COMMIT`
+  never arrives (nothing taken, the fee still owed), one committed with the database away for
+  the read-back (the hull remembers it; the next payment undoes it and pays once), and a freight
+  acceptance in that state (the next acceptance undoes it and posts one bond). Twelve settlement
+  tests in all; the twelfth is the held slot.
+
+Help: the SHIP-ADMIN entry (tag `SHIPLIST`) says what a held slot is and what `shippurge` does
+on one, and the verifier checks one more phrase (59). The system documents follow in
+`63ee4c809`: `VESSEL_SYSTEM.md`, `PLAYER_MANAGEMENT_SYSTEM.md` and the staff section of the
+player guide.
+
+Ablation (review fixes): one mark, set where the purge fails, instead of a flag at each of the
+six callers; no second kind of mark for rows that were meant to be deleted and no automatic
+retry of a failed purge (the staff purge the slot, or the next boot rebuilds her); no owner
+exemption in the fee restore; no test seam for a failing directory sync (the helper returns
+nothing, so the failure cannot reach a caller); no directory sync for the other files the game
+renames.
+
+Verification of the fixes (2026-10-04, on `63ee4c809`):
+
+- `make test-all` with the database cases: 2,030 production tests and the 32 protocol tests
+  pass.
+- `strace` of one settlement test: each save is `fsync` of the temporary file, `rename`,
+  `openat` of `plrfiles/P-T` with `O_DIRECTORY`, and `fsync` of it, before the row's delete.
+- Live, in the private-namespace harness on a reload of the development dump: slot 13, the
+  lowest free one, was given a `ship_interiors` row with no runtime snapshot and a settlement
+  row. Boot logged the held slot and `shiplist` showed it; `vedit spawn` took slot 14;
+  `shippurge 13` removed the records; the next `vedit spawn` took slot 13; no settlement and no
+  row of the slot were left. The builder gate and the economy gate (286 s, after a fresh
+  reload) pass.
+- The local CI matrix, `scripts/ci/local/run.py --base gitlab/master`: all 33 jobs pass in 871 s
+  (`--jobs 3 --cpus 4`), the coverage policy with 17 of 19 changed lines of `players.c` covered
+  (floor 61.37); the two not run are the log of a failed directory sync and the return for a
+  path without a directory.
+
+After the merge: sync the four help entries to production (MARKET, CONTRACTS, VESSELS and
+SHIPLIST, the SHIP-ADMIN entry), move this section to the history document, set the status row,
+and tag `vessels-s15-base` and branch `feat/vessels-s15` from the merge. Production gets the
+table at boot (`vessel_settlement_ensure_schema()`); the Phase 25 SQL is for a manual apply.
 
 Still open outside these steps: the production deploy of S9's world-data notes and S10's, S11's,
 S12's and S13's code (S12's with schema Phase 24, which boot adds, and S13's with migration
