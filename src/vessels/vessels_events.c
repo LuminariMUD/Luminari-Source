@@ -269,6 +269,11 @@ static bool vessel_event_open_database_event(void)
   return open_event;
 }
 
+/**
+ * Write the event's status. An event that has ended keeps its row: a second
+ * finish, or a recovery mark written after a COMMIT that was run without its
+ * reply being read, changes nothing.
+ */
 static bool vessel_event_set_database_status(const char *status, const char *reason)
 {
   char escaped_reason[256];
@@ -287,7 +292,7 @@ static bool vessel_event_set_database_status(const char *status, const char *rea
   mysql_real_escape_string(conn, escaped_reason, reason, reason_length);
   snprintf(query, sizeof(query),
            "UPDATE vessel_showcase_events SET status='%s',ended_at=%lld,"
-           "end_reason='%s' WHERE event_id=%llu",
+           "end_reason='%s' WHERE event_id=%llu AND status NOT IN ('completed','cancelled')",
            status, (long long)time(NULL), escaped_reason, vessel_event.event_id);
   if (mysql_query(conn, query))
   {
@@ -649,6 +654,7 @@ static bool vessel_event_finish(const char *reason, bool record_scores)
   int active_ghosts;
   int cleaned;
   bool records_saved;
+  bool ended_before;
   int i;
 
   if (!vessel_event.active)
@@ -716,12 +722,24 @@ static bool vessel_event_finish(const char *reason, bool record_scores)
   }
   winning_team = vessel_event_winning_team(red_score, blue_score);
 
+  /* The event's own row is written first, and only while the event has not
+   * ended. When it changes no row, an earlier finish was committed without
+   * this server reading the reply: its scores are in, and are not added
+   * again. */
+  status = record_scores ? "completed" : "cancelled";
+  ended_before = FALSE;
   records_saved = mysql_query(conn, "START TRANSACTION") == 0;
   if (!records_saved)
   {
     log("SYSERR: Could not begin vessel event completion transaction: %s", mysql_error(conn));
   }
-  if (record_scores && records_saved)
+  else
+  {
+    records_saved =
+        vessel_event_set_database_status(status, reason != NULL ? reason : "event ended");
+    ended_before = records_saved && mysql_affected_rows(conn) == 0;
+  }
+  if (record_scores && records_saved && !ended_before)
   {
     for (i = 0; i < vessel_event.participant_count; i++)
     {
@@ -738,17 +756,11 @@ static bool vessel_event_finish(const char *reason, bool record_scores)
     }
   }
 
-  status = record_scores ? "completed" : "cancelled";
-  if (records_saved)
-  {
-    records_saved =
-        vessel_event_set_database_status(status, reason != NULL ? reason : "event ended");
-  }
   if (records_saved)
   {
     /* A COMMIT that gets no reply may have taken effect: the event's row,
-     * written with the scores, says whether they are recorded. A retry over
-     * recorded scores would add them a second time. */
+     * written with the scores, says whether they are recorded. If it cannot
+     * be read, the staff retry, and the retry finds the row as it is. */
     commit = mysql_commit_transaction(conn);
     records_saved = commit == MYSQL_COMMIT_DONE ||
                     (commit == MYSQL_COMMIT_UNANSWERED && vessel_event_database_status_is(status));

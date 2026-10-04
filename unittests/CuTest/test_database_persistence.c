@@ -2416,6 +2416,152 @@ void Test_pet_keeper_reads_back_a_commit_without_a_reply(CuTest *tc)
   CuAssertTrue(tc, kept_after_rollback);
 }
 
+/* When the row cannot be read back either, the keeper chooses no state. The
+ * roster waits as after a failed restore, with every row kept and the keeper
+ * closed, and 'pets restore' settles the follower by its row. */
+void Test_pet_keeper_waits_for_a_row_it_cannot_read_back(CuTest *tc)
+{
+  static char no_socket[] = "/nonexistent/s13.sock";
+  struct pet_save_fixture fixture;
+  struct pet_lifetime_world w;
+  struct char_data *saved_characters = character_list;
+  struct char_data *pet;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  const char *enabled;
+  const char *reason;
+  char query[512];
+  char *unix_socket;
+  unsigned int tcp_port;
+  bool saved_available;
+  bool seeded;
+  bool reclaim_waits;
+  bool reclaim_settled;
+  bool stabling_waits;
+  bool stabling_settled;
+  bool rolled_back_waits;
+  bool rolled_back_settled;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  begin_pet_lifetime_world(&w);
+  initialize_pet_save_fixture(&fixture);
+  fixture.owner.followers = NULL;
+  fixture.owner.desc = NULL;
+  fixture.descriptor.character = NULL;
+  IN_ROOM(&fixture.owner) = 0;
+  w.room.people = &fixture.owner;
+  GET_CHA(&fixture.owner) = 14;
+  remove_real_pet_rows(connection);
+  snprintf(query, sizeof(query),
+           "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, "
+           "dex, ac, intel, wis, cha, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, pet_state) VALUES "
+           "(913001, 'SnapshotOwner', 1, 1, 10, 10, 10, 10, 10, 10, 10, 10, 10, '', '', '', '', "
+           "%d)",
+           PET_STATE_STORED);
+  seeded = mysql_query(connection, query) == 0;
+  tcp_port = connection->port;
+  unix_socket = connection->unix_socket;
+
+  /* Reclaimed, the reply lost, and the database away for the read-back: no
+   * follower comes out, no snapshot may replace the rows, and the keeper is
+   * closed. */
+  reason = NULL;
+  mysql_test_drop_connection_at("COMMIT", 1, TRUE);
+  connection->port = 1;
+  connection->unix_socket = no_socket;
+  pet = pet_retrieve_stored(&fixture.owner, 913001, &reason);
+  connection->port = tcp_port;
+  connection->unix_socket = unix_socket;
+  extract_pending_chars();
+  reclaim_waits = pet == NULL && count_followers(&fixture.owner) == 0 &&
+                  fixture.owner.pet_roster_load_state == PET_ROSTER_LOAD_FAILED &&
+                  !save_char_pets(&fixture.owner) &&
+                  pet_retrieve_stored(&fixture.owner, 913001, &reason) == NULL &&
+                  real_pet_state(connection, 913001) == PET_STATE_ACTIVE;
+
+  /* 'pets restore': the row says active, so the follower is published. */
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&fixture.owner);
+  reclaim_settled = fixture.owner.pet_roster_load_state == PET_ROSTER_LOADED &&
+                    count_followers(&fixture.owner) == 1;
+  pet = fixture.owner.followers != NULL ? fixture.owner.followers->follower : NULL;
+
+  /* Stabled, the same way: the follower stays in play for now. */
+  mysql_test_drop_connection_at("COMMIT", 1, TRUE);
+  connection->port = 1;
+  connection->unix_socket = no_socket;
+  stabling_waits = pet != NULL && !pet_store_pet(&fixture.owner, pet);
+  connection->port = tcp_port;
+  connection->unix_socket = unix_socket;
+  extract_pending_chars();
+  stabling_waits = stabling_waits && count_followers(&fixture.owner) == 1 &&
+                   fixture.owner.pet_roster_load_state == PET_ROSTER_LOAD_FAILED &&
+                   real_pet_state(connection, 913001) == PET_STATE_STORED;
+
+  /* 'pets restore': the row says stored, so the follower leaves play. */
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&fixture.owner);
+  extract_pending_chars();
+  stabling_settled = fixture.owner.pet_roster_load_state == PET_ROSTER_LOADED &&
+                     count_followers(&fixture.owner) == 0 &&
+                     real_pet_state(connection, 913001) == PET_STATE_STORED;
+
+  /* A stabling whose COMMIT never arrived, read back with the database away:
+   * the follower stays, and the restore finds its row active and keeps it. */
+  reason = NULL;
+  pet = pet_retrieve_stored(&fixture.owner, 913001, &reason);
+  mysql_test_drop_connection_at("COMMIT", 1, FALSE);
+  connection->port = 1;
+  connection->unix_socket = no_socket;
+  rolled_back_waits = pet != NULL && !pet_store_pet(&fixture.owner, pet);
+  connection->port = tcp_port;
+  connection->unix_socket = unix_socket;
+  rolled_back_waits = rolled_back_waits &&
+                      fixture.owner.pet_roster_load_state == PET_ROSTER_LOAD_FAILED &&
+                      real_pet_state(connection, 913001) == PET_STATE_ACTIVE;
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&fixture.owner);
+  extract_pending_chars();
+  rolled_back_settled = fixture.owner.pet_roster_load_state == PET_ROSTER_LOADED &&
+                        count_followers(&fixture.owner) == 1;
+  mysql_test_drop_connection_at(NULL, 0, FALSE);
+
+  extract_all_followers(&fixture.owner);
+  fixture.owner.followers = NULL;
+  remove_real_pet_rows(connection);
+  domain_event_world_forget_character(&fixture.owner);
+  w.room.people = NULL;
+  character_list = saved_characters;
+  end_pet_lifetime_world(&w);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, seeded);
+  CuAssertTrue(tc, reclaim_waits);
+  CuAssertTrue(tc, reclaim_settled);
+  CuAssertTrue(tc, stabling_waits);
+  CuAssertTrue(tc, stabling_settled);
+  CuAssertTrue(tc, rolled_back_waits);
+  CuAssertTrue(tc, rolled_back_settled);
+}
+
 void Test_follower_runtime_state_round_trip(CuTest *tc)
 {
   struct affected_type charm;

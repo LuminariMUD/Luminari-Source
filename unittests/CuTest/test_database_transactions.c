@@ -1199,9 +1199,12 @@ static int transactions_event_entries(void)
  * again. */
 void Test_vessel_event_finish_reads_back_a_commit_without_a_reply(CuTest *tc)
 {
+  static char no_socket[] = "/nonexistent/s13.sock";
   struct transactions_world w;
   struct greyhawk_ship_data *ship;
   const char *heard;
+  char *unix_socket;
+  unsigned int tcp_port;
 
   if (!transactions_world_begin(tc, &w))
     return;
@@ -1242,6 +1245,34 @@ void Test_vessel_event_finish_reads_back_a_commit_without_a_reply(CuTest *tc)
   heard = transactions_staff_heard(&w);
   CuAssertTrue(tc, strstr(heard, "Vessel event completed and scored.") != NULL);
   CuAssertIntEquals(tc, 2, transactions_event_entries());
+
+  /* The completion was committed, its reply was lost, and the database is
+   * away when the row is read back. The staff are told to retry; the retry
+   * finds the event ended, adds no score again and leaves its row alone. */
+  do_vevent(&w.staff, "start skirmish", 0, 0);
+  do_vevent(&w.staff, "join red", 0, 0);
+  transactions_staff_heard(&w);
+  mysql_test_drop_connection_at("COMMIT", 1, TRUE);
+  tcp_port = conn->port;
+  unix_socket = conn->unix_socket;
+  conn->port = 1;
+  conn->unix_socket = no_socket;
+  do_vevent(&w.staff, "end", 0, 0);
+  conn->port = tcp_port;
+  conn->unix_socket = unix_socket;
+  heard = transactions_staff_heard(&w);
+  CuAssertTrue(tc, strstr(heard, "The event remains open because finalization failed") != NULL);
+  CuAssertIntEquals(tc, 3, transactions_event_entries());
+  do_vevent(&w.staff, "end", 0, 0);
+  heard = transactions_staff_heard(&w);
+  CuAssertTrue(tc, strstr(heard, "Vessel event completed and scored.") != NULL);
+  CuAssertIntEquals(tc, 3, transactions_event_entries());
+  CuAssertStrEquals(tc, "completed",
+                    transactions_text(conn, "SELECT status FROM vessel_showcase_events WHERE "
+                                            "staff_idnum = 4314 ORDER BY event_id DESC LIMIT 1"));
+  CuAssertStrEquals(tc, "ended by staff",
+                    transactions_text(conn, "SELECT end_reason FROM vessel_showcase_events WHERE "
+                                            "staff_idnum = 4314 ORDER BY event_id DESC LIMIT 1"));
 
   mysql_query(conn, "DELETE FROM vessel_event_leaderboards WHERE player_idnum = 4314");
   mysql_query(conn, "DELETE FROM vessel_showcase_events WHERE staff_idnum = 4314");
