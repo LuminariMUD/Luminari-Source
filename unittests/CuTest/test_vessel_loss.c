@@ -212,12 +212,14 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   struct loss_harbor harbor;
   struct vessel_test_stores stores;
   struct greyhawk_ship_data *ship;
+  struct vehicle_data *cart;
   const char *output;
+  char query[160];
   time_t ordered;
   size_t i;
 
   /* A summons is paid for and recorded: it needs both stores. She sails
-   * under her autopilot with a hull alongside. */
+   * under her autopilot with a hull alongside and a cart in her bay. */
   ship = loss_harbor_begin(tc, &harbor);
   if (!vessel_test_stores_begin(tc, &stores, LOSS_SHIP, &harbor.captain))
   {
@@ -229,6 +231,9 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   ship->autopilot->current_waypoint_index = 2;
   ship->docked_to_ship = 3;
   ship->docking_room = LOSS_BRIDGE_VNUM;
+  cart = vehicle_create(VEHICLE_CART, "a summons cart");
+  CuAssertPtrNotNull(tc, cart);
+  cart->parent_vessel_id = LOSS_SHIP;
 
   /* The list names each hull with its fee and passage. */
   output = loss_harbor_command(&harbor, "");
@@ -267,6 +272,7 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
     CuAssertIntEquals(tc, 2, ship->autopilot->current_waypoint_index);
     CuAssertIntEquals(tc, 3, ship->docked_to_ship);
     CuAssertIntEquals(tc, LOSS_BRIDGE_VNUM, ship->docking_room);
+    CuAssertIntEquals(tc, LOSS_SHIP, cart->parent_vessel_id);
     CuAssertTrue(tc, vessel_test_number(tc, &stores,
                                         "SELECT COUNT(*) FROM ship_runtime_state "
                                         "WHERE ship_id = 485 AND stowed = 1") == 0);
@@ -301,6 +307,18 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   CuAssertDblEquals(tc, 40.0, ship->x, 0.0);
   CuAssertTrue(tc, ship->summon_due >= ordered + 143 && ship->summon_due <= time(0) + 143);
 
+  /* The cart is put off where she lay, not at the shipyard she is due at: a
+   * vehicle's coordinates are where it drives from and where boot puts it. */
+  CuAssertIntEquals(tc, 0, cart->parent_vessel_id);
+  CuAssertIntEquals(tc, 1, cart->location);
+  CuAssertIntEquals(tc, 10, cart->x_coord);
+  CuAssertIntEquals(tc, 12, cart->y_coord);
+  snprintf(query, sizeof(query),
+           "SELECT COUNT(*) FROM vehicle_data WHERE vehicle_id = %d AND parent_vessel_id = 0 "
+           "AND x_coord = 10 AND y_coord = 12",
+           cart->id);
+  CuAssertTrue(tc, vessel_test_number(tc, &stores, query) == 1);
+
   /* She still counts against the owner's cap, and is not summoned twice. */
   CuAssertIntEquals(tc, 1, vessel_owned_hull_count("Corr"));
   output = loss_harbor_command(&harbor, "the pet");
@@ -308,6 +326,7 @@ void Test_vessel_summons_sends_a_hull_out_of_the_world(CuTest *tc)
   output = loss_harbor_command(&harbor, "");
   CuAssertTrue(tc, strstr(output, "the Petrel (Warship): under summons, due in") != NULL);
 
+  vehicle_destroy(cart);
   autopilot_cleanup(ship);
   vessel_test_stores_end(tc, &stores);
   loss_harbor_end(&harbor);

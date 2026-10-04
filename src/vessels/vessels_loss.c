@@ -603,12 +603,14 @@ ACMD(do_shipsummon)
   }
   if (!before.stowed)
   {
-    /* Saved as cast off: now withdraw the gangway from the hull alongside. */
+    /* Saved as cast off: now withdraw the gangway from the hull alongside.
+     * Her vehicles are put off where she was: her own position is already
+     * the shipyard's. */
     exterior = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
     ship->docked_to_ship = before.docked_to_ship;
     ship->docking_room = before.docking_room;
     vessel_abort_docking(ship);
-    vehicle_release_all_from_vessel(ship, exterior);
+    vehicle_release_all_from_vessel(&before, exterior);
     if (exterior != NOWHERE)
     {
       vessel_put_ashore(ship, exterior);
