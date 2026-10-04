@@ -795,25 +795,30 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
 
   /* Persist immediately so both the interior and the live instance survive
    * reboot/copyover. Abort the spawn if either half cannot be committed. The
-   * runtime row goes last: boot rebuilds only a hull that has one, so rows a
-   * failed rollback leaves behind hold her slot instead of becoming a hull. */
+   * runtime row goes last: boot rebuilds only a hull that has one. */
   if (!save_ship_interior(ship) || !vessel_db_save_weapons(ship) || !vessel_db_save_owner(ship) ||
       !vessel_db_save_runtime(ship))
   {
-    room_rnum evacuation_room;
-
-    evacuation_room = IN_ROOM(obj);
-    vessel_reclaim_interior_rooms(ship, evacuation_room);
-    extract_obj(obj);
-    vessel_delete_persistence(slot);
-    vessel_periodic_forget(ship);
-    memset(ship, 0, sizeof(*ship));
-    mysql_free_result(result);
-    if (ch != NULL)
+    /* Her rows go before she does. */
+    if (vessel_delete_persistence(slot))
     {
-      send_to_char(ch, "The ship could not be persisted, so the spawn was rolled back.\r\n");
+      vessel_reclaim_interior_rooms(ship, IN_ROOM(obj));
+      extract_obj(obj);
+      vessel_periodic_forget(ship);
+      memset(ship, 0, sizeof(*ship));
+      mysql_free_result(result);
+      if (ch != NULL)
+      {
+        send_to_char(ch, "The ship could not be persisted, so the spawn was rolled back.\r\n");
+      }
+      return -1;
     }
-    return -1;
+    /* Rows that cannot be removed may hold all of her (the reply to her
+     * runtime row lost), and boot would rebuild her though nobody had her:
+     * the spawn stands, a buyer's gold stays paid, and her next save writes
+     * her rows. */
+    log("SYSERR: Ship %d could be neither saved nor removed from the database; she stays in play",
+        slot);
   }
 
   mysql_free_result(result);
