@@ -7392,6 +7392,71 @@ static void discard_unpublished_saved_pet(struct char_data *pet)
     extract_char(pet);
 }
 
+/* Read the state of a pet's row.  The read locks the row, so after a COMMIT
+ * that got no reply it waits until the lost session's transaction has ended
+ * one way or the other.
+ *
+ * @param pet_state set to the row's state, or -1 when there is no row
+ * @return false when the row could not be read */
+static bool pet_row_state(long int pet_id, int *pet_state)
+{
+  PREPARED_STMT *statement;
+  bool read;
+
+  *pet_state = -1;
+  statement = mysql_stmt_create(conn);
+  read = statement != NULL &&
+         mysql_stmt_prepare_query(statement, "SELECT pet_state FROM pet_data WHERE pet_data_id = ? "
+                                             "LOCK IN SHARE MODE") &&
+         mysql_stmt_bind_param_long(statement, 0, pet_id) && mysql_stmt_execute_prepared(statement);
+  if (read && mysql_stmt_fetch_row(statement))
+    *pet_state = mysql_stmt_get_int(statement, 0);
+  mysql_stmt_cleanup(statement);
+  return read;
+}
+
+/* The keeper's COMMIT got no reply and the pet's row cannot be read either,
+ * so whether the pet is stabled is not known.  Neither state is chosen: the
+ * roster goes back to "restore failed", which keeps every pet row as it is
+ * and the keeper closed, until 'pets restore' has read the rows. */
+static void pet_roster_await_rows(struct char_data *owner, long int pet_id)
+{
+  log("SYSERR: Could not read back pet row %ld of %s after a COMMIT without a reply; the roster "
+      "waits for 'pets restore'",
+      pet_id, GET_NAME(owner));
+  owner->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  send_to_char(owner, "The stables cannot say where your follower is right now. Use 'pets "
+                      "restore' to look again.\r\n");
+}
+
+/* The other half of pet_roster_await_rows(): a follower whose stabling was
+ * left unknown stayed in play.  If its row says the keeper has it, it leaves
+ * play now, as it would have then, and its saved gear with it.
+ *
+ * @return false when a row could not be read */
+static bool pet_stabled_followers_leave_play(struct char_data *ch)
+{
+  struct follow_type *follower;
+  struct follow_type *next_follower;
+  struct char_data *pet;
+  int pet_state;
+
+  for (follower = ch->followers; follower; follower = next_follower)
+  {
+    next_follower = follower->next;
+    pet = follower->follower;
+    if (!pet || !IS_NPC(pet) || pet->pet_data_id <= 0 || MOB_FLAGGED(pet, MOB_NOTDEADYET))
+      continue;
+    if (!pet_row_state(pet->pet_data_id, &pet_state))
+      return false;
+    if (pet_state != PET_STATE_STORED)
+      continue;
+    act("$N is in the stables, with the keeper.", FALSE, ch, 0, pet, TO_CHAR);
+    discard_unpublished_saved_pet(pet);
+  }
+  return true;
+}
+
 /* Publish only fully decoded pets. Keeper callers must commit activation first. */
 static struct char_data *publish_saved_pet(struct char_data *owner, struct char_data *pet)
 {
@@ -7630,7 +7695,7 @@ void load_char_pets(struct char_data *ch)
   free((void *)staged);
   free(admitted);
   free(reasons);
-  if (ch && !restore_failed)
+  if (ch && !restore_failed && pet_stabled_followers_leave_play(ch))
     ch->pet_roster_load_state = PET_ROSTER_LOADED;
 }
 
@@ -7786,10 +7851,14 @@ long int pet_stored_id_at(struct char_data *owner, int position)
 }
 
 /* Hand one live pet to the keeper.  The pet only leaves play after its row and
- * items are committed, so a failed store keeps the original pet and gear. */
+ * items are committed, so a failed store keeps the original pet and gear.  A
+ * COMMIT that gets no reply may have taken effect, so the row is read back
+ * before the pet stays or goes; while the row cannot be read the pet stays,
+ * and the roster waits for it (pet_roster_await_rows()). */
 bool pet_store_pet(struct char_data *owner, struct char_data *pet)
 {
   struct pet_save_record *record;
+  enum mysql_commit_result commit;
   char query[512];
   char *escaped_owner;
   const char *error_detail;
@@ -7797,7 +7866,8 @@ bool pet_store_pet(struct char_data *owner, struct char_data *pet)
   long int insert_id;
   long long owner_created;
   my_ulonglong raw_insert_id;
-  int wear;
+  int row_state;
+  bool stored;
   bool success = false;
   bool transaction_started = false;
 
@@ -7889,25 +7959,35 @@ bool pet_store_pet(struct char_data *owner, struct char_data *pet)
     goto rollback;
   }
 
-  if (mysql_query(conn, "COMMIT"))
-  {
-    log_pet_save_failure(owner, record->pet_vnum, "commit transaction", mysql_errno(conn),
-                         mysql_error(conn));
-    goto rollback;
-  }
+  commit = mysql_commit_transaction(conn);
   transaction_started = false;
+  stored = commit == MYSQL_COMMIT_DONE;
+  if (commit == MYSQL_COMMIT_UNANSWERED)
+  {
+    if (pet_row_state(insert_id, &row_state))
+      stored = row_state == PET_STATE_STORED;
+    else
+    {
+      /* The row the pet may be stored in is the one it is looked up by. */
+      pet->pet_data_id = insert_id;
+      pet_roster_await_rows(owner, insert_id);
+    }
+  }
+  if (!stored)
+  {
+    log_pet_save_failure(owner, record->pet_vnum, "commit transaction", 0,
+                         commit == MYSQL_COMMIT_UNANSWERED
+                             ? "no reply to the COMMIT, and the row is not stored"
+                             : "the COMMIT was refused");
+    goto cleanup;
+  }
   pet->pet_data_id = insert_id;
   /* Keeper transitions change the active snapshot outside save_char_pets(). */
   pet_save_cache_entry(GET_IDNUM(owner))->used = false;
   /* The pet only leaves play once its row and items are durable.  Its saved
    * gear is removed with it so ordinary extraction cannot drop a second copy
    * of every stored item into the room. */
-  for (wear = 0; wear < NUM_WEARS; wear++)
-    if (GET_EQ(pet, wear))
-      extract_obj(unequip_char(pet, wear));
-  while (pet->carrying)
-    extract_obj(pet->carrying);
-  extract_char(pet);
+  discard_unpublished_saved_pet(pet);
   success = true;
   goto cleanup;
 
@@ -8001,11 +8081,16 @@ rollback:
 }
 
 /* Prepare one stored pet outside the world, commit its active state, then
- * publish it. Any publication failure restores the saved pet to storage. */
+ * publish it. Any publication failure restores the saved pet to storage. A
+ * COMMIT that gets no reply may have taken effect, so the row is read back
+ * before the pet is published or discarded; while the row cannot be read the
+ * pet is not published, and the roster waits for it (pet_roster_await_rows()),
+ * whose restore publishes a pet that was activated. */
 struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, const char **reason)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
+  enum mysql_commit_result commit;
   struct char_data *mob = NULL;
   char query[640];
   char *escaped_owner;
@@ -8013,6 +8098,8 @@ struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, 
   long long owner_created;
   static char denial_reason[PET_DENIAL_REASON_LENGTH + 80];
   char denial[PET_DENIAL_REASON_LENGTH];
+  int row_state;
+  bool activated;
   bool restored;
   bool admitted;
   bool restore_failed = false;
@@ -8109,7 +8196,16 @@ struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, 
 
   snprintf(query, sizeof(query), "UPDATE pet_data SET pet_state = %d WHERE pet_data_id = %ld",
            PET_STATE_ACTIVE, pet_id);
-  if (mysql_query(conn, query) || mysql_query(conn, "COMMIT"))
+  commit = mysql_query(conn, query) ? MYSQL_COMMIT_REFUSED : mysql_commit_transaction(conn);
+  activated = commit == MYSQL_COMMIT_DONE;
+  if (commit == MYSQL_COMMIT_UNANSWERED)
+  {
+    if (pet_row_state(pet_id, &row_state))
+      activated = row_state == PET_STATE_ACTIVE;
+    else
+      pet_roster_await_rows(owner, pet_id);
+  }
+  if (!activated)
   {
     log("SYSERR: %s: Unable to activate stored pet %ld: %s", __func__, pet_id, mysql_error(conn));
     extract_char(mob);

@@ -114,27 +114,36 @@ static int House_load(room_vnum vnum)
 }
 
 /* Save all objects for a house (recursive; initial call must be followed by a
- * call to House_restore_weight)  Assumes file is open already. */
+ * call to House_restore_weight)  Assumes file is open already.  Returns how
+ * many of them could not be written: the save goes on without those. */
 int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp, int location)
 {
   struct obj_data *tmp;
-  int result;
+  int unsaved;
 
-  if (obj)
-  {
-    House_save(obj->next_content, vnum, fp, location);
-    House_save(obj->contains, vnum, fp, MIN(0, location) - 1);
+  if (obj == NULL)
+    return 0;
 
-    /* save a single item to file */
-    result = objsave_save_obj_record_db(obj, NULL, vnum, fp, location);
+  unsaved = House_save(obj->next_content, vnum, fp, location);
+  unsaved += House_save(obj->contains, vnum, fp, MIN(0, location) - 1);
 
-    for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
-      GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
+  /* save a single item to file */
+  if (!objsave_save_obj_record_db(obj, NULL, vnum, fp, location))
+    unsaved++;
 
-    if (!result)
-      return (0);
-  }
-  return (1);
+  /* A sheath's weapons are stored under their owner's name, and a house has
+   * no owner: here they are the house's own objects, beside the sheath. */
+  if (obj->sheath_primary &&
+      !objsave_save_obj_record_db(obj->sheath_primary, NULL, vnum, fp, location))
+    unsaved++;
+  if (obj->sheath_secondary &&
+      !objsave_save_obj_record_db(obj->sheath_secondary, NULL, vnum, fp, location))
+    unsaved++;
+
+  for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
+    GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
+
+  return unsaved;
 }
 
 /* restore weight of containers after House_save has changed them for saving */
@@ -149,7 +158,11 @@ static void House_restore_weight(struct obj_data *obj)
   }
 }
 
-/* Save all objects in a house */
+/* Save all objects in a house. FALSE when nothing was saved. An object whose
+ * row the database refused is left out: the rest is committed and the staff
+ * are told. After a save that failed or left an object out, ROOM_HOUSE_CRASH
+ * is set, whether or not it was when the save began, so the next house-save
+ * pass saves the house again. */
 bool House_crashsave(room_vnum vnum)
 {
   room_rnum rnum;
@@ -158,10 +171,16 @@ bool House_crashsave(room_vnum vnum)
   char del_buf[2048];
   enum perf_sql_category previous_sql_category;
   bool success;
+  bool complete;
+  int unsaved;
 
   PERF_PROF_ENTER_SAMPLED(pr_house_save_, "save.house");
   previous_sql_category = PERF_sql_scope_set(PERF_SQL_HOUSE);
   success = false;
+  complete = false;
+
+  if ((rnum = real_room(vnum)) == NOWHERE)
+    goto cleanup;
 
   if (mysql_query(conn, "start transaction;"))
   {
@@ -177,11 +196,6 @@ bool House_crashsave(room_vnum vnum)
     goto cleanup;
   }
 
-  if ((rnum = real_room(vnum)) == NOWHERE)
-  {
-    mysql_query(conn, "rollback;");
-    goto cleanup;
-  }
   if (!House_get_filename(vnum, buf, sizeof(buf)))
   {
     mysql_query(conn, "rollback;");
@@ -193,12 +207,7 @@ bool House_crashsave(room_vnum vnum)
     mysql_query(conn, "rollback;");
     goto cleanup;
   }
-  if (!House_save(world[rnum].contents, vnum, fp, 0))
-  {
-    fclose(fp);
-    mysql_query(conn, "rollback;");
-    goto cleanup;
-  }
+  unsaved = House_save(world[rnum].contents, vnum, fp, 0);
   fclose(fp);
 
   House_restore_weight(world[rnum].contents);
@@ -210,10 +219,19 @@ bool House_crashsave(room_vnum vnum)
     goto cleanup;
   }
 
-  REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_HOUSE_CRASH);
+  if (unsaved > 0)
+    mudlog(BRF, LVL_STAFF, TRUE,
+           "SYSERR: %d of house %d's objects could not be saved; the rest were. The log names "
+           "them.",
+           unsaved, (int)vnum);
+  else
+    REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_HOUSE_CRASH);
+  complete = unsaved == 0;
   success = true;
 
 cleanup:
+  if (rnum != NOWHERE && !complete)
+    SET_BIT_AR(ROOM_FLAGS(rnum), ROOM_HOUSE_CRASH);
   PERF_sql_scope_restore(previous_sql_category);
   PERF_PROF_EXIT(pr_house_save_);
   return success;

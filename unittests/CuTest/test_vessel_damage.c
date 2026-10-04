@@ -1030,6 +1030,16 @@ void Test_vessel_a_sleeper_does_not_hold_the_bridge(CuTest *tc)
   do_plunder(&fixture.captain, "", 0, 0);
   CuAssertTrue(tc, strstr(output, "TG's hold is empty: there is nothing to take.") != NULL);
 
+  /* With cargo aboard, the plunder goes through. Its bounty cannot be
+   * recorded without a database, so none is announced. */
+  ship->cargo[0].commodity_id = 7;
+  ship->cargo[0].quantity = 4;
+  damage_reset_output(&descriptor, output, sizeof(output));
+  do_plunder(&fixture.captain, "", 0, 0);
+  CuAssertTrue(tc, strstr(output, "You transfer 4 units of cargo") != NULL);
+  CuAssertTrue(tc, strstr(output, "your bounty rises") == NULL);
+  CuAssertTrue(tc, strstr(output, "HUNTED") == NULL && strstr(output, "WANTED") == NULL);
+
   ProtocolDestroy(descriptor.pProtocol);
   fixture.captain.desc = NULL;
   prize_end(&fixture);

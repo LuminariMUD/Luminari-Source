@@ -515,6 +515,11 @@ static void hedit_setup_new(struct descriptor_data *d)
   OLC_HELP(d)->last_updated = NULL;
   OLC_VAL(d) = 0;
 
+  /* Once the menu is open, the storage holds the tag of the entry the editor
+   * loaded, which is the one entry its save may replace: none here. */
+  free(OLC_STORAGE(d));
+  OLC_STORAGE(d) = NULL;
+
   hedit_disp_menu(d);
 }
 
@@ -618,6 +623,42 @@ static bool hedit_save_to_db(struct descriptor_data *d)
   }
   transaction_started = 1;
 
+  if (!help_sync_database_lock_held())
+  {
+    write_to_output(d, "The help synchronization lock was lost with the database connection. "
+                       "Your edit remains open; try saving again.\r\n");
+    error_occurred = 1;
+    goto cleanup;
+  }
+
+  /* The save replaces an entry's text and removes the stored keywords that
+   * are not in the editor's list. That is right for the entry the editor
+   * loaded. Under any other tag (a new entry, or one retagged in the menu)
+   * an entry that exists is not the one being edited, and stays as it is. */
+  if (OLC_STORAGE(d) == NULL || str_cmp(OLC_STORAGE(d), tag_lower) != 0)
+  {
+    bool read, exists;
+
+    pstmt = mysql_stmt_create(conn);
+    read = pstmt != NULL &&
+           mysql_stmt_prepare_query(pstmt, "SELECT 1 FROM help_entries WHERE tag = ? FOR UPDATE") &&
+           mysql_stmt_bind_param_string(pstmt, 0, tag_lower) && mysql_stmt_execute_prepared(pstmt);
+    exists = read && mysql_stmt_fetch_row(pstmt);
+    mysql_stmt_cleanup(pstmt);
+    if (!read)
+      write_to_output(d, "Database error: Failed to check the help tag.\r\n");
+    else if (exists)
+      write_to_output(d,
+                      "A help entry tagged '%s' exists already, and it is not the one this "
+                      "editor opened. Give this entry another tag, or quit and edit that one.\r\n",
+                      tag_lower);
+    if (!read || exists)
+    {
+      error_occurred = 1;
+      goto cleanup;
+    }
+  }
+
   /* === SAVE CURRENT VERSION TO HISTORY (if entry exists) === */
   /* First, check if the entry exists and save current version to history */
   pstmt = mysql_stmt_create(conn);
@@ -704,9 +745,6 @@ static bool hedit_save_to_db(struct descriptor_data *d)
 
   /* === DIFFERENTIAL KEYWORD UPDATE === */
   /* First, get existing keywords for this help entry using prepared statement */
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-
   pstmt = mysql_stmt_create(conn);
   if (!pstmt)
   {
@@ -740,22 +778,21 @@ static bool hedit_save_to_db(struct descriptor_data *d)
     goto cleanup;
   }
 
-  mysql_stmt_cleanup(pstmt);
-
-  result = mysql_store_result(conn);
-  if (result)
+  /* The rows of a prepared statement are read through it. */
+  while (mysql_stmt_fetch_row(pstmt))
   {
-    while ((row = mysql_fetch_row(result)))
-    {
-      CREATE(temp_keyword, struct help_keyword_list, 1);
-      keyword_size = strlen(row[0]) + 1;
-      CREATE(temp_keyword->keyword, char, keyword_size);
-      strlcpy(temp_keyword->keyword, row[0], keyword_size);
-      temp_keyword->next = existing_keywords;
-      existing_keywords = temp_keyword;
-    }
-    mysql_free_result(result);
+    const char *stored_keyword = mysql_stmt_get_string(pstmt, 0);
+
+    if (stored_keyword == NULL)
+      continue;
+    CREATE(temp_keyword, struct help_keyword_list, 1);
+    keyword_size = strlen(stored_keyword) + 1;
+    CREATE(temp_keyword->keyword, char, keyword_size);
+    strlcpy(temp_keyword->keyword, stored_keyword, keyword_size);
+    temp_keyword->next = existing_keywords;
+    existing_keywords = temp_keyword;
   }
+  mysql_stmt_cleanup(pstmt);
 
   /* Delete keywords that are no longer in the list */
   pstmt = mysql_stmt_create(conn);
@@ -1157,6 +1194,9 @@ void hedit_parse(struct descriptor_data *d, char *arg)
     {
     case 'y':
     case 'Y':
+      /* The tag of the loaded entry: see hedit_setup_new(). */
+      free(OLC_STORAGE(d));
+      OLC_STORAGE(d) = strdup(OLC_HELP(d)->tag);
       hedit_disp_menu(d);
       break;
     case 'q':
@@ -1243,7 +1283,8 @@ void hedit_parse(struct descriptor_data *d, char *arg)
         hedit_disp_menu(d);
         break;
       }
-      deleted = hedit_delete_entry(OLC_HELP(d), GET_NAME(d->character));
+      deleted =
+          help_sync_database_lock_held() && hedit_delete_entry(OLC_HELP(d), GET_NAME(d->character));
       if (!deleted || mysql_query(conn, "COMMIT") != 0)
       {
         mysql_query(conn, "ROLLBACK");
@@ -2230,6 +2271,16 @@ ACMD(do_helpgen)
     return;
   }
   perform_helpgen(ch, argument, cmd, subcmd);
+  /* The writers here that keep no transaction cannot be stopped by a lost
+   * lock, only reported. */
+  if (!help_sync_database_lock_held())
+  {
+    send_to_char(ch, "The help synchronization lock was lost with the database connection while "
+                     "this ran. A help synchronization may have run beside it: check the "
+                     "result.\r\n");
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: helpgen by %s lost the help synchronization lock.",
+           GET_NAME(ch));
+  }
   help_sync_database_lock_release();
   clear_help_cache();
 }
@@ -3568,6 +3619,15 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
     if (mysql_query(conn, "START TRANSACTION") != 0)
     {
       APPEND_TO_BUF("ERROR: Failed to start transaction: %s\r\n", mysql_error(conn));
+      fclose(fp);
+      free(output_buf);
+      return -1;
+    }
+    if (!help_sync_database_lock_held())
+    {
+      mysql_query(conn, "ROLLBACK");
+      send_to_char(ch, "ERROR: The help synchronization lock was lost with the database "
+                       "connection; nothing was imported.\r\n");
       fclose(fp);
       free(output_buf);
       return -1;

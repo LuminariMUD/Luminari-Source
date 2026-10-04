@@ -324,33 +324,17 @@ Several tables have been updated to include missing `idnum` columns for proper f
 
 ### Connection Pooling
 
-```c
-#define MAX_DB_CONNECTIONS 5
-MYSQL *connection_pool[MAX_DB_CONNECTIONS];
-bool connection_in_use[MAX_DB_CONNECTIONS];
+`src/database/mysql.c` keeps a small pool of connections (`MYSQL_POOL_MIN_SIZE` to
+`MYSQL_POOL_MAX_SIZE`). The global handles `conn`, `conn2` and `conn3` are the pool's first three
+handles, so the pool never closes a handle to replace it: every connection is made with
+`MYSQL_OPT_RECONNECT` and reconnects in place.
 
-MYSQL *get_db_connection() {
-    int i;
-    for (i = 0; i < MAX_DB_CONNECTIONS; i++) {
-        if (!connection_in_use[i]) {
-            connection_in_use[i] = TRUE;
-            mysql_ping(connection_pool[i]);
-            return connection_pool[i];
-        }
-    }
-    return NULL; // All connections in use
-}
-
-void release_db_connection(MYSQL *conn) {
-    int i;
-    for (i = 0; i < MAX_DB_CONNECTIONS; i++) {
-        if (connection_pool[i] == conn) {
-            connection_in_use[i] = FALSE;
-            break;
-        }
-    }
-}
-```
+`mysql_pool_query()` runs one statement on a pooled connection, for side lookups such as the
+weather cache and wilderness descriptions. `mysql_pool_acquire()` checks a connection that has
+been idle longer than `MYSQL_POOL_TIMEOUT` seconds. When the database cannot be reached it returns
+`NULL`, and `mysql_pool_query()` reports a failed query: the pool never waits for the database,
+because the game runs on the thread that asks. A failed query leaves its caller's result pointer
+`NULL`.
 
 ### Batch Operations
 
@@ -398,25 +382,67 @@ void batch_save_players() {
 
 ### Transaction Management
 
-```c
-bool execute_transaction(const char **queries, int count) {
-    int i;
-    mysql_autocommit(conn, 0); // Start transaction
+A transaction is written with plain statements on `conn`: `START TRANSACTION`, the writes, then
+`COMMIT`, with `ROLLBACK` on every path that fails. Schema statements (`CREATE`, `ALTER`) commit
+an open transaction, so run a subsystem's ensure function before the transaction, never inside
+it.
 
-    for (i = 0; i < count; i++) {
-        if (mysql_query(conn, queries[i])) {
-            log("SYSERR: Transaction query %d failed: %s", i, mysql_error(conn));
-            mysql_rollback(conn);
-            mysql_autocommit(conn, 1);
-            return FALSE;
-        }
-    }
+**A connection lost inside a transaction.** Every connection reconnects by itself. When one drops
+inside a transaction, the server rolls the transaction back and one command fails; the client
+library then puts the following statements on a new session, where each would commit on its own
+and a `COMMIT` would report success. The query layer prevents that for every caller:
 
-    mysql_commit(conn);
-    mysql_autocommit(conn, 1);
-    return TRUE;
-}
-```
+- Every command goes through it: `mysql_query()` (a macro for `luminari_mysql_query()`), the
+  prepared-statement wrappers, and `ensure_mysql_connection()` (`MYSQL_PING_CONN`).
+- A command marks the connection when, with a transaction open, it fails with client error 2006
+  or 2013, fails after the library gave the transaction up (a reconnect it refused or could not
+  make), or reconnects (a ping does, and reports success).
+- A deadlock ends the same way with the connection up: the server rolls its victim's whole
+  transaction back and fails one statement with error 1213. That marks the connection too.
+- A marked connection sends nothing: queries and prepared statements fail at once.
+- The mark ends with the transaction. `ROLLBACK` is sent, on the new session if need be. A
+  `COMMIT` fails and is answered with a `ROLLBACK`. A new `START TRANSACTION` starts clean.
+
+So a writer inside a transaction needs no check of its own for this: after a lost connection
+every later statement fails, the `COMMIT` fails, and nothing of the transaction is stored.
+
+A function that opens a transaction must end it on every path. All database work is done within
+the game pulse that starts it, so a mark still there in a later pulse means its transaction was
+never ended. The layer then rolls it back itself and logs a `SYSERR`, so one missed `ROLLBACK`
+cannot leave the connection refusing everyone's statements; until that next pulse it does refuse
+them. At boot no pulse passes, and nothing heals.
+
+**A statement the server refuses** (a constraint, a missing table) loses nothing: the connection
+and the transaction go on, and the caller decides whether to roll back. The object and house
+saves commit the rest and count as incomplete (`docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`). The one
+exception is the deadlock above, where the refusal takes the transaction with it.
+
+**A `COMMIT` without a reply.** A connection lost while the reply is on its way leaves the
+outcome unknown: the server may have committed. `mysql_commit_transaction()` tells the three
+endings apart and rolls back whatever is not confirmed:
+
+| Result | Meaning | What the caller does |
+| -- | -- | -- |
+| `MYSQL_COMMIT_DONE` | The server confirmed it | Goes on |
+| `MYSQL_COMMIT_REFUSED` | Not committed: the server refused it, or the transaction was already lost | Treats it as rolled back |
+| `MYSQL_COMMIT_UNANSWERED` | No reply came | Writes again, or reads the database back |
+
+Use it wherever memory is changed, or left alone, on the strength of the commit. Where the writes
+set absolute values, write them again (cargo trades do, and the object save a character leaves
+the game with). Otherwise read a row the transaction wrote, with `LOCK IN SHARE MODE`: the
+locking read waits until the lost session's transaction has ended on the server, so it sees the
+final state. Pet storage and retrieval, a hull's change of owner and the end of a vessel event do
+this.
+
+A reply is mostly lost to a server restart, and then the read-back cannot connect either. A site
+must not take that for a rollback. Either the work can be done again without harm (the vessel
+event's finish writes its scores only when its status write changed the event's row), or no state
+is chosen until the row can be read (the pet keeper puts the owner's roster back to "restore
+failed", and `pets restore` settles it from the rows).
+
+**Session locks.** `GET_LOCK()` belongs to the session, so a reconnect drops it without telling
+the holder. `help_sync_database_lock_held()` asks the server; the help writers call it inside
+their transaction, where the session can no longer change unnoticed.
 
 ### Backup and Recovery
 

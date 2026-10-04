@@ -1030,9 +1030,6 @@ bool vessel_balance_report(struct char_data *ch, int duel_count);
 void vessel_trade_restock_tick(void);
 bool vessel_db_save_cargo(struct greyhawk_ship_data *ship);
 void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
-#ifdef LUMINARI_CUTEST
-void vessel_trade_lose_commit_reply_for_test(int commits_ahead, bool committed);
-#endif
 
 /* ========================================================================= */
 /* LIVING WORLD: WEATHER HAZARDS AND ENCOUNTERS (Phase 08)                   */
@@ -1200,7 +1197,7 @@ int vessel_bounty_after_decay(int bounty, long long quiet_seconds);
 int vessel_bounty_payoff_cost(int bounty);
 int vessel_get_bounty(const char *player_name);
 bool vessel_bounty_record_offense(const char *player_name, int amount);
-void vessel_add_bounty(const char *player_name, int amount);
+bool vessel_add_bounty(const char *player_name, int amount);
 bool vessel_clear_bounty(const char *player_name);
 bool vessel_has_letter_of_marque(const char *player_name);
 const char *vessel_waters_type_name(int waters_type);

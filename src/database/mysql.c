@@ -20,6 +20,13 @@
 #include "mysql.h"
 #include "core/perfmon.h"
 
+#include <mariadb/errmsg.h>
+#include <mariadb/mysqld_error.h>
+#ifdef LUMINARI_CUTEST
+#include <poll.h> /* poll(), recv() and shutdown(), for the test that loses a connection */
+#include <sys/socket.h>
+#endif
+
 #include "wilderness/wilderness.h"
 #include "events/mud_event.h"
 
@@ -60,14 +67,190 @@ static bool mysql_test_should_fail_query(void)
 
   return false;
 }
+
+/* Test: the connection is really lost at the Nth statement that begins with
+ * this text, a query or a prepared execution. */
+static const char *test_drop_statement;
+static unsigned int test_drop_countdown;
+static bool test_drop_after_sending;
+
+static bool mysql_test_drop_due(const char *statement)
+{
+  if (test_drop_statement == NULL || statement == NULL ||
+      strncasecmp(statement, test_drop_statement, strlen(test_drop_statement)) != 0 ||
+      --test_drop_countdown > 0)
+    return FALSE;
+  test_drop_statement = NULL;
+  return TRUE;
+}
+
+/* Send the query the connection is lost at: the socket is shut down before
+ * the query, or after the server has run it. In that case the reply is
+ * awaited and thrown away unread, so the loss does not depend on which of
+ * the reply and the shutdown comes first. */
+static int mysql_test_dropped_query(MYSQL *mysql_conn, const char *query)
+{
+  struct pollfd reply;
+  char discarded[512];
+
+  reply.fd = mysql_get_socket(mysql_conn);
+  reply.events = POLLIN;
+  if (!test_drop_after_sending)
+  {
+    shutdown(reply.fd, SHUT_RDWR);
+    return (mysql_query)(mysql_conn, query);
+  }
+  if (mysql_send_query(mysql_conn, query, (unsigned long)strlen(query)) != 0)
+    return 1;
+  poll(&reply, 1, 10000);
+  while (recv(reply.fd, discarded, sizeof(discarded), MSG_DONTWAIT) > 0)
+    ;
+  shutdown(reply.fd, SHUT_RDWR);
+  return mysql_read_query_result(mysql_conn);
+}
 #endif
+
+/* ========================================================================== */
+/* A transaction lost with its connection, or to a deadlock                   */
+/* ========================================================================== */
+/* Every connection reconnects by itself (MYSQL_OPT_RECONNECT). When one drops
+ * inside a transaction, the server rolls the transaction back and one command
+ * fails; the library then puts the following statements on a new session,
+ * where each commits on its own and a COMMIT reports success. So a connection
+ * that lost its transaction is marked here, and takes no statement until its
+ * caller ends the transaction. The mark is kept on the handle: it survives
+ * the reconnect, and a closed handle leaves none behind.
+ *
+ * A deadlock ends the same way with the connection up: the server rolls its
+ * victim's whole transaction back and fails one statement (1213), and the
+ * statements after it would commit one by one. The victim is marked too.
+ *
+ * The mark does not outlast the game pulse it was set in. All database work
+ * is done within the pulse that starts it, so in a later pulse the caller of
+ * a lost transaction has returned, and if the mark is still there it never
+ * ended the transaction. Refusing the statements of everyone after it would
+ * only spread that fault (a failed query stops the server when a player's
+ * objects load), so the transaction is rolled back for it and reported. */
+static char transaction_mark_key[] = "luminari.transaction";
+static char transaction_lost_mark; /* Only the addresses are used. */
+static char transaction_kept_mark;
+static unsigned long transaction_lost_pulse; /* the pulse of the newest mark */
+
+static void transaction_set_lost(MYSQL *mysql_conn, bool lost)
+{
+  mysql_optionsv(mysql_conn, MARIADB_OPT_USERDATA, transaction_mark_key,
+                 lost ? (void *)&transaction_lost_mark : (void *)&transaction_kept_mark);
+  if (lost)
+    transaction_lost_pulse = pulse;
+}
+
+static bool transaction_lost(MYSQL *mysql_conn)
+{
+  void *mark = NULL;
+
+  if (mysql_conn == NULL)
+    return FALSE;
+  mysql_get_optionv(mysql_conn, MARIADB_OPT_USERDATA, transaction_mark_key, &mark);
+  if (mark != &transaction_lost_mark)
+    return FALSE;
+  if (pulse == transaction_lost_pulse)
+    return TRUE;
+
+  transaction_set_lost(mysql_conn, FALSE);
+  mysql_conn->server_status &= ~SERVER_STATUS_IN_TRANS;
+  (mysql_query)(mysql_conn, "ROLLBACK");
+  log("SYSERR: A lost database transaction was never ended by the code that opened it; it is "
+      "rolled back now, a pulse later");
+  return FALSE;
+}
+
+/* A connection as it stood before a command was sent. */
+struct transaction_watch
+{
+  bool open;             /* a transaction was open */
+  unsigned long session; /* the server's ID for the session */
+};
+
+static struct transaction_watch transaction_watch_begin(MYSQL *mysql_conn)
+{
+  struct transaction_watch watch;
+
+  watch.open = (mysql_conn->server_status & SERVER_STATUS_IN_TRANS) != 0;
+  watch.session = mysql_thread_id(mysql_conn);
+  return watch;
+}
+
+/* Mark the connection if the command lost the open transaction. It did if it
+ * failed because the connection is gone (2006, 2013); if the server rolled
+ * the transaction back as a deadlock's victim (1213), which leaves the
+ * library holding it open; if it failed and the library no longer holds the
+ * transaction open, which is how the library leaves a reconnect it refused
+ * or could not make; or if it reconnected (a ping does, and reports success).
+ * A statement the server refuses otherwise is none of these: it fails alone
+ * and the transaction stays. `error` is the error number for the command, 0
+ * for none. */
+static void transaction_watch_end(MYSQL *mysql_conn, struct transaction_watch watch,
+                                  unsigned int error)
+{
+  bool still_open = (mysql_conn->server_status & SERVER_STATUS_IN_TRANS) != 0;
+
+  if (!watch.open ||
+      (error != CR_SERVER_GONE_ERROR && error != CR_SERVER_LOST && error != ER_LOCK_DEADLOCK &&
+       (error == 0 || still_open) && mysql_thread_id(mysql_conn) == watch.session))
+    return;
+  transaction_set_lost(mysql_conn, TRUE);
+  log("SYSERR: A database transaction was lost with its connection or to a deadlock (error %u, 0 "
+      "for a silent reconnect); the connection takes no statement until the transaction is rolled "
+      "back",
+      error);
+}
+
+static bool mysql_client_error(unsigned int error)
+{
+  return (error >= CR_MIN_ERROR && error <= CR_MAX_ERROR) ||
+         (error >= CER_MIN_ERROR && error <= CER_MAX_ERROR);
+}
+
+/* Is the query this bare statement, in any case, with or without a semicolon? */
+static bool statement_is(const char *query, const char *statement)
+{
+  size_t length = strlen(statement);
+
+  if (strncasecmp(query, statement, length) != 0)
+    return FALSE;
+  query += length;
+  while (*query == ' ' || *query == ';')
+    query++;
+  return *query == '\0';
+}
 
 int luminari_mysql_query(MYSQL *mysql_conn, const char *query)
 {
+  struct transaction_watch watch;
   uint64_t start_usec;
   uint64_t end_usec;
   uint64_t elapsed_usec;
+  bool commit;
+  bool ends_transaction;
   int result;
+
+  commit = statement_is(query, "COMMIT");
+  ends_transaction = commit || statement_is(query, "ROLLBACK");
+  if (transaction_lost(mysql_conn))
+  {
+    if (!ends_transaction && !statement_is(query, "START TRANSACTION"))
+      return 1;
+    /* The caller's transaction ends here. The server rolled it back when the
+     * connection went, so a COMMIT fails, and is answered with a ROLLBACK in
+     * case the connection outlived the error. */
+    transaction_set_lost(mysql_conn, FALSE);
+    mysql_conn->server_status &= ~SERVER_STATUS_IN_TRANS;
+    if (commit)
+    {
+      (mysql_query)(mysql_conn, "ROLLBACK");
+      return 1;
+    }
+  }
 
   start_usec = PERF_monotonic_usec();
   atomic_fetch_add_explicit(&query_execution_count, 1, memory_order_relaxed);
@@ -80,10 +263,38 @@ int luminari_mysql_query(MYSQL *mysql_conn, const char *query)
     return 1;
   }
 #endif
-  result = (mysql_query)(mysql_conn, query);
+  watch = transaction_watch_begin(mysql_conn);
+#ifdef LUMINARI_CUTEST
+  if (mysql_test_drop_due(query))
+    result = mysql_test_dropped_query(mysql_conn, query);
+  else
+#endif
+    result = (mysql_query)(mysql_conn, query);
+  if (result != 0 && !ends_transaction)
+    transaction_watch_end(mysql_conn, watch, mysql_errno(mysql_conn));
+  else if (result != 0 && mysql_client_error(mysql_errno(mysql_conn)))
+    /* The transaction is over whether this COMMIT or ROLLBACK arrived or not,
+     * but the library still holds it open and would refuse the next
+     * statement its reconnect. */
+    mysql_conn->server_status &= ~SERVER_STATUS_IN_TRANS;
   end_usec = PERF_monotonic_usec();
   elapsed_usec = end_usec >= start_usec ? end_usec - start_usec : 0;
   PERF_note_sql_query(query, elapsed_usec, result != 0);
+  return result;
+}
+
+enum mysql_commit_result mysql_commit_transaction(MYSQL *mysql_conn)
+{
+  enum mysql_commit_result result;
+
+  if (transaction_lost(mysql_conn))
+    result = MYSQL_COMMIT_REFUSED;
+  else if (mysql_query(mysql_conn, "COMMIT") == 0)
+    return MYSQL_COMMIT_DONE;
+  else
+    result = mysql_client_error(mysql_errno(mysql_conn)) ? MYSQL_COMMIT_UNANSWERED
+                                                         : MYSQL_COMMIT_REFUSED;
+  mysql_query(mysql_conn, "ROLLBACK");
   return result;
 }
 
@@ -106,6 +317,14 @@ void mysql_test_fail_nth_query(unsigned int query_number)
 void mysql_test_clear_query_failure(void)
 {
   atomic_store_explicit(&test_query_failure_countdown, 0, memory_order_relaxed);
+}
+
+void mysql_test_drop_connection_at(const char *statement, unsigned int occurrence,
+                                   bool after_sending)
+{
+  test_drop_statement = statement;
+  test_drop_countdown = occurrence;
+  test_drop_after_sending = after_sending;
 }
 #endif
 
@@ -278,12 +497,15 @@ void mysql_pool_destroy(void)
  * Acquire a connection from the pool.
  * Returns an available connection or waits if all are in use.
  *
- * @return Pointer to acquired connection, or NULL on error
+ * @return Pointer to acquired connection, or NULL when none can be had: the
+ *         pool is not initialized, or the database cannot be reached. It
+ *         never waits for the database: the game runs on this thread.
  */
 MYSQL_POOL_CONN *mysql_pool_acquire(void)
 {
   MYSQL_POOL_CONN *pc;
   time_t now;
+  int size;
 
   if (!mysql_pool || !mysql_pool->initialized)
   {
@@ -305,43 +527,21 @@ MYSQL_POOL_CONN *mysql_pool_acquire(void)
     {
       if (pc->state == CONN_STATE_FREE)
       {
-        /* Check if connection needs refresh */
+        /* An idle connection is checked first. A stale one reconnects in
+         * place: conn, conn2 and conn3 are these handles, so closing one for
+         * a fresh handle would leave them pointing at freed memory. One that
+         * cannot reconnect means the database is away: the caller gets no
+         * connection, and the entry stays free for the next call, when its
+         * handle tries again. */
         if (now - pc->last_used > MYSQL_POOL_TIMEOUT)
         {
-          /* Ping to check if still alive */
-          if (mysql_ping(pc->conn) != 0)
+          if (!ensure_mysql_connection(pc->conn, __func__))
           {
-            log("Info: Refreshing stale connection %d", pc->id);
-            mysql_close(pc->conn);
-
-            /* Reconnect */
-            pc->conn = mysql_init(NULL);
-            if (pc->conn)
-            {
-              my_bool reconnect = 1;
-              mysql_options(pc->conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
-
-              /* Set connection timeouts for reconnection */
-              unsigned int connect_timeout = 60;
-              unsigned int read_timeout = 300;
-              unsigned int write_timeout = 300;
-              mysql_options(pc->conn, MYSQL_OPT_CONNECT_TIMEOUT, (const char *)&connect_timeout);
-              mysql_options(pc->conn, MYSQL_OPT_READ_TIMEOUT, (const char *)&read_timeout);
-              mysql_options(pc->conn, MYSQL_OPT_WRITE_TIMEOUT, (const char *)&write_timeout);
-
-              if (!mysql_real_connect(pc->conn, mysql_pool->host, mysql_pool->username,
-                                      mysql_pool->password, mysql_pool->database, 0, NULL, 0))
-              {
-                PERF_note_sql_reconnect(FALSE);
-                log("ERROR: Failed to reconnect connection %d: %s", pc->id, mysql_error(pc->conn));
-                pc->state = CONN_STATE_ERROR;
-                mysql_pool->error_count++;
-                continue;
-              }
-              PERF_note_sql_reconnect(TRUE);
-              pc->thread_id = mysql_thread_id(pc->conn);
-            }
+            mysql_pool->error_count++;
+            pthread_mutex_unlock(&mysql_pool->pool_mutex);
+            return NULL;
           }
+          pc->thread_id = mysql_thread_id(pc->conn);
         }
 
         /* Mark as in use and return */
@@ -364,9 +564,18 @@ MYSQL_POOL_CONN *mysql_pool_acquire(void)
     /* No free connections - check if we can expand pool */
     if (mysql_pool->current_size < MYSQL_POOL_MAX_SIZE)
     {
+      size = mysql_pool->current_size;
       pthread_mutex_unlock(&mysql_pool->pool_mutex);
       mysql_pool_expand();
       pthread_mutex_lock(&mysql_pool->pool_mutex);
+      if (mysql_pool->current_size == size)
+      {
+        /* No connection could be opened; trying again at once would not
+         * open one either. */
+        mysql_pool->error_count++;
+        pthread_mutex_unlock(&mysql_pool->pool_mutex);
+        return NULL;
+      }
       continue;
     }
 
@@ -415,92 +624,6 @@ void mysql_pool_release(MYSQL_POOL_CONN *pc)
   pthread_cond_signal(&mysql_pool->pool_cond);
 
   pthread_mutex_unlock(&mysql_pool->pool_mutex);
-}
-
-/**
- * Perform health checks on all connections in the pool.
- * Removes dead connections and creates replacements.
- */
-void mysql_pool_health_check(void)
-{
-  MYSQL_POOL_CONN *pc;
-  time_t now;
-  int errors = 0;
-
-  if (!mysql_pool || !mysql_pool->initialized)
-  {
-    return;
-  }
-
-  now = time(NULL);
-
-  /* Check if it's time for health check */
-  if (now - mysql_pool->last_health_check < MYSQL_HEALTH_CHECK_INTERVAL)
-  {
-    return;
-  }
-
-  pthread_mutex_lock(&mysql_pool->pool_mutex);
-
-  mysql_pool->last_health_check = now;
-
-  /* Check each connection */
-  for (pc = mysql_pool->connections; pc; pc = pc->next)
-  {
-    if (pc->state == CONN_STATE_FREE)
-    {
-      /* Ping the connection */
-      if (mysql_ping(pc->conn) != 0)
-      {
-        log("WARNING: Connection %d failed health check: %s", pc->id, mysql_error(pc->conn));
-        pc->state = CONN_STATE_ERROR;
-        errors++;
-
-        /* Try to reconnect */
-        mysql_close(pc->conn);
-        pc->conn = mysql_init(NULL);
-
-        if (pc->conn)
-        {
-          my_bool reconnect = 1;
-          mysql_options(pc->conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
-
-          /* Set connection timeouts for reconnection */
-          unsigned int connect_timeout = 60;
-          unsigned int read_timeout = 300;
-          unsigned int write_timeout = 300;
-          mysql_options(pc->conn, MYSQL_OPT_CONNECT_TIMEOUT, (const char *)&connect_timeout);
-          mysql_options(pc->conn, MYSQL_OPT_READ_TIMEOUT, (const char *)&read_timeout);
-          mysql_options(pc->conn, MYSQL_OPT_WRITE_TIMEOUT, (const char *)&write_timeout);
-
-          if (mysql_real_connect(pc->conn, mysql_pool->host, mysql_pool->username,
-                                 mysql_pool->password, mysql_pool->database, 0, NULL, 0))
-          {
-            PERF_note_sql_reconnect(TRUE);
-            pc->state = CONN_STATE_FREE;
-            pc->thread_id = mysql_thread_id(pc->conn);
-            pc->created = now;
-            log("Info: Reconnected connection %d during health check", pc->id);
-            errors--;
-          }
-          else
-          {
-            PERF_note_sql_reconnect(FALSE);
-          }
-        }
-      }
-    }
-  }
-
-  if (errors > 0)
-  {
-    log("WARNING: %d connections failed health check", errors);
-  }
-
-  pthread_mutex_unlock(&mysql_pool->pool_mutex);
-
-  /* Shrink pool if too many idle connections */
-  mysql_pool_shrink();
 }
 
 /**
@@ -592,73 +715,6 @@ void mysql_pool_expand(void)
 }
 
 /**
- * Shrink the pool by removing idle connections.
- * Maintains at least MYSQL_POOL_MIN_SIZE connections.
- */
-void mysql_pool_shrink(void)
-{
-  MYSQL_POOL_CONN *pc, *prev, *to_remove;
-  time_t now;
-  int removed = 0;
-
-  if (!mysql_pool || mysql_pool->current_size <= MYSQL_POOL_MIN_SIZE)
-  {
-    return;
-  }
-
-  now = time(NULL);
-
-  pthread_mutex_lock(&mysql_pool->pool_mutex);
-
-  prev = NULL;
-  pc = mysql_pool->connections;
-
-  while (pc && mysql_pool->current_size > MYSQL_POOL_MIN_SIZE)
-  {
-    /* Check if connection is idle and old */
-    if (pc->state == CONN_STATE_FREE && (now - pc->last_used) > ((time_t)MYSQL_POOL_TIMEOUT * 2))
-    {
-      /* Remove this connection */
-      to_remove = pc;
-
-      if (prev)
-      {
-        prev->next = pc->next;
-      }
-      else
-      {
-        mysql_pool->connections = pc->next;
-      }
-
-      pc = pc->next;
-
-      /* Close and free the connection */
-      if (to_remove->conn)
-      {
-        mysql_close(to_remove->conn);
-      }
-      pthread_mutex_destroy(&to_remove->mutex);
-      free(to_remove);
-
-      mysql_pool->current_size--;
-      removed++;
-    }
-    else
-    {
-      prev = pc;
-      pc = pc->next;
-    }
-  }
-
-  if (removed > 0)
-  {
-    log("Info: Shrunk pool by %d connections (now %d)", removed, mysql_pool->current_size);
-  }
-
-  pthread_mutex_unlock(&mysql_pool->pool_mutex);
-}
-
-/**
  * Get statistics about the connection pool.
  *
  * @param buf Buffer to write statistics
@@ -693,13 +749,17 @@ void mysql_pool_stats(char *buf, size_t size)
  * Pool-aware query function that automatically manages connections.
  *
  * @param query SQL query to execute
- * @param result Pointer to store result set (can be NULL for non-SELECT)
+ * @param result Pointer to store result set (can be NULL for non-SELECT);
+ *               set to NULL when the query fails or has no result set
  * @return 0 on success, non-zero on error
  */
 int mysql_pool_query(const char *query, MYSQL_RES **result)
 {
   MYSQL_POOL_CONN *pc;
   int ret;
+
+  if (result)
+    *result = NULL;
 
   /* Acquire connection from pool */
   pc = mysql_pool_acquire();
@@ -819,6 +879,9 @@ bool mysql_available = FALSE;
  */
 bool ensure_mysql_connection(MYSQL *mysql_conn, const char *caller_func)
 {
+  struct transaction_watch watch;
+  bool failed;
+
   /* If no connection provided, fail */
   if (!mysql_conn)
   {
@@ -826,8 +889,13 @@ bool ensure_mysql_connection(MYSQL *mysql_conn, const char *caller_func)
     return false;
   }
 
-  /* mysql_ping returns 0 on success, non-zero if connection was lost */
-  if (mysql_ping(mysql_conn) != 0)
+  /* mysql_ping returns 0 on success, non-zero if connection was lost. With
+   * MYSQL_OPT_RECONNECT it retries once by itself, so a ping inside a
+   * transaction can succeed on a new session: the watch marks that. */
+  watch = transaction_watch_begin(mysql_conn);
+  failed = mysql_ping(mysql_conn) != 0;
+  transaction_watch_end(mysql_conn, watch, failed ? mysql_errno(mysql_conn) : 0);
+  if (failed)
   {
     log("WARNING: %s: MySQL connection lost, attempting reconnect: %s",
         caller_func ? caller_func : "Unknown", mysql_error(mysql_conn));
@@ -869,7 +937,6 @@ void connect_to_mysql()
     mysql_pool->total_requests = 0;
     mysql_pool->wait_count = 0;
     mysql_pool->error_count = 0;
-    mysql_pool->last_health_check = time(NULL);
     pthread_mutex_init(&mysql_pool->pool_mutex, NULL);
     pthread_cond_init(&mysql_pool->pool_cond, NULL);
   }
@@ -1236,6 +1303,7 @@ PREPARED_STMT *mysql_stmt_create(MYSQL *mysql_conn)
  */
 bool mysql_stmt_prepare_query(PREPARED_STMT *pstmt, const char *query)
 {
+  struct transaction_watch watch;
   pthread_mutex_t *mutex;
   int i;
 
@@ -1258,10 +1326,15 @@ bool mysql_stmt_prepare_query(PREPARED_STMT *pstmt, const char *query)
     return FALSE;
   }
 
+  if (transaction_lost(pstmt->connection))
+    return FALSE;
+
   /* Prepare the statement */
   MYSQL_LOCK(*mutex);
+  watch = transaction_watch_begin(pstmt->connection);
   if (mysql_stmt_prepare(pstmt->stmt, query, strlen(query)))
   {
+    transaction_watch_end(pstmt->connection, watch, mysql_stmt_errno(pstmt->stmt));
     log("SYSERR: mysql_stmt_prepare failed: %s (Error: %u)", mysql_stmt_error(pstmt->stmt),
         mysql_stmt_errno(pstmt->stmt));
     log("  Query was: %.200s%s", query, strlen(query) > 200 ? "..." : "");
@@ -1478,6 +1551,7 @@ bool mysql_stmt_bind_param_long(PREPARED_STMT *pstmt, int param_index, long valu
  */
 bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
 {
+  struct transaction_watch watch;
   pthread_mutex_t *mutex;
   uint64_t start_usec;
   uint64_t end_usec;
@@ -1510,6 +1584,9 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
     return FALSE;
   }
 
+  if (transaction_lost(pstmt->connection))
+    return FALSE;
+
   MYSQL_LOCK(*mutex);
 
   /* Bind parameters if any */
@@ -1527,12 +1604,18 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
   /* Execute the statement */
   atomic_fetch_add_explicit(&query_execution_count, 1, memory_order_relaxed);
   start_usec = PERF_monotonic_usec();
+  watch = transaction_watch_begin(pstmt->connection);
+#ifdef LUMINARI_CUTEST
+  if (mysql_test_drop_due(pstmt->query_text))
+    shutdown(mysql_get_socket(pstmt->connection), SHUT_RDWR);
+#endif
   execute_failed = mysql_stmt_execute(pstmt->stmt);
   end_usec = PERF_monotonic_usec();
   PERF_note_sql_query(pstmt->query_text != NULL ? pstmt->query_text : "",
                       end_usec >= start_usec ? end_usec - start_usec : 0, execute_failed != 0);
   if (execute_failed)
   {
+    transaction_watch_end(pstmt->connection, watch, mysql_stmt_errno(pstmt->stmt));
     log("SYSERR: mysql_stmt_execute failed: %s (Error: %u, SQLState: %s)",
         mysql_stmt_error(pstmt->stmt), mysql_stmt_errno(pstmt->stmt),
         mysql_stmt_sqlstate(pstmt->stmt));
@@ -1698,6 +1781,7 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
     /* Store result set for SELECT queries */
     if (mysql_stmt_store_result(pstmt->stmt))
     {
+      transaction_watch_end(pstmt->connection, watch, mysql_stmt_errno(pstmt->stmt));
       log("SYSERR: mysql_stmt_store_result failed: %s (Error: %u)", mysql_stmt_error(pstmt->stmt),
           mysql_stmt_errno(pstmt->stmt));
       MYSQL_UNLOCK(*mutex);
@@ -1923,6 +2007,7 @@ my_ulonglong mysql_stmt_affected_rows_count(PREPARED_STMT *pstmt)
  */
 void mysql_stmt_cleanup(PREPARED_STMT *pstmt)
 {
+  struct transaction_watch watch;
   pthread_mutex_t *mutex;
   int i;
 
@@ -2000,13 +2085,16 @@ void mysql_stmt_cleanup(PREPARED_STMT *pstmt)
     free(pstmt->query_text);
   }
 
-  /* Close the statement */
+  /* Close the statement. The close tells the server, so it can be the first
+   * command to meet a dropped connection. */
   if (pstmt->stmt)
   {
     if (mutex)
     {
       MYSQL_LOCK(*mutex);
-      mysql_stmt_close(pstmt->stmt);
+      watch = transaction_watch_begin(pstmt->connection);
+      if (mysql_stmt_close(pstmt->stmt))
+        transaction_watch_end(pstmt->connection, watch, mysql_errno(pstmt->connection));
       MYSQL_UNLOCK(*mutex);
     }
     else

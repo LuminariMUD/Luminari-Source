@@ -150,6 +150,7 @@ static void rewards_berth_end(struct rewards_berth *berth)
 static MYSQL *rewards_open_test_database(void)
 {
   const char *port_text;
+  my_bool reconnect = 1;
   MYSQL *connection;
 
   connection = mysql_init(NULL);
@@ -157,6 +158,8 @@ static MYSQL *rewards_open_test_database(void)
   {
     return NULL;
   }
+  /* As the server's own connections are made. */
+  mysql_options(connection, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
   port_text = getenv("LUMINARI_TEST_MYSQL_PORT");
   if (mysql_real_connect(
           connection, getenv("LUMINARI_TEST_MYSQL_HOST"), getenv("LUMINARI_TEST_MYSQL_USER"),
@@ -221,6 +224,25 @@ static bool rewards_trade_tables(MYSQL *connection)
 }
 
 /* The tables a sinking's settlement writes, shadowing any real ones. */
+/* The trade rows of the test hull and port in the real tables, for a test
+ * that loses its connection: a TEMPORARY table goes with its session. */
+static void rewards_trade_rows_end(MYSQL *connection)
+{
+  mysql_query(connection, "DELETE FROM ship_cargo_manifest WHERE ship_id = 490");
+  mysql_query(connection, "DELETE FROM ship_interiors WHERE ship_id = 490");
+  mysql_query(connection, "DELETE FROM port_commodities WHERE port_vnum = 100");
+  mysql_query(connection, "DELETE FROM vessel_bounties WHERE player_name = 'Tern'");
+}
+
+static void rewards_trade_rows_begin(CuTest *tc, MYSQL *connection)
+{
+  vessel_trade_ensure_schema();
+  vessel_piracy_ensure_schema();
+  rewards_trade_rows_end(connection);
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(connection, "INSERT INTO ship_interiors (ship_id) VALUES (490)"));
+}
+
 static bool rewards_prize_tables(MYSQL *connection)
 {
   return mysql_query(connection, "CREATE TEMPORARY TABLE vessel_insurance_claims ("
@@ -728,9 +750,10 @@ static void rewards_assert_trade(CuTest *tc, MYSQL *connection, struct rewards_b
 
   CuAssertIntEquals(tc, gold, GET_GOLD(&berth->captain));
   CuAssertIntEquals(tc, units, greyhawk_ships[REWARDS_TARGET].cargo[0].quantity);
-  rewards_query_value(tc, connection,
-                      "SELECT COALESCE(SUM(item_count), 0) FROM ship_cargo_manifest", value,
-                      sizeof(value));
+  rewards_query_value(
+      tc, connection,
+      "SELECT COALESCE(SUM(item_count), 0) FROM ship_cargo_manifest WHERE ship_id = 490", value,
+      sizeof(value));
   CuAssertIntEquals(tc, manifest, (int)strtol(value, NULL, 10));
   rewards_query_value(tc, connection, "SELECT supply FROM port_commodities WHERE port_vnum = 100",
                       value, sizeof(value));
@@ -898,7 +921,8 @@ void Test_vessel_cargo_trades_record_the_gold_with_the_goods(CuTest *tc)
 
 /* A trade COMMIT whose reply is lost may have taken effect or not; the
  * trade is written again, so the gold, the hold, the manifest and the port's
- * stock agree whichever way it went. */
+ * stock agree whichever way it went. The connection is really lost at the
+ * COMMIT, after the server has it or before. */
 void Test_vessel_cargo_trades_settle_a_commit_without_a_reply(CuTest *tc)
 {
   struct rewards_berth berth;
@@ -912,6 +936,7 @@ void Test_vessel_cargo_trades_settle_a_commit_without_a_reply(CuTest *tc)
   char query[256];
   long long cost;
   long long revenue;
+  unsigned long session;
   int salt_id;
   int base_price;
   int gold;
@@ -926,17 +951,11 @@ void Test_vessel_cargo_trades_settle_a_commit_without_a_reply(CuTest *tc)
     CuFail(tc, "could not connect to the explicitly configured test database");
     return;
   }
-  if (!rewards_trade_tables(connection))
-  {
-    mysql_close(connection);
-    CuFail(tc, "could not create the isolated trade fixture");
-    return;
-  }
   saved_conn = conn;
   saved_mysql_available = mysql_available;
   conn = connection;
   mysql_available = TRUE;
-  vessel_trade_ensure_schema();
+  rewards_trade_rows_begin(tc, connection);
   rewards_query_value(tc, connection,
                       "SELECT commodity_id FROM trade_commodities WHERE name = 'salt'", salt,
                       sizeof(salt));
@@ -951,15 +970,17 @@ void Test_vessel_cargo_trades_settle_a_commit_without_a_reply(CuTest *tc)
   GET_GOLD(&berth.captain) = 1000;
 
   /* The purchase was committed, though its reply was lost. */
-  vessel_trade_lose_commit_reply_for_test(1, TRUE);
+  session = mysql_thread_id(connection);
+  mysql_test_drop_connection_at("COMMIT", 1, TRUE);
   cost = vessel_trade_buy_cost(base_price, 100, 10);
   gold = 1000 - (int)cost;
   output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
   CuAssertTrue(tc, strstr(output, "You load 10 units of salt") != NULL);
   rewards_assert_trade(tc, connection, &berth, gold, 10, 10, 90);
+  CuAssertTrue(tc, session != mysql_thread_id(connection));
 
-  /* The sale was rolled back, its reply lost too. */
-  vessel_trade_lose_commit_reply_for_test(1, FALSE);
+  /* The sale's COMMIT never arrived, so the server rolled it back. */
+  mysql_test_drop_connection_at("COMMIT", 1, FALSE);
   revenue = vessel_trade_sell_revenue(base_price, 90, 4);
   gold += (int)revenue;
   output = rewards_berth_command(&berth, do_cargosell, "salt 4");
@@ -969,33 +990,40 @@ void Test_vessel_cargo_trades_settle_a_commit_without_a_reply(CuTest *tc)
   /* The captain cannot be saved, and the undo's reply is lost after it was
    * committed: the purchase is undone. */
   GET_PFILEPOS(&berth.captain) = -1;
-  vessel_trade_lose_commit_reply_for_test(2, TRUE);
+  mysql_test_drop_connection_at("COMMIT", 2, TRUE);
   output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
   CuAssertTrue(tc,
                strstr(output, "Your gold could not be recorded, so the trade is undone.") != NULL);
   rewards_assert_trade(tc, connection, &berth, gold, 6, 6, 94);
 
   /* And when it was rolled back, so is a sale of the whole hold. */
-  vessel_trade_lose_commit_reply_for_test(2, FALSE);
+  mysql_test_drop_connection_at("COMMIT", 2, FALSE);
   output = rewards_berth_command(&berth, do_cargosell, "salt all");
   CuAssertTrue(tc,
                strstr(output, "Your gold could not be recorded, so the trade is undone.") != NULL);
   rewards_assert_trade(tc, connection, &berth, gold, 6, 6, 94);
   CuAssertIntEquals(tc, salt_id, ship->cargo[0].commodity_id);
   GET_PFILEPOS(&berth.captain) = 0;
-  vessel_trade_lose_commit_reply_for_test(0, FALSE);
+
+  /* A connection lost at the manifest loses the whole trade: nothing after
+   * it is written on its own, and no gold moves. */
+  mysql_test_drop_connection_at("INSERT INTO ship_cargo_manifest", 1, FALSE);
+  output = rewards_berth_command(&berth, do_cargobuy, "salt 10");
+  CuAssertTrue(tc, strstr(output, "cannot record that trade; no gold changed hands") != NULL);
+  rewards_assert_trade(tc, connection, &berth, gold, 6, 6, 94);
+  mysql_test_drop_connection_at(NULL, 0, FALSE);
   rewards_pfiles_end(tc, &pfiles, &berth.captain);
 
   rewards_berth_end(&berth);
+  rewards_trade_rows_end(connection);
   conn = saved_conn;
   mysql_available = saved_mysql_available;
   mysql_close(connection);
 }
 
-/* The manifest writer saves every lot it can on its own, but stops at the
- * first failed write inside a transaction: after a lost connection the next
- * write would reconnect and commit outside it. */
-void Test_vessel_cargo_save_stops_at_a_failure_only_inside_a_transaction(CuTest *tc)
+/* The manifest writer saves every lot it can and reports a lot it could not,
+ * so a caller inside a transaction rolls back. */
+void Test_vessel_cargo_save_reports_a_lot_it_could_not_write(CuTest *tc)
 {
   struct greyhawk_ship_data *ship;
   MYSQL *saved_conn;
@@ -1052,10 +1080,10 @@ void Test_vessel_cargo_save_stops_at_a_failure_only_inside_a_transaction(CuTest 
   CuAssertIntEquals(tc, 0, mysql_query(connection, "DELETE FROM ship_cargo_manifest"));
   CuAssertIntEquals(tc, 0, mysql_query(connection, "START TRANSACTION"));
   CuAssertTrue(tc, !vessel_db_save_cargo(ship));
+  CuAssertIntEquals(tc, 0, mysql_query(connection, "ROLLBACK"));
   rewards_query_value(tc, connection, "SELECT COUNT(*) FROM ship_cargo_manifest", value,
                       sizeof(value));
   CuAssertStrEquals(tc, "0", value);
-  CuAssertIntEquals(tc, 0, mysql_query(connection, "ROLLBACK"));
 
   rewards_clear();
   conn = saved_conn;

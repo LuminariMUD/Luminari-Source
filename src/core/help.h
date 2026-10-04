@@ -77,6 +77,7 @@ void clear_help_cache(void);
 bool help_sync_barrier_active(char *owner, size_t owner_size);
 bool help_sync_barrier_active_at(const char *path, char *owner, size_t owner_size);
 bool help_sync_database_lock_acquire(unsigned int timeout_seconds);
+bool help_sync_database_lock_held(void);
 void help_sync_database_lock_release(void);
 bool help_sync_reload_token_valid(const char *token);
 void help_sync_poll_reload(void);

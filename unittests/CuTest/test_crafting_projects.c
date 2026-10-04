@@ -2005,7 +2005,7 @@ void Test_craft_unstored_bundle_keeps_its_identity_through_an_object_file(CuTest
   CuAssertPtrNotNull(tc, file);
   if (file == NULL)
     return;
-  wrote = objsave_save_obj_record(bundle, ch, file, 0);
+  wrote = test_objsave_save_obj_record(bundle, ch, file, 0);
   extract_obj(bundle);
   CuAssertIntEquals(tc, 0, fseek(file, 0, SEEK_SET));
   records = objsave_parse_objects(file);

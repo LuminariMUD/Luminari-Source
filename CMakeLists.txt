@@ -1261,6 +1261,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_vessel_raiders.c
     unittests/CuTest/test_vessel_rewards.c
     unittests/CuTest/test_database_persistence.c
+    unittests/CuTest/test_database_transactions.c
     unittests/CuTest/test_dg_scripts_production.c
     unittests/CuTest/test_ashenport_welcome_trigger.c
     unittests/CuTest/test_damage_trigger.c

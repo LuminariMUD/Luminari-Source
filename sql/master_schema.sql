@@ -699,7 +699,6 @@ CREATE TABLE IF NOT EXISTS house_data (
   serialized_obj LONGTEXT,
   creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY vnum (vnum),
   INDEX idx_vnum (vnum),
   INDEX idx_last_accessed (last_accessed)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

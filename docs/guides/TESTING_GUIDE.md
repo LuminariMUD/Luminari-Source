@@ -535,6 +535,29 @@ isolated database before the suite runs; the master schema carries no foreign
 key, so the booted suite applies migration `2026091007` for real on every
 fresh database and this test observes its outcome.
 
+### Tests that lose the connection
+
+`unittests/CuTest/test_database_transactions.c` and a few neighbours check what a lost connection
+does to a transaction, and they lose it for real:
+
+- `mysql_test_drop_connection_at("COMMIT", 1, TRUE)` shuts the connection's socket down at the
+  next statement that begins with that text, a query or a prepared execution, inside the code
+  under test. With `FALSE` the socket goes before the statement is sent (the server never sees
+  it); with `TRUE` after the server has run it, and its reply is thrown away unread.
+- Connect as the server does, with `MYSQL_OPT_RECONNECT`, or the test proves nothing about the
+  reconnect.
+- A TEMPORARY table goes with its session, so these tests write the real tables with rows under
+  test-only keys and delete them afterwards. Tables that only boot creates need their ensure
+  function first, outside any transaction.
+- Read the outcome with `LOCK IN SHARE MODE`: the lost session may still be finishing.
+- For a database that stays away, point the handle's `port` and `unix_socket` at nothing for
+  the call under test and put them back after it: every reconnect in between is refused.
+- A deadlock needs a second session. `Test_database_deadlock_victim_takes_no_statement_until_it_ends`
+  shows the order of the four writes.
+
+`mysql_test_fail_nth_query()` remains for a failure that is not a lost connection: it fails a
+query without sending it.
+
 ## Isolated CI Boot Runtime
 
 The behavioral, production-linked, coverage, and integration jobs prepare a

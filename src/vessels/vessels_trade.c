@@ -23,7 +23,6 @@
 
 #include <errno.h>
 #include <limits.h>
-#include <mariadb/errmsg.h>
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
@@ -1039,68 +1038,19 @@ static int port_supply(int port_vnum, int commodity_id)
   return supply;
 }
 
-#ifdef LUMINARI_CUTEST
-/* Test: the reply to the trade COMMIT this many commits ahead (1 is the next)
- * is lost, after the server committed or, if not committed, rolled back. */
-static int trade_lost_reply_in;
-static bool trade_lost_reply_committed;
-
-void vessel_trade_lose_commit_reply_for_test(int commits_ahead, bool committed)
-{
-  trade_lost_reply_in = commits_ahead;
-  trade_lost_reply_committed = committed;
-}
-#endif
-
-enum trade_write_result
-{
-  TRADE_WRITTEN,
-  TRADE_NOT_WRITTEN,
-  TRADE_WRITE_UNANSWERED /* COMMIT sent, no reply: it may have taken effect */
-};
-
-/**
- * COMMIT the open trade transaction. A failure the server did not answer (a
- * client error, such as a connection lost while the reply was on its way)
- * says nothing of whether the server committed. Connector/C reports client
- * errors in two ranges, 2000-2999 and 5000-5999.
- */
-static enum trade_write_result trade_commit(void)
-{
-  unsigned int error;
-
-#ifdef LUMINARI_CUTEST
-  if (trade_lost_reply_in > 0 && --trade_lost_reply_in == 0)
-  {
-    mysql_query(conn, trade_lost_reply_committed ? "COMMIT" : "ROLLBACK");
-    return TRADE_WRITE_UNANSWERED;
-  }
-#endif
-  if (mysql_query(conn, "COMMIT") == 0)
-  {
-    return TRADE_WRITTEN;
-  }
-  error = mysql_errno(conn);
-  return (error >= CR_MIN_ERROR && error <= CR_MAX_ERROR) ||
-                 (error >= CER_MIN_ERROR && error <= CER_MAX_ERROR)
-             ? TRADE_WRITE_UNANSWERED
-             : TRADE_NOT_WRITTEN;
-}
-
 /**
  * One transaction that sets the port's supply and the ship's whole manifest.
  */
-static enum trade_write_result trade_write(struct greyhawk_ship_data *ship, int port_vnum,
-                                           int commodity_id, int supply)
+static enum mysql_commit_result trade_write(struct greyhawk_ship_data *ship, int port_vnum,
+                                            int commodity_id, int supply)
 {
   PREPARED_STMT *statement;
-  enum trade_write_result result;
   bool recorded;
 
   if (mysql_query(conn, "START TRANSACTION"))
   {
     log("SYSERR: Could not begin a trade at port %d: %s", port_vnum, mysql_error(conn));
-    return TRADE_NOT_WRITTEN;
+    return MYSQL_COMMIT_REFUSED;
   }
 
   statement = mysql_stmt_create(conn);
@@ -1113,16 +1063,12 @@ static enum trade_write_result trade_write(struct greyhawk_ship_data *ship, int 
              mysql_stmt_execute_prepared(statement);
   mysql_stmt_cleanup(statement);
 
-  result = recorded && vessel_db_save_cargo(ship) ? trade_commit() : TRADE_NOT_WRITTEN;
-  if (result == TRADE_NOT_WRITTEN)
+  if (recorded && vessel_db_save_cargo(ship))
   {
-    log("SYSERR: Could not record a trade by ship %d at port %d", ship->shipnum, port_vnum);
+    return mysql_commit_transaction(conn);
   }
-  if (result != TRADE_WRITTEN)
-  {
-    mysql_query(conn, "ROLLBACK");
-  }
-  return result;
+  mysql_query(conn, "ROLLBACK");
+  return MYSQL_COMMIT_REFUSED;
 }
 
 /**
@@ -1139,27 +1085,30 @@ static enum trade_write_result trade_write(struct greyhawk_ship_data *ship, int 
 static bool trade_record(struct greyhawk_ship_data *ship, int port_vnum, int commodity_id,
                          int supply)
 {
-  enum trade_write_result result;
+  enum mysql_commit_result result;
 
   if (!mysql_available || conn == NULL)
   {
     return FALSE;
   }
   result = trade_write(ship, port_vnum, commodity_id, supply);
-  if (result == TRADE_WRITE_UNANSWERED)
+  if (result == MYSQL_COMMIT_UNANSWERED)
   {
     log("SYSERR: A trade by ship %d at port %d went unanswered; writing it again", ship->shipnum,
         port_vnum);
-    MYSQL_PING_CONN(conn);
     result = trade_write(ship, port_vnum, commodity_id, supply);
-    if (result != TRADE_WRITTEN)
+    if (result != MYSQL_COMMIT_DONE)
     {
       log("SYSERR: Could not settle an unanswered trade by ship %d at port %d; the database's "
           "manifest and port supply may not match her hold until they are next written",
           ship->shipnum, port_vnum);
     }
   }
-  return result == TRADE_WRITTEN;
+  else if (result == MYSQL_COMMIT_REFUSED)
+  {
+    log("SYSERR: Could not record a trade by ship %d at port %d", ship->shipnum, port_vnum);
+  }
+  return result == MYSQL_COMMIT_DONE;
 }
 
 /**
@@ -1271,17 +1220,13 @@ static int vessel_cargo_lot(struct greyhawk_ship_data *ship, int commodity_id, b
  * cargo_room = 0, distinguishing them from crated object cargo.
  *
  * @return FALSE when a write failed (or there is no database), so a caller
- *         inside a transaction can roll back. Inside a transaction it stops
- *         at the first failure: after a lost connection the next write would
- *         reconnect and commit on its own, outside the caller's transaction.
- *         Outside one it writes every lot it can.
+ *         inside a transaction can roll back. It writes every lot it can.
  */
 bool vessel_db_save_cargo(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   char escaped[130];
   struct commodity_def *def;
-  bool in_transaction;
   bool saved = TRUE;
   int i;
 
@@ -1289,7 +1234,6 @@ bool vessel_db_save_cargo(struct greyhawk_ship_data *ship)
   {
     return FALSE;
   }
-  in_transaction = (conn->server_status & SERVER_STATUS_IN_TRANS) != 0;
 
   snprintf(query, sizeof(query),
            "DELETE FROM ship_cargo_manifest WHERE ship_id = %d AND cargo_room = 0", ship->shipnum);
@@ -1318,10 +1262,6 @@ bool vessel_db_save_cargo(struct greyhawk_ship_data *ship)
     {
       log("SYSERR: vessel_db_save_cargo (insert) failed for ship %d: %s", ship->shipnum,
           mysql_error(conn));
-      if (in_transaction)
-      {
-        return FALSE;
-      }
       saved = FALSE;
     }
   }

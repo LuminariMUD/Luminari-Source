@@ -1157,11 +1157,11 @@ void init_housing_system_tables(void)
 
   log("Initializing housing system tables...");
 
-  /* house_data - Housing system */
+  /* house_data - Housing system: one row for each object in a house */
   const char *create_house_data =
       "CREATE TABLE IF NOT EXISTS house_data ("
       "id INT AUTO_INCREMENT PRIMARY KEY, "
-      "vnum INT UNIQUE NOT NULL, "
+      "vnum INT NOT NULL, "
       "serialized_obj LONGTEXT, "
       "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
       "last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
@@ -1733,6 +1733,16 @@ int run_legacy_table_migrations(void)
    * reached on entering its own room (AUTOPILOT_ARRIVAL_TOLERANCE). */
   if (!apply_migration(2026092901, "Reach autopilot waypoints within their own room",
                        "UPDATE ship_waypoints SET tolerance = 0.5 WHERE tolerance = 5.0"))
+    return FALSE;
+
+  /* The create statements here and in sql/master_schema.sql put a unique key
+   * on vnum, but the writer stores a row for each object, so a house on a
+   * database made from them kept one object and refused the rest. Tables
+   * older than those statements have no such key, nor the plain index. */
+  if (!apply_migration(2026100401, "Let a house keep more than one object",
+                       "ALTER TABLE house_data "
+                       "DROP INDEX IF EXISTS vnum, "
+                       "ADD INDEX IF NOT EXISTS idx_vnum (vnum)"))
     return FALSE;
 
   return TRUE;

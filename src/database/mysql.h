@@ -16,18 +16,15 @@
 #include <time.h>
 
 /* Connection Pool Configuration */
-#define MYSQL_POOL_MIN_SIZE 3          /* Minimum connections in pool */
-#define MYSQL_POOL_MAX_SIZE 10         /* Maximum connections in pool */
-#define MYSQL_POOL_TIMEOUT 30          /* Seconds before idle connection closes */
-#define MYSQL_HEALTH_CHECK_INTERVAL 60 /* Seconds between health checks */
+#define MYSQL_POOL_MIN_SIZE 3  /* Minimum connections in pool */
+#define MYSQL_POOL_MAX_SIZE 10 /* Maximum connections in pool */
+#define MYSQL_POOL_TIMEOUT 30  /* Seconds idle before a connection is checked */
 
 /* Connection states for pool management */
 enum mysql_conn_state
 {
   CONN_STATE_FREE = 0, /* Connection available for use */
-  CONN_STATE_IN_USE,   /* Connection currently in use */
-  CONN_STATE_STALE,    /* Connection needs refresh */
-  CONN_STATE_ERROR     /* Connection has error */
+  CONN_STATE_IN_USE    /* Connection currently in use */
 };
 
 /* MySQL Connection Pool Entry */
@@ -63,7 +60,6 @@ typedef struct mysql_pool
   unsigned long total_requests; /* Total connection requests */
   unsigned long wait_count;     /* Times had to wait for connection */
   unsigned long error_count;    /* Connection errors */
-  time_t last_health_check;     /* Last health check time */
 } MYSQL_POOL;
 
 /* Global connection pool */
@@ -91,9 +87,7 @@ void mysql_pool_init(void);                    /* Initialize the connection pool
 void mysql_pool_destroy(void);                 /* Destroy the pool and all connections */
 MYSQL_POOL_CONN *mysql_pool_acquire(void);     /* Get a connection from the pool */
 void mysql_pool_release(MYSQL_POOL_CONN *pc);  /* Return a connection to the pool */
-void mysql_pool_health_check(void);            /* Check health of all connections */
 void mysql_pool_expand(void);                  /* Add more connections if needed */
-void mysql_pool_shrink(void);                  /* Remove idle connections */
 void mysql_pool_stats(char *buf, size_t size); /* Get pool statistics */
 
 /* Thread-safe MySQL query wrappers */
@@ -105,9 +99,28 @@ int luminari_mysql_query(MYSQL *mysql_conn, const char *query);
 uint64_t mysql_query_counter_value(void);
 void mysql_query_counter_reset(void);
 
+/* How a COMMIT ended. */
+enum mysql_commit_result
+{
+  MYSQL_COMMIT_DONE,      /* the server confirmed it */
+  MYSQL_COMMIT_REFUSED,   /* not committed: the server refused it, or the transaction was lost */
+  MYSQL_COMMIT_UNANSWERED /* sent or not, no reply came: it may have taken effect */
+};
+
+/* COMMIT the open transaction, and roll it back unless the server confirmed
+ * the COMMIT. After MYSQL_COMMIT_UNANSWERED the caller reads the database back
+ * (a locking read waits for the lost session to finish) or writes again. */
+enum mysql_commit_result mysql_commit_transaction(MYSQL *mysql_conn);
+
 #ifdef LUMINARI_CUTEST
 void mysql_test_fail_nth_query(unsigned int query_number);
 void mysql_test_clear_query_failure(void);
+/* Really lose the connection at the Nth statement from now that begins with
+ * this text (a query or a prepared execution; NULL for none): its socket is
+ * shut down before the statement or, for a query with after_sending, once the
+ * server has run it, so its reply is lost. */
+void mysql_test_drop_connection_at(const char *statement, unsigned int occurrence,
+                                   bool after_sending);
 #endif
 
 /* Count direct mysql_query() calls without changing their return semantics.
