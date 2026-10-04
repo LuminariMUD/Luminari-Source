@@ -159,9 +159,10 @@ static void House_restore_weight(struct obj_data *obj)
 }
 
 /* Save all objects in a house. FALSE when nothing was saved. An object whose
- * row the database refused is left out: the rest is committed, the staff are
- * told, and ROOM_HOUSE_CRASH stays set, so the next house-save pass saves the
- * house again. */
+ * row the database refused is left out: the rest is committed and the staff
+ * are told. After a save that failed or left an object out, ROOM_HOUSE_CRASH
+ * is set, whether or not it was when the save began, so the next house-save
+ * pass saves the house again. */
 bool House_crashsave(room_vnum vnum)
 {
   room_rnum rnum;
@@ -170,11 +171,16 @@ bool House_crashsave(room_vnum vnum)
   char del_buf[2048];
   enum perf_sql_category previous_sql_category;
   bool success;
+  bool complete;
   int unsaved;
 
   PERF_PROF_ENTER_SAMPLED(pr_house_save_, "save.house");
   previous_sql_category = PERF_sql_scope_set(PERF_SQL_HOUSE);
   success = false;
+  complete = false;
+
+  if ((rnum = real_room(vnum)) == NOWHERE)
+    goto cleanup;
 
   if (mysql_query(conn, "start transaction;"))
   {
@@ -190,11 +196,6 @@ bool House_crashsave(room_vnum vnum)
     goto cleanup;
   }
 
-  if ((rnum = real_room(vnum)) == NOWHERE)
-  {
-    mysql_query(conn, "rollback;");
-    goto cleanup;
-  }
   if (!House_get_filename(vnum, buf, sizeof(buf)))
   {
     mysql_query(conn, "rollback;");
@@ -225,9 +226,12 @@ bool House_crashsave(room_vnum vnum)
            unsaved, (int)vnum);
   else
     REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_HOUSE_CRASH);
+  complete = unsaved == 0;
   success = true;
 
 cleanup:
+  if (rnum != NOWHERE && !complete)
+    SET_BIT_AR(ROOM_FLAGS(rnum), ROOM_HOUSE_CRASH);
   PERF_sql_scope_restore(previous_sql_category);
   PERF_PROF_EXIT(pr_house_save_);
   return success;

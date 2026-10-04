@@ -742,9 +742,10 @@ void Test_object_save_lost_at_a_row_keeps_the_last_save_and_is_retried(CuTest *t
   CuAssertTrue(tc, !PLR_FLAGGED(&w.owner, PLR_CRASH));
   CuAssertIntEquals(tc, 2, saves_player_rows(&w));
 
-  /* A third gem; the connection goes at the second of the three rows. */
+  /* A third gem; the connection goes at the second of the three rows. The
+   * save was not asked for by the flag (a player's "save" is not), and sets
+   * it. */
   saves_carry(&w, "a third gem");
-  SET_BIT_AR(PLR_FLAGS(&w.owner), PLR_CRASH);
   mysql_test_drop_connection_at("INSERT INTO player_save_objs (", 2, FALSE);
   CuAssertTrue(tc, !Crash_crashsave(&w.owner));
   CuAssertTrue(tc, PLR_FLAGGED(&w.owner, PLR_CRASH));
@@ -763,8 +764,7 @@ void Test_object_save_lost_at_a_row_keeps_the_last_save_and_is_retried(CuTest *t
   CuAssertTrue(tc, !PLR_FLAGGED(&w.owner, PLR_CRASH));
   CuAssertIntEquals(tc, 3, saves_player_rows(&w));
 
-  /* A reply lost at the COMMIT leaves the flag too, whichever way it went. */
-  SET_BIT_AR(PLR_FLAGS(&w.owner), PLR_CRASH);
+  /* A reply lost at the COMMIT sets the flag too, whichever way it went. */
   mysql_test_drop_connection_at("commit", 1, TRUE);
   CuAssertTrue(tc, !Crash_crashsave(&w.owner));
   CuAssertTrue(tc, PLR_FLAGGED(&w.owner, PLR_CRASH));
@@ -774,7 +774,7 @@ void Test_object_save_lost_at_a_row_keeps_the_last_save_and_is_retried(CuTest *t
 }
 
 /* A row the database refuses on a good connection is left out: the rest of
- * the save commits, the player stays flagged, and the staff are told whose
+ * the save commits, the player is flagged, and the staff are told whose
  * objects they were. */
 void Test_object_save_commits_around_a_refused_row_and_tells_the_staff(CuTest *tc)
 {
@@ -794,7 +794,7 @@ void Test_object_save_commits_around_a_refused_row_and_tells_the_staff(CuTest *t
   saves_carry(&w, "a first gem");
   saves_carry(&w, "a refused gem");
   saves_carry(&w, "a third gem");
-  SET_BIT_AR(PLR_FLAGS(&w.owner), PLR_CRASH);
+  CuAssertTrue(tc, !PLR_FLAGGED(&w.owner, PLR_CRASH));
   CuAssertTrue(tc, !Crash_crashsave(&w.owner));
   CuAssertTrue(tc, PLR_FLAGGED(&w.owner, PLR_CRASH));
   CuAssertIntEquals(tc, 2, saves_player_rows(&w));
@@ -825,7 +825,7 @@ void Test_object_save_commits_around_a_refused_row_and_tells_the_staff(CuTest *t
 }
 
 /* A house save is lost whole with its connection and commits around a
- * refused row, and keeps its flag both times. */
+ * refused row, and sets its flag both times. */
 void Test_house_save_is_lost_whole_and_commits_around_a_refused_row(CuTest *tc)
 {
   struct transactions_world w;
@@ -841,7 +841,6 @@ void Test_house_save_is_lost_whole_and_commits_around_a_refused_row(CuTest *tc)
   CuAssertIntEquals(tc, 2, saves_house_rows(&w));
 
   saves_furnish(&w, "a third gem");
-  SET_BIT_AR(ROOM_FLAGS(0), ROOM_HOUSE_CRASH);
   mysql_test_drop_connection_at("INSERT INTO house_data", 2, FALSE);
   CuAssertTrue(tc, !House_crashsave(SAVES_HOUSE_VNUM));
   CuAssertTrue(tc, ROOM_FLAGGED(0, ROOM_HOUSE_CRASH));
@@ -856,7 +855,6 @@ void Test_house_save_is_lost_whole_and_commits_around_a_refused_row(CuTest *tc)
                     mysql_query(conn, "ALTER TABLE house_data ADD CONSTRAINT s13_refused "
                                       "CHECK (serialized_obj NOT LIKE '%refused%')"));
   saves_furnish(&w, "a refused gem");
-  SET_BIT_AR(ROOM_FLAGS(0), ROOM_HOUSE_CRASH);
   CuAssertTrue(tc, House_crashsave(SAVES_HOUSE_VNUM));
   CuAssertTrue(tc, ROOM_FLAGGED(0, ROOM_HOUSE_CRASH));
   CuAssertIntEquals(tc, 3, saves_house_rows(&w));

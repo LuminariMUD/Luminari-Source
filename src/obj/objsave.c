@@ -1443,8 +1443,8 @@ static void objsave_save_and_extract(struct char_data *ch, int rentcode, int cos
 }
 
 /* Save a player's objects while they play. FALSE when the save failed or was
- * incomplete: PLR_CRASH then stays set, so the next crash-save pass saves the
- * player again. */
+ * incomplete: PLR_CRASH is then set, whether or not it was when the save
+ * began, so the next crash-save pass saves the player again. */
 bool Crash_crashsave(struct char_data *ch)
 {
   int unsaved;
@@ -1453,7 +1453,10 @@ bool Crash_crashsave(struct char_data *ch)
     return false;
 
   if (!objsave_write_player_save(ch, RENT_CRASH, 0, &unsaved) || unsaved > 0)
+  {
+    SET_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
     return false;
+  }
 
   REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
   return true;
