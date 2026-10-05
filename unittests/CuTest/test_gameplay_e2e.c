@@ -4920,6 +4920,40 @@ void Test_gameplay_summoning_item_accepts_room_zero_and_charges_only_success(CuT
   verify_item_pet_acquisition(tc, false);
 }
 
+/* An ability can answer to a command word and have none set, as a prototype's
+ * or a saved object's seven-number record leaves it. An uttered word passes
+ * over it, on a wielded weapon and on worn armor. */
+void Test_gameplay_utter_passes_over_an_ability_with_no_command_word(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct obj_special_ability weapon_ability = {0}, armor_ability = {0};
+  struct obj_data weapon, armor;
+  int activated;
+
+  begin_gameplay_fixture(&fixture);
+  initialize_special_abilities();
+  clear_object(&weapon);
+  clear_object(&armor);
+  weapon_ability.ability = WEAPON_SPECAB_VAMPIRIC;
+  weapon_ability.activation_method = ACTMTD_COMMAND_WORD;
+  weapon.special_abilities = &weapon_ability;
+  armor_ability.ability = ARMOR_SPECAB_BLINDING;
+  armor_ability.activation_method = ACTMTD_COMMAND_WORD;
+  armor.special_abilities = &armor_ability;
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &weapon;
+  GET_EQ(&fixture.actor, WEAR_BODY) = &armor;
+
+  do_utter(&fixture.actor, "drain", 0, 0);
+  activated =
+      process_weapon_abilities(&weapon, &fixture.actor, NULL, ACTMTD_COMMAND_WORD, "drain") +
+      process_armor_abilities(&fixture.actor, NULL, ACTMTD_COMMAND_WORD, "drain");
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  GET_EQ(&fixture.actor, WEAR_BODY) = NULL;
+  end_gameplay_fixture(&fixture);
+  CuAssertIntEquals(tc, 0, activated);
+}
+
 void Test_gameplay_retainer_call_preserves_cooldown_and_rejects_remote_duplicate(CuTest *tc)
 {
   struct gameplay_fixture fixture;
