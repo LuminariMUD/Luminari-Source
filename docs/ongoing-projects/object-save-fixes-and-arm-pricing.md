@@ -247,6 +247,36 @@ Verification, on `b06a2367f`:
 - `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (344 s);
   `test-unit-tests` runs the suite with the database tests on.
 
+### Review 2026-10-05
+
+Two findings, the first blocking, both fixed in the commits after the tag:
+
+- The test's `UPDATE pet_data SET owner_id = 4294967295` is written for the fixture's temporary
+  table. When the new migration run on the permanent tables failed, the fixture was skipped and
+  the statement reached the permanent `pet_data`: every saved pet got an `owner_id` no owner has.
+  Reproduced on `115b6d846` with one pet row in three states: the key added by hand with nothing
+  recorded (step 1's probe state), a user without CREATE, and two `./cutest` processes started
+  together on a fresh database.
+- `bf3ad8c39` runs the statement only when the fixture was created. It is the one write below
+  that point, so the test keeps its single exit; the review's patch stopped the test there
+  instead. In the three states, and with a user who cannot create temporary tables (a failure the
+  test had before this phase too), the test still fails and the row keeps its `owner_id`.
+- `docs/guides/TESTING_GUIDE.md` named the live-schema test as the one pet test that touches the
+  permanent tables. `f879086e4` names both.
+
+Left as it is: `apply_migration()` checks a version and records it in separate statements, so of
+two suites started together on a database that has not been migrated, one fails and passes when
+run again. One server boots on one database and every CI job has its own, so only a hand-started
+pair meets it; the guide now says so.
+
+Verification, on `f879086e4`:
+
+- Each of the three tests that call `verify_pet_persistence_schema()` passes alone on a fresh
+  `master_schema.sql`-only database, boot skipped, and again on the same database.
+- `./cutest` with the database tests on, first run on a fresh database: 2039 of 2039 pass.
+- `make -j16 test`: 2039 tests pass. `make install` done.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (266 s).
+
 ## Phase 3: #15 arcane mark of an object with no prototype
 
 **Cause.** `free_obj()` sends an object with no prototype through `free_object_strings()`
