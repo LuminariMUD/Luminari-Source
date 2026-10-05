@@ -15,7 +15,7 @@ commit, not run, unless a line says otherwise.
 | Phase | Item | Defect | Change | State |
 | -- | -- | -- | -- | -- |
 | 1 | #19 | A saved special ability with no command word is rejected at load | One parser, tests | Merged 2026-10-05: [MR !23](https://gitlab.com/max757/Luminari-Source/-/merge_requests/23), `5523e04a0` |
-| 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | In review: [MR !24](https://gitlab.com/max757/Luminari-Source/-/merge_requests/24) |
+| 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Merged 2026-10-05: [MR !24](https://gitlab.com/max757/Luminari-Source/-/merge_requests/24), `0efe4d145` |
 | 3 | #15 | An object with no prototype leaks its arcane mark | One free path, one test | Not started |
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Not started |
 | 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
@@ -64,8 +64,7 @@ export LUMINARI_TEST_MYSQL_ENABLE=1 LUMINARI_TEST_MYSQL_HOST=127.0.0.6 \
   LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory"
 ```
 
-`docker rm -f objsave-db` when done. On that database the whole suite passes except the phase 2
-test, until phase 2 is merged.
+`docker rm -f objsave-db` when done. On that database the whole suite passes.
 
 For a fresh database in the same container, drop and create it, then repeat the schema line:
 
@@ -276,6 +275,8 @@ Verification, on `f879086e4`:
 - `./cutest` with the database tests on, first run on a fresh database: 2039 of 2039 pass.
 - `make -j16 test`: 2039 tests pass. `make install` done.
 - `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (266 s).
+
+Merged 2026-10-05 as merge commit `0efe4d145`; #18 is closed.
 
 ## Phase 3: #15 arcane mark of an object with no prototype
 
