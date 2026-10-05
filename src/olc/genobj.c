@@ -481,6 +481,8 @@ void free_object_strings(struct obj_data *obj)
   /* Free corpse-specific fields */
   if (obj->char_sdesc)
     free(obj->char_sdesc);
+  if (obj->arcane_mark)
+    free(obj->arcane_mark);
   if (obj->restring_identifier)
     free(obj->restring_identifier);
 }
