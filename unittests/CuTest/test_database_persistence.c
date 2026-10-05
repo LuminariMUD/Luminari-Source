@@ -3082,17 +3082,34 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
   CuAssertTrue(tc, matched);
 }
 
-static bool same_wordless_special_ability(const struct obj_data *saved,
-                                          const struct obj_data *loaded)
+/* The loaded object has every ability of the saved one and no other, in any
+ * order. */
+static bool same_special_abilities(const struct obj_data *saved, const struct obj_data *loaded)
 {
-  const struct obj_special_ability *expected = saved->special_abilities;
-  const struct obj_special_ability *ability = loaded != NULL ? loaded->special_abilities : NULL;
+  const struct obj_special_ability *expected, *ability;
+  int unmatched = 0;
 
-  return ability != NULL && ability->next == NULL && ability->ability == expected->ability &&
-         ability->level == expected->level &&
-         ability->activation_method == expected->activation_method &&
-         memcmp(ability->value, expected->value, sizeof(ability->value)) == 0 &&
-         ability->command_word == NULL;
+  if (loaded == NULL)
+    return false;
+  for (ability = loaded->special_abilities; ability != NULL; ability = ability->next)
+    unmatched++;
+  for (expected = saved->special_abilities; expected != NULL; expected = expected->next)
+  {
+    for (ability = loaded->special_abilities; ability != NULL; ability = ability->next)
+      if (ability->ability == expected->ability && ability->level == expected->level &&
+          ability->activation_method == expected->activation_method &&
+          memcmp(ability->value, expected->value, sizeof(ability->value)) == 0 &&
+          (expected->command_word == NULL
+               ? ability->command_word == NULL
+               : ability->command_word != NULL &&
+                     strcmp(ability->command_word, expected->command_word) == 0))
+        break;
+    if (ability == NULL)
+      return false;
+    unmatched--;
+  }
+
+  return unmatched == 0;
 }
 
 static void extract_loaded_objects(obj_save_data *loaded)
@@ -3146,8 +3163,7 @@ void Test_object_special_ability_without_a_command_word_survives_save_and_load(C
 
   from_file = test_objsave_save_obj_record(obj, &owner, fixture, 0) && rewind_stream(fixture);
   loaded = from_file ? objsave_parse_objects(fixture) : NULL;
-  from_file =
-      loaded != NULL && loaded->next == NULL && same_wordless_special_ability(obj, loaded->obj);
+  from_file = loaded != NULL && loaded->next == NULL && same_special_abilities(obj, loaded->obj);
   extract_loaded_objects(loaded);
 
   if (enabled != NULL && strcmp(enabled, "1") == 0)
@@ -3168,13 +3184,13 @@ void Test_object_special_ability_without_a_command_word_survives_save_and_load(C
         objsave_save_obj_record_db(obj, &owner, NOWHERE, fixture, 0);
     loaded = from_player_rows ? objsave_parse_objects_db(GET_NAME(&owner), NOWHERE) : NULL;
     from_player_rows =
-        loaded != NULL && loaded->next == NULL && same_wordless_special_ability(obj, loaded->obj);
+        loaded != NULL && loaded->next == NULL && same_special_abilities(obj, loaded->obj);
     extract_loaded_objects(loaded);
 
     from_pet_rows = create_pet_snapshot_temporary_schema(connection) &&
                     objsave_save_obj_record_db_pet(obj, &pet, &owner, 701, 0) == 1 &&
                     pet_load_objs(&pet, &owner, 701) == PET_OBJECT_LOAD_OK &&
-                    same_wordless_special_ability(obj, pet.carrying);
+                    same_special_abilities(obj, pet.carrying);
     while (pet.carrying != NULL)
       extract_obj(pet.carrying);
 
@@ -3190,6 +3206,140 @@ void Test_object_special_ability_without_a_command_word_survives_save_and_load(C
   CuAssertTrue(tc, from_file);
   CuAssertTrue(tc, from_player_rows);
   CuAssertTrue(tc, from_pet_rows);
+}
+
+/* The file holds one record, and it loads with the saved object's abilities. */
+static bool file_loads_with_special_abilities(FILE *fixture, const struct obj_data *saved)
+{
+  obj_save_data *loaded = rewind_stream(fixture) ? objsave_parse_objects(fixture) : NULL;
+  bool same = loaded != NULL && loaded->next == NULL && same_special_abilities(saved, loaded->obj);
+
+  extract_loaded_objects(loaded);
+  return same;
+}
+
+/* The writers store an object's first ability only, so loading the record
+ * must leave the rest of the list the prototype gave the object. This is
+ * black longsword #1213: Bane with no command word, Flaming Burst on
+ * `ignitus`. */
+void Test_object_special_ability_record_keeps_the_rest_of_the_prototype_list(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct obj_special_ability bane = {.ability = WEAPON_SPECAB_BANE,
+                                     .level = 8,
+                                     .activation_method = ACTMTD_ON_HIT | ACTMTD_ON_CRIT,
+                                     .value = {4}};
+  struct obj_special_ability burst = {.ability = WEAPON_SPECAB_FLAMING_BURST,
+                                      .level = 12,
+                                      .activation_method =
+                                          ACTMTD_COMMAND_WORD | ACTMTD_ON_HIT | ACTMTD_ON_CRIT,
+                                      .command_word = CuMutableString("ignitus"),
+                                      .next = &bane};
+  struct char_data owner;
+  struct player_special_data specials = {0};
+  struct obj_data prototype;
+  struct index_data index = {.vnum = 91001};
+  struct zone_data zone = {.number = 910, .bot = 91000, .top = 91099};
+  struct obj_data *saved_proto = obj_proto;
+  struct index_data *saved_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  struct zone_data *saved_zones = zone_table;
+  zone_rnum saved_top_zone = top_of_zone_table;
+  struct obj_data *bane_first, *burst_first;
+  obj_save_data *loaded;
+  MYSQL *connection = NULL;
+  MYSQL *saved_conn = conn;
+  FILE *bane_file, *burst_file;
+  bool saved_available = mysql_available;
+  bool from_file, by_kind, word_first, upgraded, from_player_rows = true;
+
+  bane_file = tmpfile();
+  burst_file = tmpfile();
+  CuAssertPtrNotNull(tc, bane_file);
+  CuAssertPtrNotNull(tc, burst_file);
+  if (enabled != NULL && strcmp(enabled, "1") == 0)
+  {
+    connection = open_test_database();
+    CuAssertPtrNotNull(tc, connection);
+  }
+  clear_char(&owner);
+  owner.player_specials = &specials;
+  owner.player.name = CuMutableString("SpabOwner");
+  clear_object(&prototype);
+  prototype.item_number = 0;
+  prototype.name = CuMutableString("longsword black");
+  prototype.short_description = CuMutableString("a black longsword");
+  prototype.description = CuMutableString("A black longsword lies here.");
+  /* parse_object() leaves the last record first, and read_object() turns the
+   * list round again. */
+  prototype.special_abilities = &burst;
+  obj_proto = &prototype;
+  obj_index = &index;
+  top_of_objt = 0;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+
+  /* The record is read, not passed over: it carries this sword's own bane
+   * race. */
+  bane_first = read_object(index.vnum, VIRTUAL);
+  bane_first->special_abilities->value[0] = 7;
+  from_file = bane_first->special_abilities->ability == WEAPON_SPECAB_BANE &&
+              test_objsave_save_obj_record(bane_first, &owner, bane_file, 0) &&
+              file_loads_with_special_abilities(bane_file, bane_first);
+
+  /* An OLC save of the zone writes the list in order, so the next boot has the
+   * abilities the other way round. The record still lands on its own kind. */
+  prototype.special_abilities = &bane;
+  bane.next = &burst;
+  burst.next = NULL;
+  by_kind = file_loads_with_special_abilities(bane_file, bane_first);
+
+  /* A first ability that has a command word keeps the rest too. */
+  burst_first = read_object(index.vnum, VIRTUAL);
+  word_first = burst_first->special_abilities->ability == WEAPON_SPECAB_FLAMING_BURST &&
+               test_objsave_save_obj_record(burst_first, &owner, burst_file, 0) &&
+               file_loads_with_special_abilities(burst_file, burst_first);
+
+  if (connection != NULL)
+  {
+    conn = connection;
+    mysql_available = true;
+
+    from_player_rows =
+        mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs ("
+                                "idnum INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), "
+                                "serialized_obj TEXT, "
+                                "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0 &&
+        objsave_save_obj_record_db(bane_first, &owner, NOWHERE, bane_file, 0);
+    loaded = from_player_rows ? objsave_parse_objects_db(GET_NAME(&owner), NOWHERE) : NULL;
+    from_player_rows =
+        loaded != NULL && loaded->next == NULL && same_special_abilities(bane_first, loaded->obj);
+    extract_loaded_objects(loaded);
+
+    conn = saved_conn;
+    mysql_available = saved_available;
+    mysql_close(connection);
+  }
+
+  /* An ability of no kind the prototype has takes the first one's place: a
+   * weapon oil made this object's Flaming a Flaming Burst. */
+  burst.ability = WEAPON_SPECAB_FLAMING;
+  upgraded = file_loads_with_special_abilities(burst_file, burst_first);
+
+  extract_obj(bane_first);
+  extract_obj(burst_first);
+  obj_proto = saved_proto;
+  obj_index = saved_index;
+  top_of_objt = saved_top;
+  zone_table = saved_zones;
+  top_of_zone_table = saved_top_zone;
+  fclose(bane_file);
+  fclose(burst_file);
+  CuAssertTrue(tc, from_file);
+  CuAssertTrue(tc, by_kind);
+  CuAssertTrue(tc, word_first);
+  CuAssertTrue(tc, from_player_rows);
+  CuAssertTrue(tc, upgraded);
 }
 
 /* Bounded restore: when capacity is short the durable follower wins, a spent
