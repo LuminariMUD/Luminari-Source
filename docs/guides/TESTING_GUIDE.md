@@ -523,17 +523,21 @@ The test creates a connection-local temporary table, performs an insert and
 select through the production prepared-statement wrappers, and closes the
 connection. Never point these variables at a production database.
 
-Most pet persistence tests also isolate themselves with temporary tables. The
-exception is `Test_pet_live_schema_cascades_objects_and_rejects_orphans`, which
-needs the live `pet_data` and `pet_save_objs` tables from
-`sql/master_schema.sql` because InnoDB refuses foreign keys on temporary tables.
-It runs the migration runner and validator against those tables, then checks
-the cascade and orphan rejection inside a transaction that is rolled back. The
-rollback covers only the fixture rows; the live schema stays migrated, which
-is the state the booted suite already left it in. CI loads the master schema into its
-isolated database before the suite runs; the master schema carries no foreign
-key, so the booted suite applies migration `2026091007` for real on every
-fresh database and this test observes its outcome.
+Most pet persistence tests also isolate themselves with temporary tables. Two
+do not, because InnoDB refuses foreign keys on temporary tables and the
+validator reads the key from `information_schema`:
+`Test_pet_live_schema_cascades_objects_and_rejects_orphans` and
+`Test_pet_persistence_legacy_schema_migration_is_idempotent`. Both run the
+migration runner on the live `pet_data` and `pet_save_objs` tables from
+`sql/master_schema.sql` and leave them migrated, as a server boot does. The
+first then checks the cascade and orphan rejection inside a transaction that is
+rolled back; the second builds its legacy fixture in temporary tables. CI loads
+the master schema into its isolated database before the suite runs; the master
+schema carries no foreign key, so whichever runs first on a fresh database (the
+syntax-check boot or one of these two tests) applies migration `2026091007` for
+real. Do not start two suites at once on a database that has not been migrated:
+the runner checks a version and records it in separate statements, so one of
+them fails and passes when run again.
 
 ### Tests that lose the connection
 
