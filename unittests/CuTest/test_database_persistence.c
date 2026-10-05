@@ -19,6 +19,7 @@
 #include "../../src/events/mud_event.h"
 #include "../../src/events/domain_event_world.h"
 #include "../../src/config/pet_vnums.h"
+#include "../../src/combat/spec_abilities.h"
 #include "../../src/magic/spells.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/event_runtime.h"
@@ -1319,6 +1320,7 @@ void Test_pet_object_decoder_validates_fields_and_preserves_text(CuTest *tc)
                             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 0 0 0\n"),
                            "#-1\nVals: not-a-number\n",
                            "#-1\nSpbk: 1\n",
+                           "#-1\nSpAb: 61 30 48 0 0 0\n",
                            "#-1\nType: 999\n",
                            "#-1\nLoc : -2147483648\n",
                            "#-1\nLoc : 999999\n",
@@ -3078,6 +3080,116 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
   mysql_available = saved_available;
   mysql_close(connection);
   CuAssertTrue(tc, matched);
+}
+
+static bool same_wordless_special_ability(const struct obj_data *saved,
+                                          const struct obj_data *loaded)
+{
+  const struct obj_special_ability *expected = saved->special_abilities;
+  const struct obj_special_ability *ability = loaded != NULL ? loaded->special_abilities : NULL;
+
+  return ability != NULL && ability->next == NULL && ability->ability == expected->ability &&
+         ability->level == expected->level &&
+         ability->activation_method == expected->activation_method &&
+         memcmp(ability->value, expected->value, sizeof(ability->value)) == 0 &&
+         ability->command_word == NULL;
+}
+
+static void extract_loaded_objects(obj_save_data *loaded)
+{
+  obj_save_data *entry;
+
+  while (loaded != NULL)
+  {
+    entry = loaded;
+    loaded = loaded->next;
+    extract_obj(entry->obj);
+    free(entry);
+  }
+}
+
+/* An ability with no command word is saved as seven numbers and an empty
+ * word: the record production rejected was a vampiric weapon's, level 30, on
+ * hit and on critical hit. The file, player and pet loaders all read it back. */
+void Test_object_special_ability_without_a_command_word_survives_save_and_load(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct char_data owner, pet;
+  struct player_special_data specials = {0};
+  struct index_data index = {.vnum = 91001};
+  struct index_data *saved_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  struct obj_data *obj;
+  obj_save_data *loaded;
+  MYSQL *connection;
+  MYSQL *saved_conn = conn;
+  FILE *fixture;
+  bool saved_available = mysql_available;
+  bool from_file, from_player_rows = true, from_pet_rows = true;
+
+  fixture = tmpfile();
+  CuAssertPtrNotNull(tc, fixture);
+  clear_char(&owner);
+  owner.player_specials = &specials;
+  owner.player.name = CuMutableString("SpabOwner");
+  clear_char(&pet);
+  SET_BIT_AR(MOB_FLAGS(&pet), MOB_ISNPC);
+  obj = create_obj();
+  CREATE(obj->special_abilities, struct obj_special_ability, 1);
+  obj->special_abilities->ability = WEAPON_SPECAB_VAMPIRIC;
+  obj->special_abilities->level = 30;
+  obj->special_abilities->activation_method = ACTMTD_ON_HIT | ACTMTD_ON_CRIT;
+  obj->special_abilities->value[0] = 1;
+  obj->special_abilities->value[1] = 2;
+  obj->special_abilities->value[2] = 3;
+  obj->special_abilities->value[3] = 4;
+
+  from_file = test_objsave_save_obj_record(obj, &owner, fixture, 0) && rewind_stream(fixture);
+  loaded = from_file ? objsave_parse_objects(fixture) : NULL;
+  from_file =
+      loaded != NULL && loaded->next == NULL && same_wordless_special_ability(obj, loaded->obj);
+  extract_loaded_objects(loaded);
+
+  if (enabled != NULL && strcmp(enabled, "1") == 0)
+  {
+    connection = open_test_database();
+    CuAssertPtrNotNull(tc, connection);
+    conn = connection;
+    mysql_available = true;
+    /* The player loader looks every vnum up, an unnumbered object's too. */
+    obj_index = &index;
+    top_of_objt = 0;
+
+    from_player_rows =
+        mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs ("
+                                "idnum INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), "
+                                "serialized_obj TEXT, "
+                                "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0 &&
+        objsave_save_obj_record_db(obj, &owner, NOWHERE, fixture, 0);
+    loaded = from_player_rows ? objsave_parse_objects_db(GET_NAME(&owner), NOWHERE) : NULL;
+    from_player_rows =
+        loaded != NULL && loaded->next == NULL && same_wordless_special_ability(obj, loaded->obj);
+    extract_loaded_objects(loaded);
+
+    from_pet_rows = create_pet_snapshot_temporary_schema(connection) &&
+                    objsave_save_obj_record_db_pet(obj, &pet, &owner, 701, 0) == 1 &&
+                    pet_load_objs(&pet, &owner, 701) == PET_OBJECT_LOAD_OK &&
+                    same_wordless_special_ability(obj, pet.carrying);
+    while (pet.carrying != NULL)
+      extract_obj(pet.carrying);
+
+    obj_index = saved_index;
+    top_of_objt = saved_top;
+    conn = saved_conn;
+    mysql_available = saved_available;
+    mysql_close(connection);
+  }
+
+  extract_obj(obj);
+  fclose(fixture);
+  CuAssertTrue(tc, from_file);
+  CuAssertTrue(tc, from_player_rows);
+  CuAssertTrue(tc, from_pet_rows);
 }
 
 /* Bounded restore: when capacity is short the durable follower wins, a spent

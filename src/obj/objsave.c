@@ -108,15 +108,19 @@ void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long in
 obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum, int sheath_slot,
                                                struct obj_data *sheath);
 
+/* The writers store seven numbers and the command word, which is empty for an
+ * ability that has none. */
 static bool objsave_replace_special_ability(struct obj_data *obj, const char *line)
 {
   struct obj_special_ability *ability;
   int values[7];
   char command[128];
+  int fields = 0;
 
-  if (obj == NULL || line == NULL ||
-      strict_sscanf(line, "%d %d %d %d %d %d %d %127s", &values[0], &values[1], &values[2],
-                    &values[3], &values[4], &values[5], &values[6], command) != 8)
+  if (obj != NULL && line != NULL)
+    fields = strict_sscanf(line, "%d %d %d %d %d %d %d %127s", &values[0], &values[1], &values[2],
+                           &values[3], &values[4], &values[5], &values[6], command);
+  if (fields < 7)
   {
     log("SYSERR: Invalid SpAb record in object save data: %s", line ? line : "(null)");
     return false;
@@ -133,7 +137,7 @@ static bool objsave_replace_special_ability(struct obj_data *obj, const char *li
   ability->value[1] = values[4];
   ability->value[2] = values[5];
   ability->value[3] = values[6];
-  ability->command_word = strdup(command);
+  ability->command_word = fields == 8 ? strdup(command) : NULL;
   ability->next = NULL;
   obj->special_abilities = ability;
 
