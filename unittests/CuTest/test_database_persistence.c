@@ -838,8 +838,9 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
                        "SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026080501 "
                        "AND 2026091007",
                        -1);
+  /* Without the fixture this name is the permanent table, which the test must not write. */
   max_owner_id_rows =
-      mysql_query(connection, "UPDATE pet_data SET owner_id = 4294967295") == 0
+      fixture_created && mysql_query(connection, "UPDATE pet_data SET owner_id = 4294967295") == 0
           ? query_single_int(connection,
                              "SELECT COUNT(*) FROM pet_data WHERE owner_id = 4294967295", -1)
           : -1;
