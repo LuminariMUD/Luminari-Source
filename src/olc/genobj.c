@@ -571,8 +571,12 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
 
 int copy_object(struct obj_data *to, struct obj_data *from)
 {
-  /* Free strings safely for object instances that may share prototype strings. */
-  free_object_strings_proto(to);
+  /* An instance may share strings with its prototype. An object with no
+   * prototype owns every string it has, and has no entry to compare them with. */
+  if (GET_OBJ_RNUM(to) == NOTHING)
+    free_object_strings(to);
+  else
+    free_object_strings_proto(to);
   return copy_object_main(to, from, TRUE);
 }
 

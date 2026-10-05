@@ -7356,6 +7356,29 @@ void Test_gameplay_object_editor_copy_preserves_live_transfer_state(CuTest *tc)
   CuAssertTrue(tc, !live.transfer_disposed && !live.transfer_extracting);
 }
 
+/* The editor copy frees what the live object held. An object with no
+ * prototype owns every string it has, and no prototype entry is read for it:
+ * here there is no prototype table at all. */
+void Test_gameplay_object_editor_copy_frees_an_object_with_no_prototype(CuTest *tc)
+{
+  struct obj_data *saved_proto = obj_proto;
+  struct obj_data source, live;
+
+  clear_object(&source);
+  clear_object(&live);
+  source.name = strdup("edited blade");
+  live.name = strdup("live blade");
+  live.arcane_mark = strdup("Maker's mark");
+  obj_proto = NULL;
+  copy_object(&live, &source);
+  obj_proto = saved_proto;
+
+  CuAssertStrEquals(tc, "edited blade", live.name);
+  CuAssertPtrEquals(tc, NULL, live.arcane_mark);
+  free(live.name);
+  free(source.name);
+}
+
 static void verify_native_transport(CuTest *tc, int mode)
 {
   struct gameplay_fixture f;
