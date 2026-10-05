@@ -12,14 +12,14 @@ commit, not run, unless a line says otherwise.
 
 ## Phases
 
-| Phase | Item | Defect | Change |
-| -- | -- | -- | -- |
-| 1 | #19 | A saved special ability with no command word is rejected at load | One parser, tests |
-| 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture |
-| 3 | #15 | An object with no prototype leaks its arcane mark | One free path, one test |
-| 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` |
-| 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` |
-| 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit |
+| Phase | Item | Defect | Change | State |
+| -- | -- | -- | -- | -- |
+| 1 | #19 | A saved special ability with no command word is rejected at load | One parser, tests | In review: [MR !23](https://gitlab.com/max757/Luminari-Source/-/merge_requests/23) |
+| 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Not started |
+| 3 | #15 | An object with no prototype leaks its arcane mark | One free path, one test | Not started |
+| 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Not started |
+| 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
+| 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
 
 Why this order:
 
@@ -40,10 +40,31 @@ Why this order:
 3. `CUTEST_FILTER=<test> ./cutest` while working, with the `LUMINARI_TEST_MYSQL_*` settings for
    database tests; then `make -j$(nproc) test && make install`.
 4. `python3 scripts/ci/local/run.py --base gitlab/master`.
-5. Merge request with `Closes #<iid>`, review, merge commit (no squash).
+5. Merge request with `Closes #<iid>`, then the annotated tag `object-save-fixes-p<phase>` on the
+   commit handed to review, pushed to `gitlab`. A pushed tag is never moved; review fixes are the
+   commits after it.
+6. Review, merge commit (no squash). Set the phase's State in the table above.
 
 No phase deploys. The fixes reach production with the next release, and its copyover needs its
 own approval.
+
+Database tests need a database of their own. A disposable one:
+
+```bash
+docker run -d --rm --name objsave-db -p 127.0.0.6:3306:3306 -e MARIADB_ROOT_PASSWORD=root \
+  -e MARIADB_DATABASE=luminari_test -e MARIADB_USER=luminari_test \
+  -e MARIADB_PASSWORD=test_password mariadb:10.11
+docker exec -i objsave-db mariadb -uroot -proot luminari_test < sql/master_schema.sql
+docker exec objsave-db mariadb -uroot -proot -e "GRANT ALL ON *.* TO 'luminari_test'@'%'"
+export LUMINARI_TEST_MYSQL_ENABLE=1 LUMINARI_TEST_MYSQL_HOST=127.0.0.6 \
+  LUMINARI_TEST_MYSQL_USER=luminari_test LUMINARI_TEST_MYSQL_PASSWORD=test_password \
+  LUMINARI_TEST_MYSQL_DATABASE=luminari_test LUMINARI_TEST_MYSQL_PORT=3306 \
+  LUMINARI_TEST_SKIP_SYNTAX_BOOT=1 LUMINARI_TEST_ROOT="$PWD" \
+  LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory"
+```
+
+`docker rm -f objsave-db` when done. On that database the whole suite passes except the phase 2
+test, until phase 2 is merged.
 
 ## Phase 1: #19 special ability without a command word
 
@@ -66,6 +87,52 @@ pet path; one record with six numbers is still rejected.
 **Done when.** Both round trips pass, and after the next release the
 `Invalid SpAb record ... 61 30 48 0 0 0 0` line no longer appears in the production log.
 
+### Built 2026-10-05
+
+Branch `19-a-saved-special-ability-without-a-command-word-is-rejected-at-load`, MR !23, tag
+`object-save-fixes-p1`.
+
+- `objsave_replace_special_ability()` accepts seven numbers and leaves `command_word` NULL, as
+  `parse_object()` does for a prototype's seven-field record. NULL, not an empty string: that is
+  what the ability holds before it is saved, and the displays print "Not set." for NULL only.
+- `Test_object_special_ability_without_a_command_word_survives_save_and_load` saves the
+  production record's ability (vampiric, level 30, on hit and on critical hit) and loads it
+  through the file loader always, and through the player-row and pet-row loaders when the
+  database tests are on. The six-number record is one more entry in the `invalid[]` list of
+  `Test_pet_object_decoder_validates_fields_and_preserves_text`.
+
+Found while building:
+
+- `utter` crashed the server on an ability that answers to a command word and has none:
+  `process_weapon_abilities()` and `process_armor_abilities()` passed the NULL word to
+  `strcmp()`. A prototype's seven-field record or a builder's edit could already produce such
+  an ability; this phase's loader fix adds saved objects. Both functions now skip it
+  (`Test_gameplay_utter_passes_over_an_ability_with_no_command_word`). It is the first commit of
+  the merge request. `process_item_abilities()` has the same comparison, but no caller gives it
+  a command word.
+- The loader before `853a3f226` did not leave the word empty, as #19 says: it copied what the
+  last `Flag:`, `Wear:` or `Perm:` line had left in the scan buffer, a number. An ability that
+  loader read and the game saved again has an eight-field record with that number as its word,
+  and has always loaded.
+- `objsave_parse_objects_db()` calls `real_object()` before it checks for an unnumbered object,
+  and `real_object()` reads `obj_index[0]`. A test that loads player rows without a world needs
+  an object index of at least one entry (the new test has one). Phases 3 to 5 add tests here.
+
+Verification, on `ea33ddd29`:
+
+- The new round-trip test fails before the fix, with the rejected record logged by each of the
+  three loaders, and passes after it, with the database tests on and off. The `utter` test ends
+  in SIGSEGV before its fix.
+- `make -j16 test`: 2038 tests pass. `make install` done.
+- `./cutest` with the database tests on (the disposable database above): 2037 of 2038 pass. The
+  one failure is `Test_pet_persistence_legacy_schema_migration_is_idempotent`, which is #18.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (361 s), the
+  memory-check, sanitizer and coverage jobs among them; `test-unit-tests` runs the suite with the
+  database tests on.
+
+Left: review and merge; after the next release, look for the `Invalid SpAb record` line in the
+production log.
+
 ## Phase 2: #18 pet legacy-migration test
 
 **Cause (to confirm with the item's repro).** The fixture `create_legacy_pet_temporary_schema()`
@@ -76,6 +143,11 @@ tables. So the check passes only when a boot has already put the key on the perm
 `pet_save_objs`. This is the fixture, not the migrations: on a fresh install the boot runs
 2026091007 on the permanent tables, and
 `Test_pet_live_schema_cascades_objects_and_rejects_orphans` checks the result.
+
+**Seen 2026-10-05, in phase 1's run.** On a `master_schema.sql`-only database with the
+syntax-check boot skipped, the test fails at its `first_verification` assertion: the migrations
+ran and `verify_pet_persistence_schema()` refused the result. That fits the cause; step 1 is
+still to do.
 
 **Steps.**
 
