@@ -27,8 +27,10 @@
 #include "events/point_update_periodic.h"
 
 /* local functions */
+static void free_all_object_strings(obj_rnum rnum);
 static int update_all_objects(struct obj_data *obj);
 static void copy_object_strings(struct obj_data *to, struct obj_data *from);
+static void overwrite_object(struct obj_data *to, const struct obj_data *from);
 
 obj_rnum add_object(struct obj_data *newobj, obj_vnum ovnum)
 {
@@ -38,6 +40,7 @@ obj_rnum add_object(struct obj_data *newobj, obj_vnum ovnum)
   /* Write object to internal tables. */
   if ((newobj->item_number = real_object(ovnum)) != NOTHING)
   {
+    free_all_object_strings(newobj->item_number);
     free_object_strings(&obj_proto[newobj->item_number]);
     copy_object_main(&obj_proto[newobj->item_number], newobj, TRUE);
     update_all_objects(&obj_proto[newobj->item_number]);
@@ -51,13 +54,27 @@ obj_rnum add_object(struct obj_data *newobj, obj_vnum ovnum)
   return found;
 }
 
+/* Before a prototype is replaced, each live object of it frees the strings
+ * it owns: update_all_objects() writes the new prototype over them, and they
+ * can be told from the prototype's only while the old prototype still has
+ * its own. The object's special abilities and spellbook are left alone: an
+ * open edit copy or a preview copy of the object can point at the same lists. */
+static void free_all_object_strings(obj_rnum rnum)
+{
+  struct obj_data *obj;
+
+  for (obj = object_list; obj; obj = obj->next)
+    if (obj->item_number == rnum)
+      free_object_strings_proto(obj);
+}
+
 /* Fix all existing objects to have these values. We need to run through each
  * and every object currently in the game to see which ones are pointing to
  * this prototype. If object is pointing to this prototype, then we need to
  * replace it with the new one. */
 static int update_all_objects(struct obj_data *refobj)
 {
-  struct obj_data *obj, swap;
+  struct obj_data *obj;
   int count = 0;
 
   for (obj = object_list; obj; obj = obj->next)
@@ -67,39 +84,10 @@ static int update_all_objects(struct obj_data *refobj)
 
     count++;
 
-    /* Update the existing object but save a copy for private information. */
     autoproc_registry_remove(obj);
-    swap = *obj;
-    *obj = *refobj;
-
-    /* Copy game-time dependent variables over. */
-    GET_ID(obj) = swap.id;
-    IN_ROOM(obj) = swap.in_room;
-    obj->carried_by = swap.carried_by;
-    obj->worn_by = swap.worn_by;
-    obj->worn_on = swap.worn_on;
-    obj->in_obj = swap.in_obj;
-    obj->contains = swap.contains;
-    obj->next_content = swap.next_content;
-    obj->next = swap.next;
-    obj->object_list_member = swap.object_list_member;
-    obj->sitting_here = swap.sitting_here;
-    obj->events = swap.events;
-    obj->event_owner_generation = swap.event_owner_generation;
-    obj->transfer_source = swap.transfer_source;
-    obj->transfer_bag = swap.transfer_bag;
-    obj->transfer_pending = swap.transfer_pending;
-    obj->transfer_extracting = swap.transfer_extracting;
-    obj->transfer_disposed = swap.transfer_disposed;
-    obj->periodic_event_generation = swap.periodic_event_generation;
-    obj->autoproc_next = NULL;
-    obj->autoproc_prev = NULL;
-    obj->autoproc_registered = false;
-    obj->autoproc_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+    overwrite_object(obj, refobj);
+    give_obj_own_copies(obj, refobj);
     autoproc_registry_sync(obj);
-    obj->point_update_next = swap.point_update_next;
-    obj->point_update_prev = swap.point_update_prev;
-    obj->point_update_registered = swap.point_update_registered;
     point_update_object_sync(obj);
   }
 
@@ -221,6 +209,9 @@ obj_rnum index_object(struct obj_data *obj, obj_vnum ovnum, obj_rnum ornum)
   obj_index[ornum].spec_binding = NULL;
   obj_index[ornum].effective_binding = NULL;
 
+  /* The slot holds what insert_object() left there: a prototype that moved
+   * up, or nothing yet. The copy keeps the target's runtime fields. */
+  clear_object(&obj_proto[ornum]);
   copy_object_preserve(&obj_proto[ornum], obj);
   obj_proto[ornum].in_room = NOWHERE;
 
@@ -559,6 +550,7 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
   to->description = from->description ? strdup(from->description) : NULL;
   to->short_description = from->short_description ? strdup(from->short_description) : NULL;
   to->action_description = from->action_description ? strdup(from->action_description) : NULL;
+  to->char_sdesc = from->char_sdesc ? strdup(from->char_sdesc) : NULL;
   to->arcane_mark = from->arcane_mark ? strdup(from->arcane_mark) : NULL;
   /* Ensure restring_identifier is deep-copied so prototypes don't share OLC buffers */
   to->restring_identifier = from->restring_identifier ? strdup(from->restring_identifier) : NULL;
@@ -585,56 +577,60 @@ int copy_object_preserve(struct obj_data *to, struct obj_data *from)
   return copy_object_main(to, from, FALSE);
 }
 
+/* Write one object over another. The target stays where it is in the world
+ * and keeps what only the running game gave it: what holds it and what it
+ * holds, its list, hash and registry links, its events and transfer state.
+ * Strings and lists the objects own are the caller's to settle. */
+static void overwrite_object(struct obj_data *to, const struct obj_data *from)
+{
+  struct obj_data kept = *to;
+
+  *to = *from;
+  GET_ID(to) = kept.id;
+  IN_ROOM(to) = kept.in_room;
+  to->carried_by = kept.carried_by;
+  to->worn_by = kept.worn_by;
+  to->worn_on = kept.worn_on;
+  to->in_obj = kept.in_obj;
+  to->contains = kept.contains;
+  to->next_content = kept.next_content;
+  to->next_gitem = kept.next_gitem;
+  to->next = kept.next;
+  to->object_list_member = kept.object_list_member;
+  to->next_in_hash = kept.next_in_hash;
+  to->prev_in_hash = kept.prev_in_hash;
+  to->sitting_here = kept.sitting_here;
+  to->sheath_primary = kept.sheath_primary;
+  to->sheath_secondary = kept.sheath_secondary;
+  to->trap = kept.trap;
+  to->events = kept.events;
+  to->event_owner_generation = kept.event_owner_generation;
+  to->periodic_event_generation = kept.periodic_event_generation;
+  to->transfer_source = kept.transfer_source;
+  to->transfer_bag = kept.transfer_bag;
+  to->transfer_pending = kept.transfer_pending;
+  to->transfer_extracting = kept.transfer_extracting;
+  to->transfer_disposed = kept.transfer_disposed;
+  to->limb_restore_slot = kept.limb_restore_slot;
+  MISSILE_ID(to) = kept.missile_id;
+  to->autoproc_next = kept.autoproc_next;
+  to->autoproc_prev = kept.autoproc_prev;
+  to->autoproc_registered = kept.autoproc_registered;
+  to->autoproc_event_handle = kept.autoproc_event_handle;
+  to->point_update_next = kept.point_update_next;
+  to->point_update_prev = kept.point_update_prev;
+  to->point_update_registered = kept.point_update_registered;
+  to->rol_loot_sweep_at = kept.rol_loot_sweep_at;
+  to->rol_drow_decay_initialized = kept.rol_drow_decay_initialized;
+  to->rol_deaths_head_seed_initialized = kept.rol_deaths_head_seed_initialized;
+  to->perf_origin_zone_vnum = kept.perf_origin_zone_vnum;
+  to->perf_create_reason = kept.perf_create_reason;
+}
+
 int copy_object_main(struct obj_data *to, struct obj_data *from,
                      int free_object __attribute__((unused)))
 {
-  struct obj_data *autoproc_next;
-  struct obj_data *autoproc_prev;
-  struct event_runtime_handle autoproc_event_handle;
-  struct obj_data *point_update_next;
-  struct obj_data *point_update_prev;
-  struct list_data *events;
-  uint64_t event_owner_generation;
-  uint64_t periodic_event_generation;
-  bool autoproc_registered;
-  bool point_update_registered;
-  bool object_list_member;
-  struct domain_object_holder transfer_source, transfer_bag;
-  bool transfer_pending, transfer_extracting, transfer_disposed;
-
-  autoproc_next = to->autoproc_next;
-  autoproc_prev = to->autoproc_prev;
-  autoproc_event_handle = to->autoproc_event_handle;
-  events = to->events;
-  event_owner_generation = to->event_owner_generation;
-  periodic_event_generation = to->periodic_event_generation;
-  autoproc_registered = to->autoproc_registered;
-  point_update_next = to->point_update_next;
-  point_update_prev = to->point_update_prev;
-  point_update_registered = to->point_update_registered;
-  object_list_member = to->object_list_member;
-  transfer_source = to->transfer_source;
-  transfer_bag = to->transfer_bag;
-  transfer_pending = to->transfer_pending;
-  transfer_extracting = to->transfer_extracting;
-  transfer_disposed = to->transfer_disposed;
-  *to = *from;
-  to->transfer_source = transfer_source;
-  to->transfer_bag = transfer_bag;
-  to->transfer_pending = transfer_pending;
-  to->transfer_extracting = transfer_extracting;
-  to->transfer_disposed = transfer_disposed;
-  to->autoproc_next = autoproc_next;
-  to->autoproc_prev = autoproc_prev;
-  to->autoproc_event_handle = autoproc_event_handle;
-  to->events = events;
-  to->event_owner_generation = event_owner_generation;
-  to->periodic_event_generation = periodic_event_generation;
-  to->autoproc_registered = autoproc_registered;
-  to->point_update_next = point_update_next;
-  to->point_update_prev = point_update_prev;
-  to->point_update_registered = point_update_registered;
-  to->object_list_member = object_list_member;
+  overwrite_object(to, from);
   copy_object_strings(to, from);
   point_update_object_sync(to);
   return TRUE;

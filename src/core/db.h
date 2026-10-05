@@ -419,6 +419,7 @@ void autoproc_registry_reset_for_test(void);
 void clear_object(struct obj_data *obj);
 void free_obj(struct obj_data *obj);
 void free_obj_special_abilities(struct obj_special_ability *list);
+void give_obj_own_copies(struct obj_data *obj, const struct obj_data *proto);
 struct obj_data *read_object(obj_vnum nr, int type);
 struct obj_data *read_object_reason(obj_vnum nr, int type, enum perf_entity_reason reason);
 int vnum_object(char *searchname, struct char_data *ch);

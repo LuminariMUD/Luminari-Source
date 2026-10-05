@@ -257,6 +257,7 @@ void oedit_setup_existing(struct descriptor_data *d, int real_num, int mode __at
 
   /* Allocate object in memory. */
   CREATE(obj, struct obj_data, 1);
+  clear_object(obj);
   copy_object(obj, &obj_proto[real_num]);
 
   /* Attach new object to player's descriptor. */
@@ -3976,14 +3977,12 @@ iedit_copy_special_abilities(const struct obj_special_ability *source)
 
 static void iedit_commit_existing(struct obj_data *live, struct obj_data *edited)
 {
-  struct obj_data runtime;
   struct obj_special_ability *old_special_abilities;
   obj_rnum robj;
 
   if (live == NULL || edited == NULL)
     return;
 
-  runtime = *live;
   old_special_abilities = live->special_abilities;
   autoproc_registry_remove(live);
   point_update_object_forget(live);
@@ -3995,17 +3994,6 @@ static void iedit_commit_existing(struct obj_data *live, struct obj_data *edited
   if (old_special_abilities != edited->special_abilities)
     free_obj_special_abilities(old_special_abilities);
   edited->special_abilities = NULL;
-  GET_ID(live) = runtime.id;
-  IN_ROOM(live) = runtime.in_room;
-  live->carried_by = runtime.carried_by;
-  live->worn_by = runtime.worn_by;
-  live->worn_on = runtime.worn_on;
-  live->in_obj = runtime.in_obj;
-  live->contains = runtime.contains;
-  live->next_gitem = runtime.next_gitem;
-  live->next_content = runtime.next_content;
-  live->next = runtime.next;
-  live->sitting_here = runtime.sitting_here;
   SCRIPT(live) = NULL;
   live->proto_script = NULL;
 

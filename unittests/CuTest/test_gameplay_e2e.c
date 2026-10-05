@@ -39,6 +39,7 @@
 #include "../../src/olc/oasis.h"
 #include "../../src/olc/prefedit.h"
 #include "../../src/olc/genobj.h"
+#include "../../src/olc/genolc.h"
 #include "../../src/vessels/transport.h"
 #include "../../src/vessels/transport_jobs.h"
 #include "../../src/quest/staff_events.h"
@@ -7377,6 +7378,191 @@ void Test_gameplay_object_editor_copy_frees_an_object_with_no_prototype(CuTest *
   CuAssertPtrEquals(tc, NULL, live.arcane_mark);
   free(live.name);
   free(source.name);
+}
+
+/* An edit copy takes an object's definition, not its place in the world, and
+ * the commit leaves the live object the links it has by then: here its hash
+ * chain moved on and its sheath was emptied while the edit was open. A
+ * corpse's description of the fallen is a string of each object's own. */
+void Test_gameplay_object_editor_copy_leaves_each_object_its_own_links(CuTest *tc)
+{
+  struct obj_data live, edit, neighbour, weapon;
+  bool edit_is_apart, live_kept_its_links;
+
+  clear_object(&live);
+  clear_object(&edit);
+  clear_object(&neighbour);
+  clear_object(&weapon);
+  live.name = strdup("corpse fallen");
+  live.char_sdesc = strdup("the fallen");
+  live.next_in_hash = &neighbour;
+  live.sheath_primary = &weapon;
+  live.carried_by = (struct char_data *)&weapon;
+
+  copy_object(&edit, &live);
+  edit_is_apart = edit.next_in_hash == NULL && edit.sheath_primary == NULL &&
+                  edit.carried_by == NULL && edit.char_sdesc != NULL &&
+                  edit.char_sdesc != live.char_sdesc && !strcmp(edit.char_sdesc, "the fallen");
+
+  live.next_in_hash = NULL;
+  live.prev_in_hash = &neighbour;
+  live.sheath_primary = NULL;
+  GET_OBJ_COST(&edit) = 77;
+  copy_object(&live, &edit);
+  live_kept_its_links =
+      live.next_in_hash == NULL && live.prev_in_hash == &neighbour && live.sheath_primary == NULL &&
+      live.carried_by == (struct char_data *)&weapon && GET_OBJ_COST(&live) == 77 &&
+      live.char_sdesc != NULL && live.char_sdesc != edit.char_sdesc &&
+      !strcmp(live.char_sdesc, "the fallen");
+
+  free_object_strings(&edit);
+  free_object_strings(&live);
+  CuAssertTrue(tc, edit_is_apart);
+  CuAssertTrue(tc, live_kept_its_links);
+}
+
+/* A new prototype goes into the slot insert_object() opened, which holds a
+ * prototype that moved up or nothing yet. The new prototype takes none of it. */
+void Test_gameplay_object_new_prototype_takes_nothing_from_its_slot(CuTest *tc)
+{
+  struct obj_data slot, *edit;
+  struct index_data index = {0};
+  struct obj_data *saved_proto = obj_proto;
+  struct index_data *saved_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  bool clean;
+
+  memset(&slot, 0xA5, sizeof(slot));
+  CREATE(edit, struct obj_data, 1);
+  clear_object(edit);
+  edit->name = strdup("unfinished object");
+  obj_proto = &slot;
+  obj_index = &index;
+  top_of_objt = 0;
+
+  clean = index_object(edit, 91001, 0) == 0 && GET_OBJ_RNUM(&slot) == 0 &&
+          IN_ROOM(&slot) == NOWHERE && slot.next == NULL && slot.next_in_hash == NULL &&
+          slot.contains == NULL && slot.sheath_primary == NULL && slot.trap == NULL &&
+          slot.events == NULL && !slot.object_list_member && !slot.autoproc_registered &&
+          !slot.point_update_registered && slot.name != NULL && slot.name != edit->name &&
+          !strcmp(slot.name, "unfinished object");
+
+  if (clean)
+    free_object_strings(&slot);
+  free_object_strings(edit);
+  free(edit);
+  obj_proto = saved_proto;
+  obj_index = saved_index;
+  top_of_objt = saved_top;
+  CuAssertTrue(tc, clean);
+}
+
+/* An OLC save of a prototype gives each live object of it the new definition.
+ * The object stays where it is and keeps what the running game gave it, the
+ * strings it owned are freed, and the lists free_obj() frees with it are
+ * copies of its own: extracting one live object leaves the prototype and the
+ * other object whole. Here the builder adds an ability and a spellbook page. */
+void Test_gameplay_object_prototype_save_leaves_live_objects_whole(CuTest *tc)
+{
+  struct obj_data prototype, weapon;
+  struct obj_data *edit, *first, *second;
+  struct index_data index = {.vnum = 91001};
+  struct zone_data zone = {.number = 910, .bot = 91000, .top = 91099};
+  struct obj_data *saved_proto = obj_proto;
+  struct index_data *saved_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  struct zone_data *saved_zones = zone_table;
+  zone_rnum saved_top_zone = top_of_zone_table;
+  bool own_lists, kept_links, took_definition, prototype_whole = false;
+
+  clear_object(&weapon);
+  clear_object(&prototype);
+  prototype.item_number = 0;
+  prototype.name = strdup("longsword black");
+  prototype.short_description = strdup("a black longsword");
+  prototype.description = strdup("A black longsword lies here.");
+  prototype.arcane_mark = strdup("Forge mark");
+  prototype.restring_identifier = strdup("forge");
+  obj_proto = &prototype;
+  obj_index = &index;
+  top_of_objt = 0;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+
+  /* The first object is restrung and marked, and has a weapon in its sheath. */
+  first = read_object(index.vnum, VIRTUAL);
+  second = read_object(index.vnum, VIRTUAL);
+  first->name = strdup("blade restrung");
+  free(first->arcane_mark);
+  first->arcane_mark = strdup("Maker's mark");
+  first->sheath_primary = &weapon;
+  first->limb_restore_slot = 3;
+
+  /* The builder's edit copy, as oedit_setup_existing() makes it. */
+  CREATE(edit, struct obj_data, 1);
+  clear_object(edit);
+  copy_object(edit, &prototype);
+  GET_OBJ_COST(edit) = 77;
+  CREATE(edit->special_abilities, struct obj_special_ability, 1);
+  edit->special_abilities->ability = WEAPON_SPECAB_FLAMING_BURST;
+  edit->special_abilities->command_word = strdup("ignitus");
+  CREATE(edit->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+  edit->sbinfo[0].spellname = SPELL_MAGIC_MISSILE;
+  edit->sbinfo[0].pages = 1;
+
+  took_definition = add_object(edit, index.vnum) == 0 && GET_OBJ_COST(&prototype) == 77 &&
+                    GET_OBJ_COST(first) == 77 && GET_OBJ_COST(second) == 77 &&
+                    first->name == prototype.name && first->arcane_mark != NULL &&
+                    !strcmp(first->arcane_mark, "Forge mark");
+  own_lists = prototype.special_abilities != NULL && first->special_abilities != NULL &&
+              second->special_abilities != NULL &&
+              first->special_abilities != prototype.special_abilities &&
+              second->special_abilities != prototype.special_abilities &&
+              first->special_abilities != second->special_abilities &&
+              first->special_abilities->ability == WEAPON_SPECAB_FLAMING_BURST &&
+              first->special_abilities->command_word != NULL &&
+              first->special_abilities->command_word != prototype.special_abilities->command_word &&
+              !strcmp(first->special_abilities->command_word, "ignitus") &&
+              prototype.sbinfo != NULL && first->sbinfo != NULL && second->sbinfo != NULL &&
+              first->sbinfo != prototype.sbinfo && second->sbinfo != prototype.sbinfo &&
+              first->sbinfo != second->sbinfo &&
+              first->sbinfo[0].spellname == SPELL_MAGIC_MISSILE &&
+              first->arcane_mark != prototype.arcane_mark && first->restring_identifier != NULL &&
+              first->restring_identifier != prototype.restring_identifier;
+  kept_links = second->next_in_hash == first && first->prev_in_hash == second &&
+               get_obj_num(0) == second && first->sheath_primary == &weapon &&
+               first->limb_restore_slot == 3 && first->object_list_member &&
+               second->next == first && object_list == second;
+
+  /* Lists shared with the prototype would be freed here, under it. */
+  first->sheath_primary = NULL;
+  if (own_lists)
+  {
+    extract_obj(first);
+    prototype_whole = prototype.special_abilities->ability == WEAPON_SPECAB_FLAMING_BURST &&
+                      !strcmp(prototype.special_abilities->command_word, "ignitus") &&
+                      prototype.sbinfo[0].spellname == SPELL_MAGIC_MISSILE &&
+                      second->special_abilities->ability == WEAPON_SPECAB_FLAMING_BURST &&
+                      get_obj_num(0) == second;
+    extract_obj(second);
+  }
+
+  /* The prototype took the edit copy's lists, as it does in the editor. */
+  remove_from_save_list(zone.number, SL_OBJ);
+  free_object_strings(edit);
+  free(edit);
+  free_object_strings(&prototype);
+  free_obj_special_abilities(prototype.special_abilities);
+  free(prototype.sbinfo);
+  obj_proto = saved_proto;
+  obj_index = saved_index;
+  top_of_objt = saved_top;
+  zone_table = saved_zones;
+  top_of_zone_table = saved_top_zone;
+  CuAssertTrue(tc, took_definition);
+  CuAssertTrue(tc, own_lists);
+  CuAssertTrue(tc, kept_links);
+  CuAssertTrue(tc, prototype_whole);
 }
 
 static void verify_native_transport(CuTest *tc, int mode)
