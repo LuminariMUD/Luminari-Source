@@ -130,8 +130,40 @@ Verification, on `ea33ddd29`:
   memory-check, sanitizer and coverage jobs among them; `test-unit-tests` runs the suite with the
   database tests on.
 
-Left: review and merge; after the next release, look for the `Invalid SpAb record` line in the
-production log.
+### Review 2026-10-05
+
+One finding, blocking, fixed in `1d904677a` (the commit after the tag):
+
+- The writers store an object's first ability only, and the loader freed the whole list before it
+  installed the record. On master a first record with no command word was rejected, so a
+  prototype-backed object kept its prototype's list. Accepting the record cut the three
+  prototypes with two real abilities (#1213, #1244, #20621) to their first one at every load.
+- The record now replaces the ability of its kind, or else the first one, and the rest of the
+  list stays. By kind, not by position: `parse_object()` puts each record in front and an OLC
+  save writes the list in order, so the abilities change places at the boot after a zone save.
+  A first ability that has a command word keeps the rest too, which it did not on master.
+- `Test_object_special_ability_record_keeps_the_rest_of_the_prototype_list`: the two abilities
+  of #1213 through the file loader and the player-row loader, then with the prototype's list the
+  other way round, with a first ability that has a command word, and with an ability of a kind
+  the prototype does not have. It fails on the loader of `ab7a35b84`, and on the fix when that
+  matches by position only or puts an unmatched ability in front of the list.
+
+Filed, not fixed here:
+
+- #28: the writers save the first ability only, so a change to another ability, an emptied list,
+  and the later abilities of an object with no prototype do not survive a load.
+- #29: `downgrade` and `applyoil` drop ability lists without freeing them, and `downgrade` leaves
+  its preview object in `object_list`. Seen while tracing the finding.
+
+Verification, on `1d904677a`:
+
+- `make -j16 test`: 2039 tests pass. `make install` done.
+- `./cutest` with the database tests on, on a freshly loaded disposable database: 2038 of 2039
+  pass, the one failure again the #18 test.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (357 s).
+
+Left: merge; after the next release, look for the `Invalid SpAb record` line in the production
+log.
 
 ## Phase 2: #18 pet legacy-migration test
 
@@ -146,8 +178,9 @@ tables. So the check passes only when a boot has already put the key on the perm
 
 **Seen 2026-10-05, in phase 1's run.** On a `master_schema.sql`-only database with the
 syntax-check boot skipped, the test fails at its `first_verification` assertion: the migrations
-ran and `verify_pet_persistence_schema()` refused the result. That fits the cause; step 1 is
-still to do.
+ran and `verify_pet_persistence_schema()` refused the result. A second run of the whole suite on
+the same database passes it, so the first run changes the permanent tables. That fits the cause;
+step 1 is still to do.
 
 **Steps.**
 
@@ -264,6 +297,8 @@ text says the price is open.
   cause above.
 - Restoring abilities dropped from saved rows before the #19 fix: a row that lost its line
   cannot be told from a row that never had one.
+- Saving every ability of an object, not the first alone: it needs a new row format, and is work
+  item #28.
 - Measuring the leaks of #15 and #16: the tests and the memory-check jobs prove them.
 
 ## Closing
