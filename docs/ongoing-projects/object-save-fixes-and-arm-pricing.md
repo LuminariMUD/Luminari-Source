@@ -15,7 +15,7 @@ commit, not run, unless a line says otherwise.
 | Phase | Item | Defect | Change | State |
 | -- | -- | -- | -- | -- |
 | 1 | #19 | A saved special ability with no command word is rejected at load | One parser, tests | Merged 2026-10-05: [MR !23](https://gitlab.com/max757/Luminari-Source/-/merge_requests/23), `5523e04a0` |
-| 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Not started |
+| 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | In review: [MR !24](https://gitlab.com/max757/Luminari-Source/-/merge_requests/24) |
 | 3 | #15 | An object with no prototype leaks its arcane mark | One free path, one test | Not started |
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Not started |
 | 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
@@ -66,6 +66,13 @@ export LUMINARI_TEST_MYSQL_ENABLE=1 LUMINARI_TEST_MYSQL_HOST=127.0.0.6 \
 
 `docker rm -f objsave-db` when done. On that database the whole suite passes except the phase 2
 test, until phase 2 is merged.
+
+For a fresh database in the same container, drop and create it, then repeat the schema line:
+
+```bash
+docker exec objsave-db mariadb -uroot -proot \
+  -e "DROP DATABASE luminari_test; CREATE DATABASE luminari_test"
+```
 
 ## Phase 1: #19 special ability without a command word
 
@@ -168,7 +175,7 @@ for the `Invalid SpAb record` line in the production log.
 
 ## Phase 2: #18 pet legacy-migration test
 
-**Cause (to confirm with the item's repro).** The fixture `create_legacy_pet_temporary_schema()`
+**Cause (confirmed 2026-10-05, see Built).** The fixture `create_legacy_pet_temporary_schema()`
 shadows `pet_data`, `pet_save_objs` and `schema_migrations` with temporary tables and records
 migration 2026091007 as applied, because InnoDB refuses a foreign key on a temporary table.
 `pet_schema_has_foreign_key()` reads `information_schema`, which lists only the permanent
@@ -193,6 +200,52 @@ step 1 is still to do.
    boot, and the same for the two neighbours that call `verify_pet_persistence_schema()`.
 
 **Done when.** Step 3 passes and the item is closed with the cause named.
+
+### Built 2026-10-05
+
+Branch `18-pet-legacy-migration-test-fails-on-a-database-built-from-master_schema-sql-alone`,
+MR !24, tag `object-save-fixes-p2`.
+
+Step 1, the test alone on a database built from `sql/master_schema.sql`, boot skipped:
+
+- It fails at `first_verification` with one error, the missing foreign key, and leaves the
+  permanent tables as they were: no key, no pet migration recorded. The fourteen migrations it
+  ran all went to the temporary tables.
+- With the key added to the permanent `pet_save_objs` by hand and nothing else changed, it
+  passes. That is the cause: the fixture, not the migrations.
+- The migrations are sound from the `master_schema.sql` shape:
+  `Test_pet_live_schema_cascades_objects_and_rejects_orphans` alone on a fresh database runs all
+  fifteen on the permanent tables, 2026091007 adds the key, and the schema verifies. A fresh
+  install is not affected.
+- The item's "a second run fails the same way" and this plan's "a second run of the whole suite
+  passes" are both right. The test alone never touched the permanent tables; in the whole suite
+  the live-schema test runs after it and migrates them.
+
+Step 2: `Test_pet_persistence_legacy_schema_migration_is_idempotent` calls
+`run_pet_persistence_migrations()` on the permanent tables before it creates the temporary
+ones, and asserts that the call succeeded. The fixture's comment claimed that every fresh test
+database runs 2026091007 at startup; it now says what the validator reads. Nothing changes
+outside `unittests/CuTest/test_database_persistence.c`.
+
+The test still needs the permanent pet tables, as the live-schema test does. On an empty
+database the first migration fails and the new assertion reports it.
+
+Verification, on `b06a2367f`:
+
+- Step 3, boot skipped: each of the three tests passes alone on a fresh
+  `master_schema.sql`-only database, and again on the same database.
+- Step 3, after the boot: each of the three passes alone on a fresh database on which
+  `Test_syntax_check_encounter_world_boots_and_cleans_up_once` ran first. The boot needs
+  `scripts/ci/prepare_test_runtime.sh .ci-runtime/lib`, then both runs with
+  `LUMINARI_TEST_DATA_DIR="$PWD/.ci-runtime/lib"`,
+  `LUMINARI_TEST_CONFIG_FILE=.ci-runtime/lib/etc/config` and `LUMINARI_TEST_SKIP_SYNTAX_BOOT`
+  unset.
+- All 36 tests of `test_database_persistence.c` pass alone, each on its own fresh database,
+  boot skipped. Phases 3 to 5 rely on that.
+- `./cutest` with the database tests on, first run on a fresh database: 2039 of 2039 pass.
+- `make -j16 test`: 2039 tests pass. `make install` done.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (344 s);
+  `test-unit-tests` runs the suite with the database tests on.
 
 ## Phase 3: #15 arcane mark of an object with no prototype
 
