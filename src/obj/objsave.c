@@ -108,24 +108,39 @@ void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long in
 obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum, int sheath_slot,
                                                struct obj_data *sheath);
 
+/* The writers store seven numbers and the command word, which is empty for an
+ * ability that has none. They store the first ability only: it replaces the
+ * ability of its kind, or else the first one, and the rest of the list the
+ * prototype gave the object stays. */
 static bool objsave_replace_special_ability(struct obj_data *obj, const char *line)
 {
   struct obj_special_ability *ability;
   int values[7];
   char command[128];
+  int fields = 0;
 
-  if (obj == NULL || line == NULL ||
-      strict_sscanf(line, "%d %d %d %d %d %d %d %127s", &values[0], &values[1], &values[2],
-                    &values[3], &values[4], &values[5], &values[6], command) != 8)
+  if (obj != NULL && line != NULL)
+    fields = strict_sscanf(line, "%d %d %d %d %d %d %d %127s", &values[0], &values[1], &values[2],
+                           &values[3], &values[4], &values[5], &values[6], command);
+  if (fields < 7)
   {
     log("SYSERR: Invalid SpAb record in object save data: %s", line ? line : "(null)");
     return false;
   }
 
-  free_obj_special_abilities(obj->special_abilities);
-  obj->special_abilities = NULL;
+  for (ability = obj->special_abilities; ability != NULL; ability = ability->next)
+    if (ability->ability == values[0])
+      break;
+  if (ability == NULL)
+    ability = obj->special_abilities;
+  if (ability == NULL)
+  {
+    CREATE(ability, struct obj_special_ability, 1);
+    obj->special_abilities = ability;
+  }
+  else if (ability->command_word != NULL)
+    free(ability->command_word);
 
-  CREATE(ability, struct obj_special_ability, 1);
   ability->ability = values[0];
   ability->level = values[1];
   ability->activation_method = values[2];
@@ -133,9 +148,7 @@ static bool objsave_replace_special_ability(struct obj_data *obj, const char *li
   ability->value[1] = values[4];
   ability->value[2] = values[5];
   ability->value[3] = values[6];
-  ability->command_word = strdup(command);
-  ability->next = NULL;
-  obj->special_abilities = ability;
+  ability->command_word = fields == 8 ? strdup(command) : NULL;
 
   return true;
 }
