@@ -14,7 +14,7 @@ commit, not run, unless a line says otherwise.
 
 | Phase | Item | Defect | Change | State |
 | -- | -- | -- | -- | -- |
-| 1 | #19 | A saved special ability with no command word is rejected at load | One parser, tests | In review: [MR !23](https://gitlab.com/max757/Luminari-Source/-/merge_requests/23) |
+| 1 | #19 | A saved special ability with no command word is rejected at load | One parser, tests | Merged 2026-10-05: [MR !23](https://gitlab.com/max757/Luminari-Source/-/merge_requests/23), `5523e04a0` |
 | 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Not started |
 | 3 | #15 | An object with no prototype leaks its arcane mark | One free path, one test | Not started |
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Not started |
@@ -35,7 +35,8 @@ Why this order:
 
 ## Every phase
 
-1. Branch `<iid>-<slug>` from `gitlab/master`, with its own worktree.
+1. Branch `<iid>-<slug>` from `gitlab/master`, checked out in this plan's worktree
+   (`../Luminari-Source-object-save-fixes-and-arm-pricing`): one phase at a time.
 2. Write the failing test (for #18, run the repro), then the fix.
 3. `CUTEST_FILTER=<test> ./cutest` while working, with the `LUMINARI_TEST_MYSQL_*` settings for
    database tests; then `make -j$(nproc) test && make install`.
@@ -162,8 +163,8 @@ Verification, on `1d904677a`:
   pass, the one failure again the #18 test.
 - `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (357 s).
 
-Left: merge; after the next release, look for the `Invalid SpAb record` line in the production
-log.
+Merged 2026-10-05 as merge commit `5523e04a0`; #19 is closed. Left: after the next release, look
+for the `Invalid SpAb record` line in the production log.
 
 ## Phase 2: #18 pet legacy-migration test
 
