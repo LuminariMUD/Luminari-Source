@@ -363,11 +363,11 @@ static bool create_legacy_pet_temporary_schema(MYSQL *connection)
                            "('LegacyOwner', 0, '#unbound')",
                            /* InnoDB refuses foreign keys on temporary tables, so
                             * the cascade migration is recorded as applied here.
-                            * The booted suite applies it for real: the base
-                            * tables carry no constraint, so every fresh test
-                            * database runs 2026091007 at startup, and
+                            * The validator reads the key from information_schema,
+                            * which lists the permanent tables only, so the caller
+                            * migrates those before it creates these.
                             * Test_pet_live_schema_cascades_objects_and_rejects_orphans
-                            * then checks its outcome on those live tables. */
+                            * checks the migration's outcome on the permanent tables. */
                            "INSERT INTO schema_migrations (version, description) "
                            "VALUES (2026091007, 'temporary fixture cannot carry a foreign key')",
                            NULL};
@@ -796,6 +796,7 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   MYSQL *connection;
   MYSQL *saved_conn;
   bool saved_available;
+  bool live_tables_migrated;
   bool fixture_created;
   bool first_migration;
   bool first_verification;
@@ -828,7 +829,8 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   saved_available = mysql_available;
   conn = connection;
   mysql_available = true;
-  fixture_created = create_legacy_pet_temporary_schema(connection);
+  live_tables_migrated = run_pet_persistence_migrations();
+  fixture_created = live_tables_migrated && create_legacy_pet_temporary_schema(connection);
   first_migration = fixture_created && run_pet_persistence_migrations();
   first_verification = first_migration && verify_pet_persistence_schema();
   first_migration_count =
@@ -836,8 +838,9 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
                        "SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026080501 "
                        "AND 2026091007",
                        -1);
+  /* Without the fixture this name is the permanent table, which the test must not write. */
   max_owner_id_rows =
-      mysql_query(connection, "UPDATE pet_data SET owner_id = 4294967295") == 0
+      fixture_created && mysql_query(connection, "UPDATE pet_data SET owner_id = 4294967295") == 0
           ? query_single_int(connection,
                              "SELECT COUNT(*) FROM pet_data WHERE owner_id = 4294967295", -1)
           : -1;
@@ -868,6 +871,7 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   mysql_available = saved_available;
   mysql_close(connection);
 
+  CuAssertTrue(tc, live_tables_migrated);
   CuAssertTrue(tc, fixture_created);
   CuAssertTrue(tc, first_migration);
   CuAssertTrue(tc, first_verification);
