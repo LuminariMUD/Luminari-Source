@@ -22,7 +22,7 @@ phase 7.
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Not started |
 | 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
 | 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
-| 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | In review: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), tag `object-save-fixes-p7`; merge !25 first |
+| 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | In review: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), tag `object-save-fixes-p7` |
 
 Why this order:
 
@@ -486,11 +486,11 @@ the live object keeps its current links. Both under the sanitizer and memory-che
 ### Built 2026-10-06
 
 Branch `30-an-olc-save-of-an-object-prototype-leaves-its-live-objects-sharing-the-prototype-s-lists`,
-MR !26, tag `object-save-fixes-p7`. The branch starts at `object-save-fixes-p3`, so the merge
-request shows phase 3's commits until MR !25 is merged. The worktree is on this branch; a
-review fix for phase 3 needs `git switch 15-an-object-with-no-prototype-leaks-its-arcane-mark-when-freed`
-first. Phase 3's review fix `ddacf712f` and its record were merged into this branch on
-2026-10-06 (`15f66c7c9`), so MR !26 merges cleanly after MR !25.
+MR !26, tag `object-save-fixes-p7`. The branch starts at `object-save-fixes-p3`. Phase 3's
+review fix `ddacf712f` and its record were merged into this branch on 2026-10-06 (`15f66c7c9`).
+MR !25 was merged the same day and master was merged into this branch (`16b1abdf5`), so the
+merge request shows phase 7's commits alone. The worktree is on this branch, and `src/` and
+`unittests/` are as on `5328a0005`.
 
 One code commit, `584524ec5`:
 
@@ -563,4 +563,4 @@ Verification, on `584524ec5`:
 
 ## Closing
 
-When all six items are closed, delete this file; nothing here needs to outlive them.
+When all seven items are closed, delete this file; nothing here needs to outlive them.
