@@ -487,7 +487,8 @@ Branch `30-an-olc-save-of-an-object-prototype-leaves-its-live-objects-sharing-th
 MR !26, tag `object-save-fixes-p7`. The branch starts at `object-save-fixes-p3`, so the merge
 request shows phase 3's commits until MR !25 is merged. The worktree is on this branch; a
 review fix for phase 3 needs `git switch 15-an-object-with-no-prototype-leaks-its-arcane-mark-when-freed`
-first.
+first. Phase 3's review fix `ddacf712f` and its record were merged into this branch on
+2026-10-06 (`15f66c7c9`), so MR !26 merges cleanly after MR !25.
 
 One code commit, `584524ec5`:
 
@@ -509,7 +510,9 @@ One code commit, `584524ec5`:
 Found while building, fixed in the same commit:
 
 - An edit copy shared `char_sdesc` with the live object and both freed it: the iedit commit of
-  a corpse ended in a double free. `copy_object_strings()` now duplicates it.
+  a corpse ended in a double free. `copy_object_strings()` now duplicates it. The review of phase
+  3 found the same double free on its own, and `ddacf712f` is the same line, so the two merge
+  requests share one copy of it.
 - A new prototype kept the event and registry fields of whatever its slot held, and a slot at
   the end of the table is not initialised.
 - The preview copy of #29 took the list, hash and holder links of the object it previews. The
