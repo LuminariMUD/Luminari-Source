@@ -9,6 +9,8 @@ High-level plan for work items
 [#1](https://gitlab.com/max757/Luminari-Source/-/work_items/1). Written 2026-10-05 against
 master `cdcbf1db0`. One work item is one phase. Causes below were read from the code on that
 commit, not run, unless a line says otherwise.
+[#30](https://gitlab.com/max757/Luminari-Source/-/work_items/30) was found in phase 3 and is
+phase 7.
 
 ## Phases
 
@@ -16,10 +18,11 @@ commit, not run, unless a line says otherwise.
 | -- | -- | -- | -- | -- |
 | 1 | #19 | A saved special ability with no command word is rejected at load | One parser, tests | Merged 2026-10-05: [MR !23](https://gitlab.com/max757/Luminari-Source/-/merge_requests/23), `5523e04a0` |
 | 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Merged 2026-10-05: [MR !24](https://gitlab.com/max757/Luminari-Source/-/merge_requests/24), `0efe4d145` |
-| 3 | #15 | An object with no prototype leaks its arcane mark | One free path, one test | Not started |
+| 3 | #15 | An object with no prototype leaks its arcane mark | One free path, two tests | In review: [MR !25](https://gitlab.com/max757/Luminari-Source/-/merge_requests/25), tag `object-save-fixes-p3` |
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Not started |
 | 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
 | 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
+| 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | Not started |
 
 Why this order:
 
@@ -32,6 +35,9 @@ Why this order:
   freed. #16 and #17 both change the leaving save's extraction in `src/obj/objsave.c`, so they
   run one after the other, never side by side.
 - #1 last. It shares no code with the others and can move anywhere in the order.
+- #30 straight after #15, where it was found, and before #17: phase 5 makes `extract_obj()`
+  follow the sheath pointers, and an object copy must first stop carrying or dropping them. It
+  shares no code with #16.
 
 ## Every phase
 
@@ -293,6 +299,78 @@ or the change becomes a double free: `add_object()` (`src/olc/genobj.c:41`), the
 `Test_object_saves_bind_player_house_and_serialized_text`. The sanitizer and valgrind jobs of
 the matrix then fail without the fix and pass with it.
 
+### Built 2026-10-06
+
+Branch `15-an-object-with-no-prototype-leaks-its-arcane-mark-when-freed`, MR !25, tag
+`object-save-fixes-p3`.
+
+- `free_object_strings()` frees `arcane_mark` (`79a3c99ed`).
+- The check before the change held. Each other caller frees the object or writes over it
+  afterwards, and each of those objects owns its mark or has none: `add_object()` copies the
+  edited object over the prototype and `copy_object_main()` duplicates the mark; the OLC cleanup
+  and the iedit commit free an edit copy whose mark `copy_object()` duplicated; the spec fixture
+  frees a prototype from `parse_object()`, which reads no mark. The iedit commit leaked its edit
+  copy's mark the same way, and no longer does.
+- The prototype teardown in `destroy_db()`, which #15 names, frees by hand and does not call the
+  function. No prototype carries a mark: no world-file field and no editor field sets one.
+- The plan's test alone would not have shown the leak to the valgrind job:
+  `Test_object_saves_bind_player_house_and_serialized_text` needs a database and
+  `test-memory-check` has none. `Test_object_without_a_prototype_frees_its_arcane_mark` needs
+  none. It saves and loads a marked object through the file loader, compares the mark and
+  extracts both objects.
+
+Found while building:
+
+- `copy_object()` sent every target through `free_object_strings_proto()`, which compares the
+  target's strings with its prototype's. For a target with no prototype that read
+  `obj_proto[-1]`; the iedit commit reaches it with any live object that has no prototype. It
+  now chooses as `free_obj()` does (`a0757112c`). It is the second commit of the merge request.
+  `Test_gameplay_object_editor_copy_frees_an_object_with_no_prototype` copies over such an
+  object with no prototype table at all, and ends in SIGSEGV before the change.
+- An OLC save of a prototype leaves each live object of it with the prototype's
+  special-ability list, which the first extraction then frees under the prototype. Seen under
+  valgrind with a probe test, filed as #30, and phase 7 of this plan: it is not a free path of
+  #15, and its fix changes what every object copy keeps.
+
+Verification, on `a0757112c`:
+
+- Without the fix (`free_object_strings()` as on master, both tests in place): under valgrind
+  each test loses its two marks. Of the matrix, `test-memory-check` fails on the new test's two
+  blocks and `test-sanitizers-gcc-address-undefined` reports all four.
+- With it: both tests are clean under valgrind, with the database tests on and off.
+- `make -j16 test`: 2041 tests pass. `make install` done.
+- `./cutest` with the database tests on, first run on a fresh database: 2041 of 2041 pass.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (340 s).
+
+### Review 2026-10-06
+
+One finding, fixed in the commit after the tag:
+
+- `copy_object_strings()` duplicated every string `free_object_strings()` frees except
+  `char_sdesc`, a corpse's description of the fallen. An `iedit` of a corpse, an object with no
+  prototype, made an edit copy that shared it with the live corpse: the commit freed it from the
+  corpse and again from the edit copy, and the corpse kept the freed pointer until its decay freed
+  it a third time. A disconnect during the edit freed it from the edit copy alone, under the live
+  corpse. On master the same path freed it from `free_object_strings_proto()` after reading
+  `obj_proto[-1]`; `a0757112c` removed the read and kept the double free, and the test of that
+  commit set no `char_sdesc`, so neither sanitizer job saw it.
+- `ddacf712f`: `copy_object_strings()` duplicates `char_sdesc`. Every copy it fills is freed by
+  `free_object_strings()` or `free_object_strings_proto()`, and both free `char_sdesc`.
+  `Test_gameplay_object_editor_copy_frees_an_object_with_no_prototype` gives both objects a
+  description of their own, checks that the target gets the source's text at an address of its
+  own, and frees both. It fails on the shared pointer before the change.
+- Phase 7 had met the same double free through the `iedit` commit and `584524ec5` carries the
+  same line. Its branch has this commit merged in, so the two merge requests share one copy of
+  the line and MR !26 merges cleanly after MR !25.
+
+Verification, on `ddacf712f`:
+
+- Without the fix, the test fails on the shared pointer. With it, the two editor-copy tests and
+  `Test_object_without_a_prototype_frees_its_arcane_mark` are clean under valgrind.
+- `make -j16 test`: 2041 tests pass. `make install` done.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (281 s); `test-unit-tests` runs
+  the suite with the database tests on.
+
 ## Phase 4: #16 bagged objects of a leaving character
 
 **Cause.** `empty_bags_to_inventory()` (`src/core/handler.c:4262`) only unlinks each bagged
@@ -373,6 +451,34 @@ grants Extra Arms.
 
 **Done when.** The reference prices every arm source, the audit result is in the item, and no
 text says the price is open.
+
+## Phase 7: #30 object copies in OLC
+
+**Cause.** `update_all_objects()` (`src/olc/genobj.c`) writes the new prototype over every live
+object of it (`*obj = *refobj`) and puts back a list of runtime fields. `copy_object_main()`
+does the same for one object, with a shorter list of its own: the iedit commit goes through it,
+and so does the preview copy of work item #29. Both lists are older than fields the struct has
+gained.
+
+**Seen 2026-10-06, under valgrind, on master `ee42019ed`.** A prototype with one special
+ability, one live object with an arcane mark, then `oedit_save_internally()`. Afterwards the
+live object's list pointer is the prototype's, and its own list and mark are lost. Extracting
+it frees the block the prototype still points to.
+
+**Read, not run.** The same save resets `next_in_hash` / `prev_in_hash` of each live object
+while it is still on its `obj_rnum_hash` chain, and drops `sheath_primary` /
+`sheath_secondary`, `trap`, `next_gitem`, `limb_restore_slot` and the `rol_*` state. The
+spellbook array is shared as the ability list is. The iedit commit writes back the hash links
+and sheath pointers the object had when the edit began.
+
+**Fix.** One list of what an object keeps when a definition is written over it, used by both
+functions. Before a prototype is replaced, each live object releases what it owns, as
+`free_obj()` does; after the copy it gets copies of its own of what `read_object()` copies.
+
+**Tests.** An OLC save with a live object that has abilities, a spellbook, a mark and a
+neighbour on its hash chain: its lists are its own, `get_obj_num()` still finds the neighbour,
+and extracting it leaves the prototype whole. An iedit commit after the hash chain changed:
+the live object keeps its current links. Both under the sanitizer and memory-check jobs.
 
 ## Left out
 

@@ -481,6 +481,8 @@ void free_object_strings(struct obj_data *obj)
   /* Free corpse-specific fields */
   if (obj->char_sdesc)
     free(obj->char_sdesc);
+  if (obj->arcane_mark)
+    free(obj->arcane_mark);
   if (obj->restring_identifier)
     free(obj->restring_identifier);
 }
@@ -557,6 +559,7 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
   to->description = from->description ? strdup(from->description) : NULL;
   to->short_description = from->short_description ? strdup(from->short_description) : NULL;
   to->action_description = from->action_description ? strdup(from->action_description) : NULL;
+  to->char_sdesc = from->char_sdesc ? strdup(from->char_sdesc) : NULL;
   to->arcane_mark = from->arcane_mark ? strdup(from->arcane_mark) : NULL;
   /* Ensure restring_identifier is deep-copied so prototypes don't share OLC buffers */
   to->restring_identifier = from->restring_identifier ? strdup(from->restring_identifier) : NULL;
@@ -569,8 +572,12 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
 
 int copy_object(struct obj_data *to, struct obj_data *from)
 {
-  /* Free strings safely for object instances that may share prototype strings. */
-  free_object_strings_proto(to);
+  /* An instance may share strings with its prototype. An object with no
+   * prototype owns every string it has, and has no entry to compare them with. */
+  if (GET_OBJ_RNUM(to) == NOTHING)
+    free_object_strings(to);
+  else
+    free_object_strings_proto(to);
   return copy_object_main(to, from, TRUE);
 }
 

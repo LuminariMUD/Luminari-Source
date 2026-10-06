@@ -3072,12 +3072,7 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
             strstr(record, "\nSpAb: 0 0 0 0 0 0 0 cccc") != NULL &&
             strstr(record, "\nActv: ") != NULL && strstr(record, "EDes:\nlarge~") == NULL &&
             strstr(record, "EDes:\nsmall~\nyyyy") != NULL;
-  free(full->arcane_mark);
-  full->arcane_mark = NULL;
   extract_obj(full);
-
-  free(obj->arcane_mark);
-  obj->arcane_mark = NULL;
   extract_obj(obj);
   fclose(fixture);
   conn = saved_conn;
@@ -3127,6 +3122,37 @@ static void extract_loaded_objects(obj_save_data *loaded)
     extract_obj(entry->obj);
     free(entry);
   }
+}
+
+/* An object with no prototype owns its arcane mark. The file loader gives the
+ * loaded object a mark of its own, and each mark goes with its object: the
+ * sanitizer and memory-check jobs fail on one that is left behind. */
+void Test_object_without_a_prototype_frees_its_arcane_mark(CuTest *tc)
+{
+  struct char_data owner;
+  struct player_special_data specials = {0};
+  struct obj_data *obj;
+  obj_save_data *loaded;
+  FILE *fixture;
+  bool marked;
+
+  fixture = tmpfile();
+  CuAssertPtrNotNull(tc, fixture);
+  clear_char(&owner);
+  owner.player_specials = &specials;
+  owner.player.name = CuMutableString("MarkOwner");
+  obj = create_obj();
+  obj->arcane_mark = strdup("Maker's mark");
+
+  marked = test_objsave_save_obj_record(obj, &owner, fixture, 0) && rewind_stream(fixture);
+  loaded = marked ? objsave_parse_objects(fixture) : NULL;
+  marked = loaded != NULL && loaded->next == NULL && GET_OBJ_RNUM(loaded->obj) == NOTHING &&
+           loaded->obj->arcane_mark != NULL && loaded->obj->arcane_mark != obj->arcane_mark &&
+           strcmp(loaded->obj->arcane_mark, obj->arcane_mark) == 0;
+  extract_loaded_objects(loaded);
+  extract_obj(obj);
+  fclose(fixture);
+  CuAssertTrue(tc, marked);
 }
 
 /* An ability with no command word is saved as seven numbers and an empty
