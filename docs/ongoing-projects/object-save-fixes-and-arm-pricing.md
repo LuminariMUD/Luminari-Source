@@ -343,6 +343,35 @@ Verification, on `a0757112c`:
 - `./cutest` with the database tests on, first run on a fresh database: 2041 of 2041 pass.
 - `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (340 s).
 
+### Review 2026-10-06
+
+One finding, fixed in the commit after the tag:
+
+- `copy_object_strings()` duplicated every string `free_object_strings()` frees except
+  `char_sdesc`, a corpse's description of the fallen. An `iedit` of a corpse, an object with no
+  prototype, made an edit copy that shared it with the live corpse: the commit freed it from the
+  corpse and again from the edit copy, and the corpse kept the freed pointer until its decay freed
+  it a third time. A disconnect during the edit freed it from the edit copy alone, under the live
+  corpse. On master the same path freed it from `free_object_strings_proto()` after reading
+  `obj_proto[-1]`; `a0757112c` removed the read and kept the double free, and the test of that
+  commit set no `char_sdesc`, so neither sanitizer job saw it.
+- `ddacf712f`: `copy_object_strings()` duplicates `char_sdesc`. Every copy it fills is freed by
+  `free_object_strings()` or `free_object_strings_proto()`, and both free `char_sdesc`.
+  `Test_gameplay_object_editor_copy_frees_an_object_with_no_prototype` gives both objects a
+  description of their own, checks that the target gets the source's text at an address of its
+  own, and frees both. It fails on the shared pointer before the change.
+- Phase 7 had met the same double free through the `iedit` commit and `584524ec5` carries the
+  same line. Its branch has this commit merged in, so the two merge requests share one copy of
+  the line and MR !26 merges cleanly after MR !25.
+
+Verification, on `ddacf712f`:
+
+- Without the fix, the test fails on the shared pointer. With it, the two editor-copy tests and
+  `Test_object_without_a_prototype_frees_its_arcane_mark` are clean under valgrind.
+- `make -j16 test`: 2041 tests pass. `make install` done.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (281 s); `test-unit-tests` runs
+  the suite with the database tests on.
+
 ## Phase 4: #16 bagged objects of a leaving character
 
 **Cause.** `empty_bags_to_inventory()` (`src/core/handler.c:4262`) only unlinks each bagged
