@@ -559,6 +559,7 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
   to->description = from->description ? strdup(from->description) : NULL;
   to->short_description = from->short_description ? strdup(from->short_description) : NULL;
   to->action_description = from->action_description ? strdup(from->action_description) : NULL;
+  to->char_sdesc = from->char_sdesc ? strdup(from->char_sdesc) : NULL;
   to->arcane_mark = from->arcane_mark ? strdup(from->arcane_mark) : NULL;
   /* Ensure restring_identifier is deep-copied so prototypes don't share OLC buffers */
   to->restring_identifier = from->restring_identifier ? strdup(from->restring_identifier) : NULL;

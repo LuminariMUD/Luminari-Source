@@ -7358,7 +7358,8 @@ void Test_gameplay_object_editor_copy_preserves_live_transfer_state(CuTest *tc)
 
 /* The editor copy frees what the live object held. An object with no
  * prototype owns every string it has, and no prototype entry is read for it:
- * here there is no prototype table at all. */
+ * here there is no prototype table at all. A corpse's description of the
+ * fallen is a string of each object's own, like the rest. */
 void Test_gameplay_object_editor_copy_frees_an_object_with_no_prototype(CuTest *tc)
 {
   struct obj_data *saved_proto = obj_proto;
@@ -7367,16 +7368,22 @@ void Test_gameplay_object_editor_copy_frees_an_object_with_no_prototype(CuTest *
   clear_object(&source);
   clear_object(&live);
   source.name = strdup("edited blade");
+  source.char_sdesc = strdup("the fallen");
   live.name = strdup("live blade");
+  live.char_sdesc = strdup("the forgotten");
   live.arcane_mark = strdup("Maker's mark");
   obj_proto = NULL;
   copy_object(&live, &source);
   obj_proto = saved_proto;
 
   CuAssertStrEquals(tc, "edited blade", live.name);
+  CuAssertStrEquals(tc, "the fallen", live.char_sdesc);
+  CuAssertTrue(tc, live.char_sdesc != source.char_sdesc);
   CuAssertPtrEquals(tc, NULL, live.arcane_mark);
   free(live.name);
+  free(live.char_sdesc);
   free(source.name);
+  free(source.char_sdesc);
 }
 
 static void verify_native_transport(CuTest *tc, int mode)
