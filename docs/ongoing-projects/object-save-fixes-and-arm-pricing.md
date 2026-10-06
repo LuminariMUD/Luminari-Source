@@ -18,7 +18,7 @@ phase 7.
 | -- | -- | -- | -- | -- |
 | 1 | #19 | A saved special ability with no command word is rejected at load | One parser, tests | Merged 2026-10-05: [MR !23](https://gitlab.com/max757/Luminari-Source/-/merge_requests/23), `5523e04a0` |
 | 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Merged 2026-10-05: [MR !24](https://gitlab.com/max757/Luminari-Source/-/merge_requests/24), `0efe4d145` |
-| 3 | #15 | An object with no prototype leaks its arcane mark | One free path, two tests | In review: [MR !25](https://gitlab.com/max757/Luminari-Source/-/merge_requests/25), tag `object-save-fixes-p3` |
+| 3 | #15 | An object with no prototype leaks its arcane mark | One free path, two tests | Merged 2026-10-06: [MR !25](https://gitlab.com/max757/Luminari-Source/-/merge_requests/25), `5fd630349` |
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Not started |
 | 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
 | 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
@@ -371,6 +371,8 @@ Verification, on `ddacf712f`:
 - `make -j16 test`: 2041 tests pass. `make install` done.
 - `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (281 s); `test-unit-tests` runs
   the suite with the database tests on.
+
+Merged 2026-10-06 as merge commit `5fd630349`; #15 is closed.
 
 ## Phase 4: #16 bagged objects of a leaving character
 
