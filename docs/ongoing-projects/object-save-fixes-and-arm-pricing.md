@@ -549,6 +549,73 @@ Verification, on `584524ec5`:
 - `./cutest` with the database tests on, first run on a fresh database: 2044 of 2044 pass.
 - `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (1457 s).
 
+### Review 2026-10-07
+
+Five findings, three of them use-after-frees reproduced under ASan by the reviewer. All are
+fixed in the two commits after the tag.
+
+`8e7b0b073`, pre-existing: `adjust_objects()` and `delete_object()` renumbered live objects but
+left them on the hash chain of the old rnum, and the next `read_object()` into that bucket wrote
+into a freed object. Each renumbered object now moves to the chain of its new rnum. Found on the
+same loops and fixed with them:
+
+- `delete_object()` also renumbered objects with no prototype. NOTHING is the largest rnum, so a
+  corpse took a bogus rnum that `extract_obj()` used as an `obj_index` subscript. An insert
+  turned a notice board with no object into rnum 0.
+- A mail letter or a forged note has rnum 1 and is on no chain (filed as #31). Removing it from
+  the hash emptied whatever chain held that bucket. `remove_obj_from_rnum_hash()` now leaves a
+  chain the object does not head alone.
+- `delete_object()` never freed the deleted prototype's strings and trigger list.
+
+`dd9732777`, the other four:
+
+- Data loss: an OLC save of a carrier prototype (`WEAPON_PROTO` and the rest) rewrote every
+  generated item in the game. Any save also took restrings, arcane marks, scribed pages, a
+  disenchanted essence's level and a resized item's size. `update_all_objects()` now gives a
+  live object the new definition field by field where it still held the old prototype's, and
+  keeps the rest, as a reload from a save would. This replaces "what an OLC save does to a live
+  object is unchanged" above.
+- The save dropped each live object's script while it stayed registered for random and time
+  triggers. The save no longer touches the script, and `overwrite_object()` keeps the target's.
+- `overwrite_object()` kept a live target's hash links but took the source's rnum. A live target
+  now keeps its rnum.
+- Pre-existing: a save or an iedit commit replaced the weight in place, and the totals of the
+  containers and the carrier around the object went out of step. Both now carry the change to
+  them, as `obj_to_obj()` counts it.
+- Found while fixing: the save lost the old prototype's trigger list and each live object's
+  trigger list. Both are freed now.
+
+Decided with the fix:
+
+- An ability or spellbook page the builder edits in place reaches the live objects at their next
+  load, not at the save. The oedit copy shares those lists with the prototype, so the old
+  prototype already shows the edit when the save compares. An added or cleared ability does reach
+  them.
+- An ability list or spellbook that still matched the old prototype is replaced by a copy and
+  given up, not freed, as before: #29's preview copy and an open iedit copy can point at it.
+- `MAX_TEST_CASES` rises from 2048 to 4096: the suite now has 2049 tests.
+
+Tests, in `unittests/CuTest/test_gameplay_e2e.c`:
+
+- `Test_gameplay_object_renumber_keeps_the_hash_and_unnumbered_objects`
+- `Test_gameplay_object_prototype_save_keeps_what_each_object_made_its_own`
+- `Test_gameplay_object_overwrite_keeps_weight_totals`
+- `Test_gameplay_object_prototype_save_extracts_live_scripts`
+- `Test_gameplay_object_copy_keeps_a_live_targets_rnum`
+- `Test_gameplay_object_prototype_save_leaves_live_objects_whole` now expects the restrung and
+  marked object to keep its name and mark.
+
+Verification, on `dd9732777`:
+
+- Each new test fails on `6a55903f5`. The renumber test ends there in a segmentation fault, and
+  also fails without the chain check in `remove_obj_from_rnum_hash()`.
+- The 11 object tests are clean under valgrind.
+- `make -j16 test`: 2049 tests pass. `make install` done.
+- `./cutest` with the database tests on, first run on a fresh database: 2049 of 2049 pass.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (577 s), the olc
+  changed lines 99.39% covered. The clang-tidy gate first found `memcmp()` on pointer fields;
+  they are compared directly now.
+
 ## Left out
 
 - A `pet_save_objs_sheathed` table (#17): the house rule already covers it without a schema
