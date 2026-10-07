@@ -22,7 +22,7 @@ phase 7.
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Not started |
 | 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
 | 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
-| 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | In review: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), tag `object-save-fixes-p7` |
+| 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | Merged 2026-10-07: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), `632b50242` |
 
 Why this order:
 
@@ -615,6 +615,8 @@ Verification, on `dd9732777`:
 - `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (577 s), the olc
   changed lines 99.39% covered. The clang-tidy gate first found `memcmp()` on pointer fields;
   they are compared directly now.
+
+Merged 2026-10-07 as merge commit `632b50242`; #30 is closed.
 
 ## Left out
 
