@@ -20,7 +20,7 @@ phase 7.
 | 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Merged 2026-10-05: [MR !24](https://gitlab.com/max757/Luminari-Source/-/merge_requests/24), `0efe4d145` |
 | 3 | #15 | An object with no prototype leaks its arcane mark | One free path, two tests | Merged 2026-10-06: [MR !25](https://gitlab.com/max757/Luminari-Source/-/merge_requests/25), `5fd630349` |
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Merged 2026-10-07: [MR !27](https://gitlab.com/max757/Luminari-Source/-/merge_requests/27), `f26c9b0ed` |
-| 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
+| 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | In review 2026-10-07: [MR !28](https://gitlab.com/max757/Luminari-Source/-/merge_requests/28), tag `object-save-fixes-p5` |
 | 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
 | 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | Merged 2026-10-07: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), `632b50242` |
 
@@ -548,6 +548,75 @@ back and the record set is accepted. A loaded sheath extracted: both weapons lea
 `object_list`.
 
 **Docs.** The pet rule in `docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`.
+
+### Built 2026-10-07
+
+Branch `17-a-loaded-sheath-loses-its-weapons-on-a-pet-and-leaks-them-when-extracted`, from
+master `0b88bb81d`, MR !28, tag `object-save-fixes-p5`. The worktree is on it.
+
+Three commits:
+
+- `59bc44f45`: `extract_obj()` extracts what a sheath holds, beside the loop that extracts a
+  container's contents. Nothing nulls the pointers afterwards: the sheath is freed in the same
+  call.
+- `2b8959cdd`: `Crash_save_pet()` writes a sheath's weapons as the pet's own objects beside the
+  sheath, through the pet record writer, as `House_save()` does. A worn sheath's weapons are
+  written at `MIN(0, location)`, inventory records; a carried sheath's at its own depth, so a
+  sheath in a bag puts its weapons in the bag. The restored pet carries the weapons and an empty
+  sheath.
+- `4a9bd579b`: the pet test also refuses a weapon's row, the blade's and then the shield's; each
+  attempt fails the save, as any refused row does, and leaves the records written before it.
+  The first matrix had left those two failure lines uncovered.
+
+The check before the change held, with nothing to change: `overwrite_object()` keeps a target's
+own sheath pointers (phase 7), every writer's temporary object comes from `read_object()` or
+`create_obj()`, and the editors free their copies with `free_object_strings()`, never
+`extract_obj()`. `pet_object_graph_valid()` needs no change either: weapons at the sheath's own
+depth are its siblings, and a worn sheath's go to the inventory.
+
+Found while building:
+
+- The leak #17 describes never showed in the memory-check or sanitizer jobs, and could not
+  have: a weapon left behind stays on its rnum hash chain, so valgrind and LeakSanitizer count
+  it as still reachable. `Test_house_save_stores_a_sheaths_weapons_as_its_own` is clean under
+  valgrind with and without the fix. The extraction test watches `object_list` instead.
+- The player sheath loader logs a debug trace (`SHEATH1` to `SHEATH6`, `SHEATH2a` to
+  `SHEATH2g`) and the text of its `SELECT` at every load of a sheath, and `objs_from_sheath()`
+  has no caller. Filed as #33, not changed here.
+
+Left as it is:
+
+- `Crash_extract_norents()` does not walk a sheath's weapons: a rentable sheath keeps a no-rent
+  weapon through a rent, as before.
+
+Tests, both in `unittests/CuTest/test_database_persistence.c`:
+
+- `Test_object_extraction_takes_a_sheaths_weapons`, no database: a sheath and its two weapons;
+  extracting the sheath leaves `object_list` as it was.
+- `Test_pet_save_stores_a_sheaths_weapons_as_its_own`, database: a pet with a worn sheath
+  holding a blade and a shield, and a carried sheath holding a dagger, through `pet_save_objs()`
+  and `pet_load_objs()`: five rows, one of them with a wear position, and the restored pet wears
+  an empty sheath and carries the other sheath, empty, and the three weapons.
+- `Test_house_save_stores_a_sheaths_weapons_as_its_own` no longer extracts its weapons by hand:
+  the teardown's extraction of the sheath takes them.
+
+`docs/systems/SAVE_SYSTEMS_BREAKDOWN.md` has the pet rule, in the pets section.
+
+Verification:
+
+- Both new tests fail on the code of `0b88bb81d`: the extraction test with the two weapons
+  still in `object_list`, the pet test with 2 rows written instead of 5.
+- The two new tests, the house sheath test and the refused-row save test are clean under
+  valgrind, with the database tests on.
+- `make -j16 test` on `4a9bd579b`: 2055 tests pass. `make install` done.
+- `./cutest` with the database tests on, on a database freshly built from `sql/master_schema.sql`:
+  2055 of 2055 pass.
+- `python3 scripts/ci/local/run.py --base gitlab/master` on `2b8959cdd`: 33 of 33 jobs pass
+  (522 s); the unit, sanitizer and memory-check jobs run 2055 tests each. The persistence changed
+  lines were 4 of 6 covered, above the floor, the two uncovered being the refusals `4a9bd579b`
+  then covered.
+- On `4a9bd579b`: 33 of 33 jobs pass (256 s); the unit, sanitizer and memory-check jobs run 2055
+  tests each, and the persistence changed lines are 100% covered.
 
 ## Phase 6: #1 price Extra Arms and the monk third hand
 
