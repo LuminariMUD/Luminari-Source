@@ -477,6 +477,51 @@ Verification:
   sanitizer and memory-check jobs run 2051 tests each, and the persistence changed lines are
   100% covered.
 
+### Review 2026-10-07
+
+Three findings, two of them crashes reproduced by the reviewer. All are fixed in the three commits
+after the tag.
+
+- `f14da1d13`, high: the mobile crash `0980ae2dc` fixed for `sortto`, `sortfrom` and `bags` was
+  still reachable through `put <item> bagN` and `get <item|all> bagN`, which share
+  `sort_object_bag()` with the sort commands. The refusal moves from `do_sort()` to the top of
+  `sort_object_bag()`; every `do_sort()` path that touches a bag ends there, and the sort-to path
+  is refused before `obj_from_char()`, so nothing is left held by no one.
+- `edf0ce122`, high: the extraction loop called `get_char_bag()` for every player, and a player
+  body built for a staff command (`stat file` for a player who is not online) has no bag storage,
+  as a mobile has none. `get_char_bag()` now returns NULL for a character without bag storage,
+  which also covers the loop in `objsave_save_and_extract()`; the extraction loop drops its
+  mobile check. Through `stat file` the body never reaches `extract_char_final()`: it is not on
+  `character_list`, so the pending extraction is logged and the body stays in room 0, unfreed.
+  That pre-existing `do_stat()` defect is work item #32.
+- `f6e48f0e9`, low: the empty save a leave without a save writes was tried once and its failure
+  ignored, so a lost connection left the last save's rows beside the objects in the room. It is
+  tried twice now, as the leaving saves are, and after two failures the staff are told. This
+  replaces "the writer logs the failure" under "Left as it is" above.
+
+Tests:
+
+- `Test_gameplay_bag_commands_refuse_a_character_without_bags` adds put and both forms of get:
+  eight refusals, the gem still carried.
+- `Test_gameplay_extraction_of_a_player_body_without_bags`: a body built as `stat file` builds
+  one, put in a room and extracted; the room is as it was.
+- `Test_leaving_without_a_save_writes_the_empty_save_again_and_tells_the_staff`: the connection
+  goes at the first attempt's delete and the second attempt empties the save; then the database
+  is away for both attempts, the last save stands and the staff hear of it. Needs the database.
+
+Verification, on `f6e48f0e9`:
+
+- Each new test fails on `0a662d23a`: the first two end in SIGSEGV in `get_char_bag()`, the
+  third with the last save's row still there.
+- The five bag and leaving tests are clean under valgrind, the three leaving tests with the
+  database on.
+- `make -j16 test`: 2053 tests pass. `make install` done.
+- `./cutest` with the database tests on, on a database freshly built from `sql/master_schema.sql`:
+  2053 of 2053 pass.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (552 s); the unit,
+  sanitizer and memory-check jobs run 2053 tests each, and the persistence changed lines are
+  100% covered.
+
 ## Phase 5: #17 loaded sheath on a pet and at extraction
 
 **Cause.** A sheath's weapons hang off `sheath_primary` and `sheath_secondary`. Only the player
