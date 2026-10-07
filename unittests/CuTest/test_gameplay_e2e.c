@@ -15346,3 +15346,57 @@ void Test_gameplay_sheathed_weapon_extracted_alone_leaves_its_slot(CuTest *tc)
   CuAssertTrue(tc, left);
   CuAssertPtrEquals(tc, saved_objects, object_list);
 }
+
+/* Deleting a sheath's prototype hands its weapons to the wearer, as it hands
+ * a container's contents over, and the walk over the instances does not
+ * resume on a weapon the sheath took with it. Before, the weapons were
+ * destroyed with the sheath, and the walk read the freed weapon created just
+ * before the sheath, its next in object_list. */
+void Test_gameplay_object_delete_hands_a_sheaths_weapons_to_its_wearer(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct object_table_fixture t;
+  struct obj_data *saved_objects = object_list;
+  struct obj_data *sheath, *blade, *off, *obj;
+  bool sheathed, deleted, handed, renumbered;
+  int carried = 0;
+
+  begin_gameplay_fixture(&f);
+  begin_object_table(&t, 2);
+  obj_proto[0].short_description = strdup("a sheath");
+  SET_BIT_AR(GET_OBJ_WEAR(&obj_proto[0]), ITEM_WEAR_SHEATH);
+  obj_proto[1].short_description = strdup("a dagger");
+  GET_OBJ_TYPE(&obj_proto[1]) = ITEM_WEAPON;
+  GET_OBJ_VAL(&obj_proto[1], 0) = WEAPON_TYPE_DAGGER;
+
+  /* The weapons come before the sheath: object_list is prepended, so the
+   * sheath's next is the off-hand dagger. */
+  blade = read_object(1, REAL);
+  off = read_object(1, REAL);
+  sheath = read_object(0, REAL);
+  equip_char(&f.actor, sheath, WEAR_SHEATH);
+  equip_char(&f.actor, blade, WEAR_WIELD_1);
+  equip_char(&f.actor, off, WEAR_WIELD_OFFHAND);
+  do_sheath(&f.actor, "", 0, 0);
+  sheathed = sheath->next == off && sheath->sheath_primary == blade &&
+             sheath->sheath_secondary == off && f.actor.carrying == NULL;
+
+  deleted = delete_object(0) == 0;
+  for (obj = f.actor.carrying; obj != NULL; obj = obj->next_content)
+    carried++;
+  handed = carried == 2 && blade->carried_by == &f.actor && off->carried_by == &f.actor &&
+           blade->sheathed_in == NULL && off->sheathed_in == NULL &&
+           GET_EQ(&f.actor, WEAR_SHEATH) == NULL;
+  renumbered = GET_OBJ_RNUM(blade) == 0 && GET_OBJ_RNUM(off) == 0 && obj_index[0].number == 2 &&
+               (get_obj_num(0) == blade || get_obj_num(0) == off);
+
+  while (f.actor.carrying != NULL)
+    extract_obj(f.actor.carrying);
+  end_object_table(&t);
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, sheathed);
+  CuAssertTrue(tc, deleted);
+  CuAssertTrue(tc, handed);
+  CuAssertTrue(tc, renumbered);
+  CuAssertPtrEquals(tc, saved_objects, object_list);
+}
