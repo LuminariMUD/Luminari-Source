@@ -19,7 +19,7 @@ phase 7.
 | 1 | #19 | A saved special ability with no command word is rejected at load | One parser, tests | Merged 2026-10-05: [MR !23](https://gitlab.com/max757/Luminari-Source/-/merge_requests/23), `5523e04a0` |
 | 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Merged 2026-10-05: [MR !24](https://gitlab.com/max757/Luminari-Source/-/merge_requests/24), `0efe4d145` |
 | 3 | #15 | An object with no prototype leaks its arcane mark | One free path, two tests | Merged 2026-10-06: [MR !25](https://gitlab.com/max757/Luminari-Source/-/merge_requests/25), `5fd630349` |
-| 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | In review: [MR !27](https://gitlab.com/max757/Luminari-Source/-/merge_requests/27), tag `object-save-fixes-p4` |
+| 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Merged 2026-10-07: [MR !27](https://gitlab.com/max757/Luminari-Source/-/merge_requests/27), `f26c9b0ed` |
 | 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
 | 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
 | 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | Merged 2026-10-07: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), `632b50242` |
@@ -521,6 +521,8 @@ Verification, on `f6e48f0e9`:
 - `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (552 s); the unit,
   sanitizer and memory-check jobs run 2053 tests each, and the persistence changed lines are
   100% covered.
+
+Merged 2026-10-07 as merge commit `f26c9b0ed`; #16 is closed.
 
 ## Phase 5: #17 loaded sheath on a pet and at extraction
 
