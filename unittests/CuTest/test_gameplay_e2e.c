@@ -41,6 +41,7 @@
 #include "../../src/olc/genobj.h"
 #include "../../src/olc/genolc.h"
 #include "../../src/comms/boards.h"
+#include "../../src/dgscript/dg_olc.h"
 #include "../../src/vessels/transport.h"
 #include "../../src/vessels/transport_jobs.h"
 #include "../../src/quest/staff_events.h"
@@ -7466,10 +7467,11 @@ void Test_gameplay_object_new_prototype_takes_nothing_from_its_slot(CuTest *tc)
 }
 
 /* An OLC save of a prototype gives each live object of it the new definition.
- * The object stays where it is and keeps what the running game gave it, the
- * strings it owned are freed, and the lists free_obj() frees with it are
- * copies of its own: extracting one live object leaves the prototype and the
- * other object whole. Here the builder adds an ability and a spellbook page. */
+ * The object stays where it is and keeps what the running game gave it and
+ * what it made its own, here a restring and an arcane mark, and the lists
+ * free_obj() frees with it are copies of its own: extracting one live object
+ * leaves the prototype and the other object whole. Here the builder adds an
+ * ability and a spellbook page. */
 void Test_gameplay_object_prototype_save_leaves_live_objects_whole(CuTest *tc)
 {
   struct obj_data prototype, weapon;
@@ -7520,8 +7522,10 @@ void Test_gameplay_object_prototype_save_leaves_live_objects_whole(CuTest *tc)
 
   took_definition = add_object(edit, index.vnum) == 0 && GET_OBJ_COST(&prototype) == 77 &&
                     GET_OBJ_COST(first) == 77 && GET_OBJ_COST(second) == 77 &&
-                    first->name == prototype.name && first->arcane_mark != NULL &&
-                    !strcmp(first->arcane_mark, "Forge mark");
+                    !strcmp(first->name, "blade restrung") &&
+                    !strcmp(first->arcane_mark, "Maker's mark") && second->name == prototype.name &&
+                    second->arcane_mark != prototype.arcane_mark &&
+                    !strcmp(second->arcane_mark, "Forge mark");
   own_lists = prototype.special_abilities != NULL && first->special_abilities != NULL &&
               second->special_abilities != NULL &&
               first->special_abilities != prototype.special_abilities &&
@@ -7635,11 +7639,322 @@ static void end_object_table(struct object_table_fixture *f)
   top_of_zone_table = f->saved_top_zone;
 }
 
+/* A builder's edit copy of a prototype, as oedit_setup_existing() makes it. */
+static struct obj_data *object_edit_copy(obj_rnum rnum)
+{
+  struct obj_data *edit;
+
+  CREATE(edit, struct obj_data, 1);
+  clear_object(edit);
+  copy_object(edit, &obj_proto[rnum]);
+  return edit;
+}
+
 /* The edit copy handed its lists to the prototype; its strings are its own. */
 static void free_object_edit_copy(struct obj_data *edit)
 {
   free_object_strings(edit);
   free(edit);
+}
+
+/* An OLC save leaves a live object what it made its own and gives it the rest
+ * of the new definition: a generated item keeps its name, dice, level, bonus,
+ * abilities and restring, an essence its level, a spellbook the page written
+ * into it, and each takes the new cost. An extra description of its own keeps
+ * its place in front of the prototype's. Strings, abilities and pages that
+ * still matched the old prototype become the new one's. */
+void Test_gameplay_object_prototype_save_keeps_what_each_object_made_its_own(CuTest *tc)
+{
+  struct object_table_fixture f;
+  struct obj_data *proto, *edit, *plain, *generated, *essence, *scribed;
+  struct obj_special_ability *added, *own_ability, *given_up[3];
+  struct obj_spellbook_spell *given_up_pages[3];
+  struct extra_descr_data *own_desc;
+  bool plain_follows, generated_kept, essence_kept, scribed_kept;
+  int i;
+
+  begin_object_table(&f, 1);
+  proto = &obj_proto[0];
+  proto->name = strdup("sword plain");
+  proto->short_description = strdup("a plain sword");
+  CREATE(proto->ex_description, struct extra_descr_data, 1);
+  proto->ex_description->keyword = strdup("sword");
+  proto->ex_description->description = strdup("A plain sword.\n");
+  GET_OBJ_TYPE(proto) = ITEM_WEAPON;
+  GET_OBJ_VAL(proto, 1) = 1;
+  GET_OBJ_VAL(proto, 2) = 6;
+  GET_OBJ_LEVEL(proto) = 5;
+  GET_OBJ_COST(proto) = 100;
+  GET_OBJ_WEIGHT(proto) = 4;
+  CREATE(proto->special_abilities, struct obj_special_ability, 1);
+  proto->special_abilities->ability = WEAPON_SPECAB_KEEN;
+  CREATE(proto->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+  proto->sbinfo[0].spellname = SPELL_MAGIC_MISSILE;
+  proto->sbinfo[0].pages = 1;
+
+  plain = read_object(0, REAL);
+  essence = read_object(0, REAL);
+  GET_OBJ_LEVEL(essence) = 12;
+  scribed = read_object(0, REAL);
+  scribed->sbinfo[1].spellname = SPELL_SHIELD;
+  scribed->sbinfo[1].pages = 1;
+
+  /* Made from the prototype as a carrier, as treasure and crafting do. */
+  generated = read_object(0, REAL);
+  generated->name = strdup("sword flaming");
+  generated->short_description = strdup("a flaming sword");
+  GET_OBJ_VAL(generated, 1) = 2;
+  GET_OBJ_VAL(generated, 2) = 8;
+  GET_OBJ_LEVEL(generated) = 20;
+  generated->affected[0].location = APPLY_STR;
+  generated->affected[0].modifier = 2;
+  generated->restring_identifier = strdup("flaming");
+  free_obj_special_abilities(generated->special_abilities);
+  CREATE(own_ability, struct obj_special_ability, 1);
+  own_ability->ability = WEAPON_SPECAB_FLAMING;
+  generated->special_abilities = own_ability;
+  CREATE(own_desc, struct extra_descr_data, 1);
+  own_desc->keyword = strdup("flaming");
+  own_desc->description = strdup("Flames lick the blade.\n");
+  own_desc->next = generated->ex_description;
+  generated->ex_description = own_desc;
+
+  edit = object_edit_copy(0);
+  free(edit->name);
+  edit->name = strdup("sword steel");
+  free(edit->ex_description->description);
+  edit->ex_description->description = strdup("A steel sword.\n");
+  GET_OBJ_VAL(edit, 2) = 8;
+  GET_OBJ_LEVEL(edit) = 6;
+  GET_OBJ_COST(edit) = 150;
+  GET_OBJ_WEIGHT(edit) = 5;
+  CREATE(added, struct obj_special_ability, 1);
+  added->ability = WEAPON_SPECAB_FLAMING_BURST;
+  added->next = edit->special_abilities;
+  edit->special_abilities = added;
+
+  /* An ability list or spellbook that still matched the old prototype's is
+   * replaced by a copy of the new one's and given up, not freed:
+   * follow_prototype(). */
+  given_up[0] = plain->special_abilities;
+  given_up[1] = essence->special_abilities;
+  given_up[2] = scribed->special_abilities;
+  given_up_pages[0] = plain->sbinfo;
+  given_up_pages[1] = essence->sbinfo;
+  given_up_pages[2] = generated->sbinfo;
+  CuAssertIntEquals(tc, 0, (int)add_object(edit, 91001));
+  plain_follows =
+      plain->name == proto->name && !strcmp(plain->name, "sword steel") &&
+      plain->ex_description == proto->ex_description && GET_OBJ_VAL(plain, 2) == 8 &&
+      GET_OBJ_LEVEL(plain) == 6 && GET_OBJ_COST(plain) == 150 && GET_OBJ_WEIGHT(plain) == 5 &&
+      plain->special_abilities != proto->special_abilities && plain->special_abilities != NULL &&
+      plain->special_abilities->next != NULL && plain->sbinfo != NULL &&
+      plain->sbinfo != given_up_pages[0] && plain->sbinfo != proto->sbinfo &&
+      plain->sbinfo[0].spellname == SPELL_MAGIC_MISSILE;
+  generated_kept = !strcmp(generated->name, "sword flaming") &&
+                   !strcmp(generated->short_description, "a flaming sword") &&
+                   GET_OBJ_VAL(generated, 1) == 2 && GET_OBJ_VAL(generated, 2) == 8 &&
+                   GET_OBJ_LEVEL(generated) == 20 && generated->affected[0].modifier == 2 &&
+                   generated->special_abilities == own_ability && own_ability->next == NULL &&
+                   !strcmp(generated->restring_identifier, "flaming") &&
+                   GET_OBJ_COST(generated) == 150 && generated->ex_description == own_desc &&
+                   own_desc->next == proto->ex_description;
+  essence_kept =
+      GET_OBJ_LEVEL(essence) == 12 && essence->name == proto->name && GET_OBJ_COST(essence) == 150;
+  scribed_kept = scribed->sbinfo != NULL && scribed->sbinfo != proto->sbinfo &&
+                 scribed->sbinfo[1].spellname == SPELL_SHIELD && scribed->name == proto->name &&
+                 GET_OBJ_COST(scribed) == 150;
+
+  extract_obj(plain);
+  extract_obj(generated);
+  extract_obj(essence);
+  extract_obj(scribed);
+  for (i = 0; i < 3; i++)
+  {
+    free_obj_special_abilities(given_up[i]);
+    free(given_up_pages[i]);
+  }
+  free_object_edit_copy(edit);
+  end_object_table(&f);
+  CuAssertTrue(tc, plain_follows);
+  CuAssertTrue(tc, generated_kept);
+  CuAssertTrue(tc, essence_kept);
+  CuAssertTrue(tc, scribed_kept);
+}
+
+/* A container's weight counts what it holds, and so does its carrier's. An
+ * OLC save or an editor commit that changes a weight or a capacity carries
+ * the change to them, as obj_to_obj() would, and takes nothing back that the
+ * container no longer holds. */
+void Test_gameplay_object_overwrite_keeps_weight_totals(CuTest *tc)
+{
+  struct object_table_fixture f;
+  struct char_data carrier;
+  struct obj_data *bag, *item, *edit;
+  int weights[12], n = 0;
+
+  begin_object_table(&f, 2);
+  GET_OBJ_TYPE(&obj_proto[0]) = ITEM_CONTAINER;
+  GET_OBJ_VAL(&obj_proto[0], 0) = 50;
+  GET_OBJ_WEIGHT(&obj_proto[0]) = 2;
+  GET_OBJ_WEIGHT(&obj_proto[1]) = 5;
+  memset(&carrier, 0, sizeof(carrier));
+  bag = read_object(0, REAL);
+  bag->carried_by = &carrier;
+  carrier.carrying = bag;
+  IS_CARRYING_W(&carrier) = GET_OBJ_WEIGHT(bag);
+  item = read_object(1, REAL);
+  obj_to_obj(item, bag);
+
+  /* The item gets heavier, then the bag. */
+  edit = object_edit_copy(1);
+  GET_OBJ_WEIGHT(edit) = 8;
+  add_object(edit, 91005);
+  free_object_edit_copy(edit);
+  weights[n++] = GET_OBJ_WEIGHT(bag);
+  weights[n++] = IS_CARRYING_W(&carrier);
+  edit = object_edit_copy(0);
+  GET_OBJ_WEIGHT(edit) = 3;
+  add_object(edit, 91001);
+  free_object_edit_copy(edit);
+  weights[n++] = GET_OBJ_WEIGHT(bag);
+  weights[n++] = IS_CARRYING_W(&carrier);
+
+  /* The bag is emptied while an editor holds a copy of it. */
+  edit = object_edit_copy(0);
+  copy_object(edit, bag);
+  obj_from_obj(item);
+  GET_OBJ_COST(edit) = 9;
+  copy_object(bag, edit);
+  free_object_edit_copy(edit);
+  weights[n++] = GET_OBJ_WEIGHT(bag);
+  weights[n++] = IS_CARRYING_W(&carrier);
+
+  /* Its capacity becomes unlimited, which counts nothing it holds. */
+  obj_to_obj(item, bag);
+  edit = object_edit_copy(0);
+  GET_OBJ_VAL(edit, 0) = 0;
+  add_object(edit, 91001);
+  free_object_edit_copy(edit);
+  weights[n++] = GET_OBJ_WEIGHT(bag);
+  weights[n++] = IS_CARRYING_W(&carrier);
+  edit = object_edit_copy(1);
+  GET_OBJ_WEIGHT(edit) = 6;
+  add_object(edit, 91005);
+  free_object_edit_copy(edit);
+  obj_from_obj(item);
+  weights[n++] = GET_OBJ_WEIGHT(bag);
+  weights[n++] = IS_CARRYING_W(&carrier);
+
+  extract_obj(item);
+  bag->carried_by = NULL;
+  carrier.carrying = NULL;
+  extract_obj(bag);
+  end_object_table(&f);
+  CuAssertIntEquals(tc, 10, weights[0]);
+  CuAssertIntEquals(tc, 10, weights[1]);
+  CuAssertIntEquals(tc, 11, weights[2]);
+  CuAssertIntEquals(tc, 11, weights[3]);
+  CuAssertIntEquals(tc, 3, weights[4]);
+  CuAssertIntEquals(tc, 3, weights[5]);
+  CuAssertIntEquals(tc, 3, weights[6]);
+  CuAssertIntEquals(tc, 3, weights[7]);
+  CuAssertIntEquals(tc, 3, weights[8]);
+  CuAssertIntEquals(tc, 3, weights[9]);
+}
+
+/* An OLC save replaces the triggers of each live object: oedit_save_internally()
+ * extracts the script the object runs, which leaves the random-trigger
+ * registry, and frees the trigger lists of the object and the old prototype.
+ * Here the builder removed the prototype's triggers. */
+void Test_gameplay_object_prototype_save_extracts_live_scripts(CuTest *tc)
+{
+  struct object_table_fixture f;
+  struct descriptor_data descriptor;
+  struct oasis_olc_data olc;
+  struct obj_data *live;
+  struct script_data *script;
+  size_t registered;
+
+  begin_object_table(&f, 1);
+  obj_proto[0].name = strdup("lantern brass");
+  CREATE(obj_proto[0].proto_script, struct trig_proto_list, 1);
+  obj_proto[0].proto_script->vnum = 91099;
+  dg_random_registry_reset_for_test();
+  live = read_object(0, REAL);
+  CREATE(script, struct script_data, 1);
+  script->types = OTRIG_RANDOM;
+  SCRIPT(live) = script;
+  dg_script_bind_owner(script, live, OBJ_TRIGGER);
+  registered = dg_random_registry_count(OBJ_TRIGGER);
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&olc, 0, sizeof(olc));
+  descriptor.olc = &olc;
+  OLC_NUM(&descriptor) = 91001;
+  oedit_setup_existing(&descriptor, 0, 0);
+  free_proto_script(&OLC_SCRIPT(&descriptor));
+  GET_OBJ_COST(OLC_OBJ(&descriptor)) = 12;
+  oedit_save_internally(&descriptor);
+
+  CuAssertIntEquals(tc, 1, (int)registered);
+  CuAssertIntEquals(tc, 0, (int)dg_random_registry_count(OBJ_TRIGGER));
+  CuAssertPtrEquals(tc, NULL, SCRIPT(live));
+  CuAssertPtrEquals(tc, NULL, live->proto_script);
+  CuAssertIntEquals(tc, 12, GET_OBJ_COST(live));
+  extract_obj(live);
+  free_object_edit_copy(OLC_OBJ(&descriptor));
+  end_object_table(&f);
+  dg_random_registry_reset_for_test();
+}
+
+/* A copy written over a live object leaves it the rnum its hash chain and
+ * object count go by, and the script it runs. Here a preview copy is a
+ * carrier's instance, and an editor commits a copy taken before a new
+ * prototype moved the rnums up. */
+void Test_gameplay_object_copy_keeps_a_live_targets_rnum(CuTest *tc)
+{
+  struct object_table_fixture f;
+  struct obj_data *player, *preview, *again, *edit, *added;
+  struct script_data preview_script = {0}, player_script = {0};
+  bool preview_kept, carrier_whole, commit_kept;
+
+  begin_object_table(&f, 2);
+  obj_proto[0].name = strdup("carrier");
+  obj_proto[1].name = strdup("cloak grey");
+  player = read_object(1, REAL);
+  preview = read_object(0, REAL);
+  SCRIPT(player) = &player_script;
+  SCRIPT(preview) = &preview_script;
+  copy_object(preview, player);
+  preview_kept = GET_OBJ_RNUM(preview) == 0 && obj_index[0].number == 1 &&
+                 obj_index[1].number == 1 && !strcmp(preview->name, "cloak grey") &&
+                 SCRIPT(preview) == &preview_script;
+  SCRIPT(player) = NULL;
+  SCRIPT(preview) = NULL;
+  extract_obj(preview);
+  again = read_object(0, REAL);
+  carrier_whole = get_obj_num(1) == player && get_obj_num(0) == again && obj_index[0].number == 1;
+
+  edit = object_edit_copy(1);
+  copy_object(edit, player);
+  CREATE(added, struct obj_data, 1);
+  clear_object(added);
+  added->name = strdup("sash red");
+  add_object(added, 91000);
+  GET_OBJ_COST(edit) = 40;
+  copy_object(player, edit);
+  commit_kept = GET_OBJ_RNUM(player) == 2 && GET_OBJ_VNUM(player) == 91005 &&
+                get_obj_num(2) == player && GET_OBJ_COST(player) == 40;
+
+  extract_obj(player);
+  extract_obj(again);
+  free_object_edit_copy(edit);
+  free_object_edit_copy(added);
+  end_object_table(&f);
+  CuAssertTrue(tc, preview_kept);
+  CuAssertTrue(tc, carrier_whole);
+  CuAssertTrue(tc, commit_kept);
 }
 
 /* A new prototype below others moves their live objects up an rnum, and a

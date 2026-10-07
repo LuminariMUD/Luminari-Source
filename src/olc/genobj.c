@@ -25,25 +25,31 @@
 #include "spec/spec_registry.h"
 #include "spec/spec_effective_binding.h"
 #include "events/point_update_periodic.h"
+#include "events/domain_event_world.h"
 
 /* local functions */
-static void free_all_object_strings(obj_rnum rnum);
-static int update_all_objects(struct obj_data *obj);
+static int update_all_objects(const struct obj_data *proto, const struct obj_data *old);
 static void copy_object_strings(struct obj_data *to, struct obj_data *from);
 static void overwrite_object(struct obj_data *to, const struct obj_data *from);
+static int contents_weight(const struct obj_data *obj);
+static void change_holder_weight(struct obj_data *obj, int change);
 
 obj_rnum add_object(struct obj_data *newobj, obj_vnum ovnum)
 {
   int found = NOTHING;
   zone_rnum rznum = real_zone_by_thing(ovnum);
+  struct obj_data old;
 
   /* Write object to internal tables. */
   if ((newobj->item_number = real_object(ovnum)) != NOTHING)
   {
-    free_all_object_strings(newobj->item_number);
-    free_object_strings(&obj_proto[newobj->item_number]);
+    /* The live objects are compared with the old prototype, whose strings are
+     * freed after them. Its trigger list is oedit_save_internally()'s to free. */
+    old = obj_proto[newobj->item_number];
     copy_object_main(&obj_proto[newobj->item_number], newobj, TRUE);
-    update_all_objects(&obj_proto[newobj->item_number]);
+    obj_proto[newobj->item_number].proto_script = old.proto_script;
+    update_all_objects(&obj_proto[newobj->item_number], &old);
+    free_object_strings(&old);
     add_to_save_list(zone_table[rznum].number, SL_OBJ);
     return newobj->item_number;
   }
@@ -54,39 +60,152 @@ obj_rnum add_object(struct obj_data *newobj, obj_vnum ovnum)
   return found;
 }
 
-/* Before a prototype is replaced, each live object of it frees the strings
- * it owns: update_all_objects() writes the new prototype over them, and they
- * can be told from the prototype's only while the old prototype still has
- * its own. The object's special abilities and spellbook are left alone: an
- * open edit copy or a preview copy of the object can point at the same lists. */
-static void free_all_object_strings(obj_rnum rnum)
+static bool same_text(const char *a, const char *b)
 {
-  struct obj_data *obj;
-
-  for (obj = object_list; obj; obj = obj->next)
-    if (obj->item_number == rnum)
-      free_object_strings_proto(obj);
+  return a == b || (a != NULL && b != NULL && !strcmp(a, b));
 }
 
-/* Fix all existing objects to have these values. We need to run through each
- * and every object currently in the game to see which ones are pointing to
- * this prototype. If object is pointing to this prototype, then we need to
- * replace it with the new one. */
-static int update_all_objects(struct obj_data *refobj)
+static bool same_pages(const struct obj_spellbook_spell *a, const struct obj_spellbook_spell *b)
+{
+  int i;
+
+  if (a == NULL || b == NULL)
+    return a == b;
+  for (i = 0; i < SPELLBOOK_SIZE; i++)
+    if (a[i].spellname != b[i].spellname || a[i].pages != b[i].pages)
+      return false;
+  return true;
+}
+
+/* The same abilities in any order: read_object() copies a list back to front. */
+static bool same_abilities(const struct obj_special_ability *a, const struct obj_special_ability *b)
+{
+  const struct obj_special_ability *x, *y;
+  int count = 0;
+
+  for (x = a; x != NULL; x = x->next, count++)
+  {
+    for (y = b; y != NULL; y = y->next)
+      if (x->ability == y->ability && x->level == y->level &&
+          x->activation_method == y->activation_method &&
+          !memcmp(x->value, y->value, sizeof(x->value)) &&
+          same_text(x->command_word, y->command_word))
+        break;
+    if (y == NULL)
+      return false;
+  }
+  for (y = b; y != NULL; y = y->next)
+    count--;
+  return count == 0;
+}
+
+/* A field of a live object that still holds what the old prototype held. */
+#define FOLLOW(field)                                                                              \
+  do                                                                                               \
+  {                                                                                                \
+    if (memcmp(&obj->field, &old->field, sizeof(obj->field)) == 0)                                 \
+      memcpy(&obj->field, &proto->field, sizeof(obj->field));                                      \
+  } while (0)
+#define FOLLOW_POINTER(field)                                                                      \
+  do                                                                                               \
+  {                                                                                                \
+    if (obj->field == old->field)                                                                  \
+      obj->field = proto->field;                                                                   \
+  } while (0)
+
+/* A live object takes the new prototype's definition where it still held the
+ * old prototype's, and keeps what it has of its own: a restring, the stats a
+ * generator or a crafter gave it, an arcane mark, spellbook pages. Its place
+ * in the world, its triggers and its runtime state are not definition. */
+static void follow_prototype(struct obj_data *obj, const struct obj_data *proto,
+                             const struct obj_data *old)
+{
+  struct obj_data fresh = *proto;
+  struct extra_descr_data *ed;
+  int own_weight = GET_OBJ_WEIGHT(obj) - contents_weight(obj);
+  int weight;
+
+  FOLLOW(obj_flags.value);
+  FOLLOW(obj_flags.type_flag);
+  FOLLOW(obj_flags.prof_flag);
+  FOLLOW(obj_flags.level);
+  FOLLOW(obj_flags.wear_flags);
+  FOLLOW(obj_flags.extra_flags);
+  FOLLOW(obj_flags.cost);
+  FOLLOW(obj_flags.cost_per_day);
+  FOLLOW(obj_flags.timer);
+  FOLLOW(obj_flags.bitvector);
+  FOLLOW(obj_flags.bitvector2);
+  FOLLOW(obj_flags.material);
+  FOLLOW(obj_flags.size);
+  FOLLOW(affected);
+  FOLLOW_POINTER(name);
+  FOLLOW_POINTER(description);
+  FOLLOW_POINTER(short_description);
+  FOLLOW_POINTER(action_description);
+  FOLLOW_POINTER(ex_description);
+  FOLLOW(has_spells);
+  FOLLOW(wpn_spells);
+  FOLLOW(channel_spells);
+  FOLLOW(mob_recepient);
+  FOLLOW(activate_spell);
+
+  /* A list of its own can end in the old prototype's, which is freed next. */
+  for (ed = obj->ex_description; ed != NULL && old->ex_description != NULL; ed = ed->next)
+    if (ed->next == old->ex_description)
+    {
+      ed->next = proto->ex_description;
+      break;
+    }
+
+  /* What free_obj() frees with the object: one that still matched the old
+   * prototype becomes a copy of the new one's. An open edit copy or a preview
+   * copy of the object can point at the spellbook or abilities it replaces,
+   * so those are given up, not freed. */
+  give_obj_own_copies(&fresh, proto);
+  free(fresh.arcane_mark);
+  if (same_text(obj->restring_identifier, old->restring_identifier))
+  {
+    free(obj->restring_identifier);
+    obj->restring_identifier = fresh.restring_identifier;
+  }
+  else
+    free(fresh.restring_identifier);
+  if (same_pages(obj->sbinfo, old->sbinfo))
+    obj->sbinfo = fresh.sbinfo;
+  else
+    free(fresh.sbinfo);
+  if (same_abilities(obj->special_abilities, old->special_abilities))
+    obj->special_abilities = fresh.special_abilities;
+  else
+    free_obj_special_abilities(fresh.special_abilities);
+
+  /* Its weight counts what it holds, by the capacity it has now. */
+  if (own_weight == GET_OBJ_WEIGHT(old))
+    own_weight = GET_OBJ_WEIGHT(proto);
+  weight = own_weight + contents_weight(obj);
+  change_holder_weight(obj, weight - GET_OBJ_WEIGHT(obj));
+  GET_OBJ_WEIGHT(obj) = weight;
+}
+
+#undef FOLLOW
+#undef FOLLOW_POINTER
+
+/* Give every live object of a prototype the prototype's new definition. */
+static int update_all_objects(const struct obj_data *proto, const struct obj_data *old)
 {
   struct obj_data *obj;
   int count = 0;
 
   for (obj = object_list; obj; obj = obj->next)
   {
-    if (obj->item_number != refobj->item_number)
+    if (obj->item_number != proto->item_number)
       continue;
 
     count++;
 
     autoproc_registry_remove(obj);
-    overwrite_object(obj, refobj);
-    give_obj_own_copies(obj, refobj);
+    follow_prototype(obj, proto, old);
     autoproc_registry_sync(obj);
     point_update_object_sync(obj);
   }
@@ -118,7 +237,6 @@ obj_rnum adjust_objects(obj_rnum refpt)
       GET_OBJ_RNUM(obj)++;
       add_obj_to_rnum_hash(obj);
     }
-
 
   /* Renumber zone table. */
   for (zone = 0; zone <= top_of_zone_table; zone++)
@@ -583,15 +701,59 @@ int copy_object_preserve(struct obj_data *to, struct obj_data *from)
   return copy_object_main(to, from, FALSE);
 }
 
+/* The weight obj_to_obj() adds to a container for what it holds. */
+static int contents_weight(const struct obj_data *obj)
+{
+  const struct obj_data *content;
+  int weight = 0;
+
+  if (GET_OBJ_VAL(obj, 0) > 0)
+    for (content = obj->contains; content != NULL; content = content->next_content)
+      weight += GET_OBJ_WEIGHT(content);
+  return weight;
+}
+
+/* Carry a change in an object's weight to what holds it, as obj_to_obj(),
+ * obj_to_char() and obj_to_bag() count it. Equipment counts for nothing. */
+static void change_holder_weight(struct obj_data *obj, int change)
+{
+  struct obj_data *container;
+  struct char_data *ch = NULL;
+
+  if (change == 0)
+    return;
+  if (obj->in_obj != NULL)
+  {
+    if (GET_OBJ_VAL(obj->in_obj, 0) <= 0)
+      return;
+    for (container = obj->in_obj; container != NULL; container = container->in_obj)
+    {
+      GET_OBJ_WEIGHT(container) += change;
+      ch = container->carried_by;
+    }
+  }
+  else if (obj->carried_by != NULL)
+    ch = obj->carried_by;
+  else if (obj->transfer_bag.kind == DOMAIN_HOLDER_BAG)
+    ch = domain_event_world_resolve_character(obj->transfer_bag.entity);
+  if (ch != NULL)
+    IS_CARRYING_W(ch) += change;
+}
+
 /* Write one object over another. The target stays where it is in the world
  * and keeps what only the running game gave it: what holds it and what it
- * holds, its list, hash and registry links, its events and transfer state.
- * Strings and lists the objects own are the caller's to settle. */
+ * holds, its list, hash and registry links, its script, events and transfer
+ * state. A live target keeps its rnum, the key of its hash chain. Its weight
+ * is the source's own and what the target holds. Strings and lists the
+ * objects own are the caller's to settle. */
 static void overwrite_object(struct obj_data *to, const struct obj_data *from)
 {
   struct obj_data kept = *to;
+  int weight = GET_OBJ_WEIGHT(from) - contents_weight(from);
 
   *to = *from;
+  if (kept.object_list_member)
+    to->item_number = kept.item_number;
   GET_ID(to) = kept.id;
   IN_ROOM(to) = kept.in_room;
   to->carried_by = kept.carried_by;
@@ -606,6 +768,7 @@ static void overwrite_object(struct obj_data *to, const struct obj_data *from)
   to->next_in_hash = kept.next_in_hash;
   to->prev_in_hash = kept.prev_in_hash;
   to->sitting_here = kept.sitting_here;
+  SCRIPT(to) = kept.script;
   to->sheath_primary = kept.sheath_primary;
   to->sheath_secondary = kept.sheath_secondary;
   to->trap = kept.trap;
@@ -631,6 +794,8 @@ static void overwrite_object(struct obj_data *to, const struct obj_data *from)
   to->rol_deaths_head_seed_initialized = kept.rol_deaths_head_seed_initialized;
   to->perf_origin_zone_vnum = kept.perf_origin_zone_vnum;
   to->perf_create_reason = kept.perf_create_reason;
+  GET_OBJ_WEIGHT(to) = weight + contents_weight(to);
+  change_holder_weight(to, GET_OBJ_WEIGHT(to) - GET_OBJ_WEIGHT(&kept));
 }
 
 int copy_object_main(struct obj_data *to, struct obj_data *from,
@@ -715,7 +880,6 @@ int delete_object(obj_rnum rnum)
       GET_OBJ_RNUM(tmp)--;
       add_obj_to_rnum_hash(tmp);
     }
-
 
   for (i = rnum; i < top_of_objt; i++)
   {

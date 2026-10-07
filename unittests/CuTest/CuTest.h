@@ -120,7 +120,7 @@ void CuAssertPtrEquals_LineMsg(CuTest *tc, const char *file, int line, const cha
 
 /* CuSuite */
 
-#define MAX_TEST_CASES 2048
+#define MAX_TEST_CASES 4096
 
 #define SUITE_ADD_TEST(SUITE, TEST) CuSuiteAdd(SUITE, CuTestNew(#TEST, TEST))
 
