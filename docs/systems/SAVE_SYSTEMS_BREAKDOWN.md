@@ -428,6 +428,10 @@ Nothing leaves memory while it is written.
   a save that holds it. A save that did not reach the database is therefore written a second
   time first. After two failures the database keeps the last save that reached it, and the staff
   are told.
+- **Leaving without a save.** A character purged by the staff, a duplicate removed at login, or
+  one that quits while `free_rent` is off drops what it holds in the room. `extract_char()` then
+  writes its object save again, empty, so the next login does not bring back what the room now
+  holds. A character that left with a save holds nothing by then, and its save stands.
 - **Record size.** A record stays under 36,767 bytes; the live `serialized_obj` columns hold
   65,535. Every bounded part of a record fits. Extra descriptions are the only part without a
   bound, and one that does not fit is left out whole and logged, so no object is refused.

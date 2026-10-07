@@ -3184,6 +3184,7 @@ void extract_char_final(struct char_data *ch)
   struct descriptor_data *d;
   struct obj_data *obj;
   struct char_data *tch = NULL;
+  bool dropped = false;
   static struct PERF_prof_sect *pr_last_attacker = NULL;
   static struct PERF_prof_sect *pr_relationships = NULL;
   static struct PERF_prof_sect *pr_assets = NULL;
@@ -3303,6 +3304,7 @@ void extract_char_final(struct char_data *ch)
   /* transfer objects to room, if any */
   while (ch->carrying)
   {
+    dropped = true;
     obj = ch->carrying;
     obj_from_char(obj);
     if (IN_ROOM(ch) != NOWHERE)
@@ -3315,6 +3317,7 @@ void extract_char_final(struct char_data *ch)
   for (i = 0; i < NUM_WEARS; i++)
     if (GET_EQ(ch, i))
     {
+      dropped = true;
       if (IN_ROOM(ch) != NOWHERE)
         obj_to_room(unequip_char(ch, i), IN_ROOM(ch));
       else
@@ -3392,8 +3395,11 @@ void extract_char_final(struct char_data *ch)
     /* note - this is deprecated, switched value back to 0 */
     save_char(ch, 0);
 
-    if (GET_PFILEPOS(ch) >= 0)
-      Crash_delete_crashfile(ch);
+    /* What the character held is in the room now, so its object save must
+     * not bring it back. A character that left with a save holds nothing
+     * here, and its save stands. */
+    if (dropped && GET_PFILEPOS(ch) >= 0)
+      Crash_crashsave(ch);
   }
   PERF_prof_sect_exit(pr_world_remove);
 

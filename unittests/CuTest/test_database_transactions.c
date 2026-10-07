@@ -1056,6 +1056,60 @@ void Test_cryo_and_idle_saves_keep_what_is_in_the_bags(CuTest *tc)
   transactions_world_end(tc, &w);
 }
 
+/* A character who leaves without a save, as when the staff purge it, drops
+ * what it holds in the room. Its object save is then written empty: a load
+ * would otherwise bring back what the room now holds. */
+void Test_leaving_without_a_save_drops_everything_and_keeps_no_object_save(CuTest *tc)
+{
+  struct transactions_world w;
+  struct obj_data *worn;
+  struct descriptor_data descriptor;
+  char output[4096] = {'\0'};
+  struct char_data *saved_character_list = character_list;
+  struct obj_data *obj;
+  int dropped = 0;
+
+  if (!transactions_world_begin(tc, &w))
+    return;
+
+  saves_carry(&w, "a carried gem");
+  worn = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
+  worn->short_description = strdup("a worn gem");
+  worn->worn_by = &w.owner;
+  worn->worn_on = WEAR_HOLD_1;
+  GET_EQ(&w.owner, WEAR_HOLD_1) = worn;
+  CuAssertTrue(tc, Crash_crashsave(&w.owner));
+  CuAssertIntEquals(tc, 2, saves_player_rows(&w));
+
+  /* Playing in the room, as a purge finds the character. */
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.character = &w.owner;
+  descriptor.connected = CON_PLAYING;
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  w.owner.desc = &descriptor;
+  GET_IDNUM(&w.owner) = 4313;
+  w.room.people = &w.owner;
+  character_list = &w.owner;
+  extract_char(&w.owner);
+  extract_pending_chars();
+
+  for (obj = w.room.contents; obj != NULL; obj = obj->next_content)
+    dropped++;
+
+  character_list = saved_character_list;
+  w.owner.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+
+  CuAssertIntEquals(tc, 2, dropped);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&w.owner, WEAR_HOLD_1));
+  CuAssertIntEquals(tc, 0, saves_player_rows(&w));
+  CuAssertPtrEquals(tc, NULL, objsave_parse_objects_db(GET_NAME(&w.owner), NOWHERE));
+
+  transactions_world_end(tc, &w);
+}
+
 /* ------------------------------------------------------------------------ */
 /* Vessel sites                                                             */
 /* ------------------------------------------------------------------------ */
