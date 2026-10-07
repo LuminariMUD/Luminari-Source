@@ -2350,8 +2350,9 @@ void Test_pet_save_stores_a_sheaths_weapons_as_its_own(CuTest *tc)
   struct obj_data *worn, *carried, *obj;
   MYSQL *connection, *saved_conn = conn;
   bool saved_available = mysql_available;
-  bool saved, loaded, worn_back, carried_back;
+  bool saved, refused, loaded, worn_back, carried_back;
   int rows, worn_rows, total = 0;
+  unsigned int query;
 
   if (enabled == NULL || strcmp(enabled, "1") != 0)
     return;
@@ -2378,8 +2379,23 @@ void Test_pet_save_stores_a_sheaths_weapons_as_its_own(CuTest *tc)
   carried->sheath_primary = described_object("a sheathed dagger");
   obj_to_char(carried, &pet);
 
-  saved = GET_EQ(&pet, WEAR_SHEATH) == worn && create_pet_snapshot_temporary_schema(connection) &&
-          pet_save_objs(&pet, &owner, 703);
+  saved = GET_EQ(&pet, WEAR_SHEATH) == worn && create_pet_snapshot_temporary_schema(connection);
+
+  /* A weapon's row the database refuses fails the save, as any row does: the
+   * blade's is the second record written, the shield's the third. */
+  refused = saved;
+  for (query = 2; query <= 3 && refused; query++)
+  {
+    mysql_test_fail_nth_query(query);
+    refused = !pet_save_objs(&pet, &owner, 703);
+    mysql_test_clear_query_failure();
+    refused =
+        refused &&
+        query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) == (int)query - 1 &&
+        mysql_query(connection, "DELETE FROM pet_save_objs") == 0;
+  }
+
+  saved = saved && pet_save_objs(&pet, &owner, 703);
   rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
   /* Only the worn sheath keeps a wear position: its weapons are inventory records. */
   worn_rows = query_single_int(
@@ -2412,6 +2428,7 @@ void Test_pet_save_stores_a_sheaths_weapons_as_its_own(CuTest *tc)
   mysql_available = saved_available;
   mysql_close(connection);
 
+  CuAssertTrue(tc, refused);
   CuAssertTrue(tc, saved);
   CuAssertIntEquals(tc, 5, rows);
   CuAssertIntEquals(tc, 1, worn_rows);
