@@ -19,7 +19,7 @@ phase 7.
 | 1 | #19 | A saved special ability with no command word is rejected at load | One parser, tests | Merged 2026-10-05: [MR !23](https://gitlab.com/max757/Luminari-Source/-/merge_requests/23), `5523e04a0` |
 | 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Merged 2026-10-05: [MR !24](https://gitlab.com/max757/Luminari-Source/-/merge_requests/24), `0efe4d145` |
 | 3 | #15 | An object with no prototype leaks its arcane mark | One free path, two tests | Merged 2026-10-06: [MR !25](https://gitlab.com/max757/Luminari-Source/-/merge_requests/25), `5fd630349` |
-| 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Not started |
+| 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | In review: [MR !27](https://gitlab.com/max757/Luminari-Source/-/merge_requests/27), tag `object-save-fixes-p4` |
 | 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
 | 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
 | 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | Merged 2026-10-07: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), `632b50242` |
@@ -397,6 +397,130 @@ and loaded again from the last save must cover the bag rows too.
 **Tests.** A character with bagged objects goes through the leaving save: the objects are gone
 from `object_list`, and a load brings them back into their bags. The same character extracted
 without a save: the objects are in the room, and the transfer record names the right bag.
+
+### Built 2026-10-07
+
+Branch `16-bagged-objects-stay-in-memory-when-their-owner-leaves-the-game`, MR !27, tag
+`object-save-fixes-p4`.
+
+The check before the change failed. Nothing kept a carried object from being dropped in the room
+and loaded again: `Crash_delete_crashfile()`, which `extract_char_final()` calls for that, deletes
+a crash save's file, but under `OBJSAVE_DB` (always defined in `src/obj/objsave.c`) it returns at
+once, and the rows stay. Reproduced: a crash-saved carried and worn gem, then a purge; both lay in
+the room and both rows were still there. So the bags could not simply follow the carried objects,
+and the fix of that defect comes first.
+
+Three commits:
+
+- `d989a8517`: once `extract_char_final()` has dropped anything, it writes the character's object
+  save again. The character holds nothing by then, so the rows, the header and the file all come
+  out empty. A character that left with a rent, idle or cryo save holds nothing at that point, and
+  its save stands. The `Crash_delete_crashfile()` call there goes.
+- `be819da53`: `extract_char_final()` takes each bagged object out of its own bag and puts it in
+  the room, as it does the carried and worn ones. `objsave_save_and_extract()` extracts each bag's
+  objects after the worn ones; `extract_obj()` already takes an object out of its bag.
+  `empty_bags_to_inventory()` is gone.
+- `0980ae2dc`, found while building: `do_sort()` and `do_bags()` read the bag storage of whoever
+  runs them, a mobile has none (`bags` is NULL), and `command_interpreter()` lets a mobile run
+  both. Either command ended the server in SIGSEGV. Both now answer "You have no bags."
+
+Changed from the decisions above, with the reason:
+
+- No stop in the inventory. A bagged object goes from its bag straight to the room, one move that
+  names the bag. A move from bag to inventory is what the quest system counts as finding the
+  object (`quest_committed_transfer()`), and the bus dispatches it at once, to a character that
+  is leaving. The same reason keeps the leaving save from emptying the bags into the inventory.
+- No extract branch for bags: only a player has bags, and `extract_char_final()` stops the server
+  before it extracts a player that is in no room.
+- `Crash_delete_crashfile()` is not repaired for the database. Its other two callers are deaths,
+  where the character keeps all its objects (`make_pc_corpse()` moves none), so a working delete
+  would drop the crash save of a character that still holds everything.
+
+Left as it is:
+
+- `Crash_delete_crashfile()` and its two calls at death: a no-op under `OBJSAVE_DB`, which is
+  right there.
+- The duplicate-login cleanup in `perform_dupe_check()` extracts a second copy of a character
+  that is in the game. If it held anything, its empty save replaces the save of the copy that
+  stays until that copy is saved again. The code says no such copy should exist.
+- If the empty save cannot be written (the database is away), the last save stands and the
+  dropped objects come back at the next login, as before. The writer logs the failure.
+
+Tests:
+
+- `Test_leaving_saves_keep_the_bags_and_take_them_along` replaces
+  `Test_cryo_and_idle_saves_keep_what_is_in_the_bags`, which took its bagged gem out by hand. A
+  cryo save leaves the bags and `object_list` empty, and a load from the saved rows puts a gem
+  back in bag 1 and one in bag 3; an idle save then writes and takes the two bagged gems alone.
+- `Test_leaving_without_a_save_drops_everything_and_keeps_no_object_save`: a carried, a worn and
+  two bagged gems, crash-saved, then `extract_char()`: all four are in the room, each bag's gem
+  moved there from the bag it names, and no row is left.
+- `Test_gameplay_bag_commands_refuse_a_character_without_bags`: both sort commands and both
+  forms of `bags`, run by a mobile carrying a gem.
+- The two leaving tests need the database, like the leaving-save tests beside them in
+  `unittests/CuTest/test_database_transactions.c`; the sanitizer job runs them with it. The
+  valgrind job has no database.
+
+`docs/systems/SAVE_SYSTEMS_BREAKDOWN.md` says what the leaving saves take along and what a leave
+without a save does.
+
+Verification:
+
+- Before the changes: the leaving test failed with the bags still full after the cryo save, the
+  test without a save found one object of three in the room, and with the bags fixed it still
+  found every row. On `d989a8517` alone its first form fails without the change, both rows left.
+  The bag-command test ends in SIGSEGV without either of its two checks.
+- `make -j16 test` on `0980ae2dc`: 2051 tests pass. `make install` done.
+- `./cutest` with the database tests on, first run on a fresh database: 2051 of 2051 pass.
+- The three tests are clean under valgrind, the two leaving tests with the database on.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (1476 s); the unit,
+  sanitizer and memory-check jobs run 2051 tests each, and the persistence changed lines are
+  100% covered.
+
+### Review 2026-10-07
+
+Three findings, two of them crashes reproduced by the reviewer. All are fixed in the three commits
+after the tag.
+
+- `f14da1d13`, high: the mobile crash `0980ae2dc` fixed for `sortto`, `sortfrom` and `bags` was
+  still reachable through `put <item> bagN` and `get <item|all> bagN`, which share
+  `sort_object_bag()` with the sort commands. The refusal moves from `do_sort()` to the top of
+  `sort_object_bag()`; every `do_sort()` path that touches a bag ends there, and the sort-to path
+  is refused before `obj_from_char()`, so nothing is left held by no one.
+- `edf0ce122`, high: the extraction loop called `get_char_bag()` for every player, and a player
+  body built for a staff command (`stat file` for a player who is not online) has no bag storage,
+  as a mobile has none. `get_char_bag()` now returns NULL for a character without bag storage,
+  which also covers the loop in `objsave_save_and_extract()`; the extraction loop drops its
+  mobile check. Through `stat file` the body never reaches `extract_char_final()`: it is not on
+  `character_list`, so the pending extraction is logged and the body stays in room 0, unfreed.
+  That pre-existing `do_stat()` defect is work item #32.
+- `f6e48f0e9`, low: the empty save a leave without a save writes was tried once and its failure
+  ignored, so a lost connection left the last save's rows beside the objects in the room. It is
+  tried twice now, as the leaving saves are, and after two failures the staff are told. This
+  replaces "the writer logs the failure" under "Left as it is" above.
+
+Tests:
+
+- `Test_gameplay_bag_commands_refuse_a_character_without_bags` adds put and both forms of get:
+  eight refusals, the gem still carried.
+- `Test_gameplay_extraction_of_a_player_body_without_bags`: a body built as `stat file` builds
+  one, put in a room and extracted; the room is as it was.
+- `Test_leaving_without_a_save_writes_the_empty_save_again_and_tells_the_staff`: the connection
+  goes at the first attempt's delete and the second attempt empties the save; then the database
+  is away for both attempts, the last save stands and the staff hear of it. Needs the database.
+
+Verification, on `f6e48f0e9`:
+
+- Each new test fails on `0a662d23a`: the first two end in SIGSEGV in `get_char_bag()`, the
+  third with the last save's row still there.
+- The five bag and leaving tests are clean under valgrind, the three leaving tests with the
+  database on.
+- `make -j16 test`: 2053 tests pass. `make install` done.
+- `./cutest` with the database tests on, on a database freshly built from `sql/master_schema.sql`:
+  2053 of 2053 pass.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (552 s); the unit,
+  sanitizer and memory-check jobs run 2053 tests each, and the persistence changed lines are
+  100% covered.
 
 ## Phase 5: #17 loaded sheath on a pet and at extraction
 

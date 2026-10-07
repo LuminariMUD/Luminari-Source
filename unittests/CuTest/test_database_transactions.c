@@ -18,6 +18,10 @@
 #include "../../src/core/help.h"
 #include "../../src/core/interpreter.h"
 #include "../../src/database/mysql.h"
+#include "../../src/dgscript/dg_event.h"
+#include "../../src/events/domain_event_runtime.h"
+#include "../../src/events/domain_event_types.h"
+#include "../../src/events/domain_event_world.h"
 #include "../../src/net/protocol.h"
 #include "../../src/obj/house.h"
 #include "../../src/obj/objsave.h"
@@ -694,6 +698,18 @@ static struct obj_data *saves_carry(struct transactions_world *w, const char *sh
   return obj;
 }
 
+/* One sorted into one of the owner's bags. */
+static struct obj_data *saves_bag(struct transactions_world *w, const char *short_description,
+                                  int bagnum)
+{
+  struct obj_data *obj = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
+
+  obj->short_description = strdup(short_description);
+  GET_OBJ_SORT(obj) = bagnum;
+  obj_to_bag(&w->owner, obj, bagnum);
+  return obj;
+}
+
 /* And one on the floor of the house. */
 static struct obj_data *saves_furnish(struct transactions_world *w, const char *short_description)
 {
@@ -1019,40 +1035,238 @@ void Test_leaving_save_is_written_again_and_takes_the_objects_along(CuTest *tc)
   transactions_world_end(tc, &w);
 }
 
-/* What a player sorted into a bag is held nowhere else. The cryo save and
- * the idle save replace the last save's rows, so they write the bags too. */
-void Test_cryo_and_idle_saves_keep_what_is_in_the_bags(CuTest *tc)
+/* What a player sorted into a bag is held nowhere else. The leaving saves
+ * replace the last save's rows, so they write the bags too, and take what is
+ * in them along with the rest. A load puts each object back in its bag. */
+void Test_leaving_saves_keep_the_bags_and_take_them_along(CuTest *tc)
 {
   struct transactions_world w;
-  struct obj_data *bagged;
+  int restored;
 
   if (!transactions_world_begin(tc, &w))
     return;
 
   saves_carry(&w, "a carried gem");
-  bagged = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
-  bagged->short_description = strdup("a bagged gem");
-  GET_OBJ_SORT(bagged) = 1;
-  w.bags.bag1 = bagged;
+  saves_bag(&w, "a first bagged gem", 1);
+  saves_bag(&w, "a third bagged gem", 3);
   CuAssertTrue(tc, Crash_crashsave(&w.owner));
-  CuAssertIntEquals(tc, 2, saves_player_rows(&w));
+  CuAssertIntEquals(tc, 3, saves_player_rows(&w));
 
   Crash_cryosave(&w.owner, 0);
   REMOVE_BIT_AR(PLR_FLAGS(&w.owner), PLR_CRYO);
+  CuAssertIntEquals(tc, 3, saves_player_rows(&w));
   CuAssertPtrEquals(tc, NULL, w.owner.carrying);
-  CuAssertIntEquals(tc, 2, saves_player_rows(&w));
+  CuAssertPtrEquals(tc, NULL, w.bags.bag1);
+  CuAssertPtrEquals(tc, NULL, w.bags.bag3);
+  CuAssertPtrEquals(tc, NULL, object_list);
 
-  /* Nothing carried or worn, one gem in a bag. */
+  restored =
+      test_restore_loaded_objects(&w.owner, objsave_parse_objects_db(GET_NAME(&w.owner), NOWHERE));
+  CuAssertIntEquals(tc, 3, restored);
+  CuAssertPtrNotNull(tc, w.owner.carrying);
+  CuAssertStrEquals(tc, "a carried gem", w.owner.carrying->short_description);
+  CuAssertPtrNotNull(tc, w.bags.bag1);
+  CuAssertStrEquals(tc, "a first bagged gem", w.bags.bag1->short_description);
+  CuAssertIntEquals(tc, 1, GET_OBJ_SORT(w.bags.bag1));
+  CuAssertPtrNotNull(tc, w.bags.bag3);
+  CuAssertStrEquals(tc, "a third bagged gem", w.bags.bag3->short_description);
+  CuAssertIntEquals(tc, 3, GET_OBJ_SORT(w.bags.bag3));
+
+  /* Nothing carried or worn, a gem in each of two bags. */
+  extract_obj(w.owner.carrying);
   Crash_idlesave(&w.owner);
-  CuAssertIntEquals(tc, 1, saves_player_rows(&w));
+  CuAssertIntEquals(tc, 2, saves_player_rows(&w));
   CuAssertIntEquals(
-      tc, 1,
+      tc, 2,
       transactions_value(w.observer,
                          "SELECT COUNT(*) FROM player_save_objs WHERE name = '" SAVES_OWNER
-                         "' AND serialized_obj LIKE '%a bagged gem%'"));
+                         "' AND serialized_obj LIKE '%bagged gem%'"));
+  CuAssertPtrEquals(tc, NULL, w.bags.bag1);
+  CuAssertPtrEquals(tc, NULL, w.bags.bag3);
+  CuAssertPtrEquals(tc, NULL, object_list);
 
-  w.bags.bag1 = NULL;
-  extract_obj(bagged);
+  transactions_world_end(tc, &w);
+}
+
+struct saves_transfer_trace
+{
+  int count;
+  struct domain_object_moved events[16];
+};
+
+static void saves_capture_transfer(const struct domain_event_context *context, void *data)
+{
+  struct saves_transfer_trace *trace = data;
+
+  if (trace->count < 16)
+    trace->events[trace->count] = *(const struct domain_object_moved *)context->payload;
+  trace->count++;
+}
+
+/* A character who leaves without a save, as when the staff purge it, drops
+ * what it holds in the room, the bags' contents with the rest, each straight
+ * from the bag it names. Its object save is then written empty: a load would
+ * otherwise bring back what the room now holds. */
+void Test_leaving_without_a_save_drops_everything_and_keeps_no_object_save(CuTest *tc)
+{
+  struct transactions_world w;
+  struct obj_data *worn;
+  struct descriptor_data descriptor;
+  char output[4096] = {'\0'};
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct saves_transfer_trace trace = {0};
+  struct char_data *saved_character_list = character_list;
+  struct obj_data *obj;
+  int dropped = 0, from_first = 0, from_third = 0, from_other = 0;
+  int i;
+
+  if (!transactions_world_begin(tc, &w))
+    return;
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+
+  saves_carry(&w, "a carried gem");
+  worn = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
+  worn->short_description = strdup("a worn gem");
+  worn->worn_by = &w.owner;
+  worn->worn_on = WEAR_HOLD_1;
+  GET_EQ(&w.owner, WEAR_HOLD_1) = worn;
+  saves_bag(&w, "a first bagged gem", 1);
+  saves_bag(&w, "a third bagged gem", 3);
+  CuAssertTrue(tc, Crash_crashsave(&w.owner));
+  CuAssertIntEquals(tc, 4, saves_player_rows(&w));
+
+  config.type = DOMAIN_EVENT_OBJECT_MOVED;
+  config.topic.role = DOMAIN_EVENT_TOPIC_SOURCE;
+  config.topic.entity = domain_event_character_handle(&w.owner);
+  config.owner = domain_event_character_handle(&w.staff);
+  config.identity = "test.leaving-without-a-save";
+  config.handler = saves_capture_transfer;
+  config.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
+
+  /* Playing in the room, as a purge finds the character. */
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.character = &w.owner;
+  descriptor.connected = CON_PLAYING;
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  w.owner.desc = &descriptor;
+  GET_IDNUM(&w.owner) = 4313;
+  w.room.people = &w.owner;
+  character_list = &w.owner;
+  extract_char(&w.owner);
+  extract_pending_chars();
+
+  for (obj = w.room.contents; obj != NULL; obj = obj->next_content)
+    dropped++;
+  for (i = 0; i < trace.count && i < 16; i++)
+  {
+    if (trace.events[i].source.kind != DOMAIN_HOLDER_BAG)
+      continue;
+    if (trace.events[i].destination.kind == DOMAIN_HOLDER_ROOM && trace.events[i].source.slot == 1)
+      from_first++;
+    else if (trace.events[i].destination.kind == DOMAIN_HOLDER_ROOM &&
+             trace.events[i].source.slot == 3)
+      from_third++;
+    else
+      from_other++;
+  }
+
+  character_list = saved_character_list;
+  w.owner.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  domain_event_runtime_shutdown();
+  event_free_all();
+
+  CuAssertIntEquals(tc, 4, dropped);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&w.owner, WEAR_HOLD_1));
+  CuAssertPtrEquals(tc, NULL, w.bags.bag1);
+  CuAssertPtrEquals(tc, NULL, w.bags.bag3);
+  CuAssertIntEquals(tc, 1, from_first);
+  CuAssertIntEquals(tc, 1, from_third);
+  CuAssertIntEquals(tc, 0, from_other);
+  CuAssertIntEquals(tc, 0, saves_player_rows(&w));
+  CuAssertPtrEquals(tc, NULL, objsave_parse_objects_db(GET_NAME(&w.owner), NOWHERE));
+
+  transactions_world_end(tc, &w);
+}
+
+/* The empty save a leave without a save writes is tried once more when it
+ * did not reach the database. After two failures the last save stands, so
+ * the next login brings back what was dropped, and the staff are told. */
+void Test_leaving_without_a_save_writes_the_empty_save_again_and_tells_the_staff(CuTest *tc)
+{
+  static char no_socket[] = "/nonexistent/s13.sock";
+  struct transactions_world w;
+  struct descriptor_data descriptor;
+  char output[4096] = {'\0'};
+  struct char_data *saved_character_list = character_list;
+  char *unix_socket;
+  unsigned int tcp_port;
+
+  if (!transactions_world_begin(tc, &w))
+    return;
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.character = &w.owner;
+  descriptor.connected = CON_PLAYING;
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  w.owner.desc = &descriptor;
+  GET_IDNUM(&w.owner) = 4313;
+
+  /* The connection goes as the first attempt deletes the last save's rows.
+   * The second attempt empties the save. */
+  saves_carry(&w, "a first gem");
+  CuAssertTrue(tc, Crash_crashsave(&w.owner));
+  CuAssertIntEquals(tc, 1, saves_player_rows(&w));
+  w.room.people = &w.owner;
+  character_list = &w.owner;
+  mysql_test_drop_connection_at("delete from player_save_objs", 1, FALSE);
+  extract_char(&w.owner);
+  extract_pending_chars();
+  CuAssertPtrEquals(tc, NULL, w.owner.carrying);
+  CuAssertPtrNotNull(tc, w.room.contents);
+  CuAssertIntEquals(tc, 0, saves_player_rows(&w));
+  CuAssertStrEquals(tc, "", transactions_staff_heard(&w));
+
+  /* The database is away for both attempts: the last save stands, and the
+   * staff are told. */
+  saves_carry(&w, "a second gem");
+  CuAssertTrue(tc, Crash_crashsave(&w.owner));
+  CuAssertIntEquals(tc, 1, saves_player_rows(&w));
+  IN_ROOM(&w.owner) = 0;
+  w.room.people = &w.owner;
+  character_list = &w.owner;
+  tcp_port = conn->port;
+  unix_socket = conn->unix_socket;
+  conn->port = 1;
+  conn->unix_socket = no_socket;
+  transactions_drop_socket(conn);
+  extract_char(&w.owner);
+  extract_pending_chars();
+  conn->port = tcp_port;
+  conn->unix_socket = unix_socket;
+  CuAssertPtrEquals(tc, NULL, w.owner.carrying);
+  CuAssertIntEquals(tc, 1, saves_player_rows(&w));
+  CuAssertTrue(tc, strstr(transactions_staff_heard(&w),
+                          SAVES_OWNER "'s object save could not be emptied as the character "
+                                      "left the game") != NULL);
+
+  character_list = saved_character_list;
+  w.owner.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  domain_event_runtime_shutdown();
+  event_free_all();
   transactions_world_end(tc, &w);
 }
 

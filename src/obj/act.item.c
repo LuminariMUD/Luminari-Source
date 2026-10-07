@@ -8328,9 +8328,14 @@ void sort_object_bag(struct char_data *ch, const char *objname, int subcmd, int 
   char bagname[MEDIUM_STRING] = {'\0'};
   char objname_buf[MAX_INPUT_LENGTH] = {'\0'}; /* get_obj_in_list_vis consumes a dot prefix */
   struct obj_data *obj, *next_obj;
+  struct obj_data *bag;
 
-
-  struct obj_data *bag = get_char_bag(ch, bagnum);
+  if (ch->bags == NULL) /* a mobile has no bags */
+  {
+    send_to_char(ch, "You have no bags.\r\n");
+    return;
+  }
+  bag = get_char_bag(ch, bagnum);
 
   if (!strcmp(objname, "all"))
   {

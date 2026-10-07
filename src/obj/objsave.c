@@ -1452,6 +1452,8 @@ static void objsave_save_and_extract(struct char_data *ch, int rentcode, int cos
   for (j = 0; j < NUM_WEARS; j++)
     if (GET_EQ(ch, j))
       Crash_extract_objs(GET_EQ(ch, j));
+  for (j = 1; j <= MAX_BAGS; j++)
+    Crash_extract_objs(get_char_bag(ch, j));
   Crash_extract_objs(ch->carrying);
 }
 

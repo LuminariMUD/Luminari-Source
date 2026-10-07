@@ -3184,6 +3184,7 @@ void extract_char_final(struct char_data *ch)
   struct descriptor_data *d;
   struct obj_data *obj;
   struct char_data *tch = NULL;
+  bool dropped = false;
   static struct PERF_prof_sect *pr_last_attacker = NULL;
   static struct PERF_prof_sect *pr_relationships = NULL;
   static struct PERF_prof_sect *pr_assets = NULL;
@@ -3298,11 +3299,20 @@ void extract_char_final(struct char_data *ch)
 
   PERF_prof_sect_init(&pr_assets, "extract.assets");
   PERF_prof_sect_enter(pr_assets);
-  empty_bags_to_inventory(ch);
+  /* transfer bagged objects to room: a player is always in a room here, and
+   * a character without bag storage has no bagged objects */
+  for (i = 1; i <= MAX_BAGS; i++)
+    while ((obj = get_char_bag(ch, i)) != NULL)
+    {
+      dropped = true;
+      obj_from_bag(ch, obj, i);
+      obj_to_room(obj, IN_ROOM(ch));
+    }
 
   /* transfer objects to room, if any */
   while (ch->carrying)
   {
+    dropped = true;
     obj = ch->carrying;
     obj_from_char(obj);
     if (IN_ROOM(ch) != NOWHERE)
@@ -3315,6 +3325,7 @@ void extract_char_final(struct char_data *ch)
   for (i = 0; i < NUM_WEARS; i++)
     if (GET_EQ(ch, i))
     {
+      dropped = true;
       if (IN_ROOM(ch) != NOWHERE)
         obj_to_room(unequip_char(ch, i), IN_ROOM(ch));
       else
@@ -3392,8 +3403,15 @@ void extract_char_final(struct char_data *ch)
     /* note - this is deprecated, switched value back to 0 */
     save_char(ch, 0);
 
-    if (GET_PFILEPOS(ch) >= 0)
-      Crash_delete_crashfile(ch);
+    /* What the character held is in the room now, so its object save must
+     * not bring it back. A character that left with a save holds nothing
+     * here, and its save stands. A save that did not reach the database is
+     * written once more; if that fails too, the staff are told. */
+    if (dropped && GET_PFILEPOS(ch) >= 0 && !Crash_crashsave(ch) && !Crash_crashsave(ch))
+      mudlog(BRF, LVL_STAFF, TRUE,
+             "SYSERR: %s's object save could not be emptied as the character left the game; "
+             "its next login brings back what it dropped in the room.",
+             GET_NAME(ch));
   }
   PERF_prof_sect_exit(pr_world_remove);
 
@@ -4256,84 +4274,5 @@ void save_chars(void)
     if (!d->account)
       continue;
     save_char(ch, 0);
-  }
-}
-
-void empty_bags_to_inventory(struct char_data *ch)
-{
-  // empty bags
-  if (!IS_NPC(ch))
-  {
-    struct obj_data *tmp, *obj;
-    while (ch->bags->bag1)
-    {
-      tmp = ch->bags->bag1->next_content;
-      obj = ch->bags->bag1;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag1 = tmp;
-    }
-    while (ch->bags->bag2)
-    {
-      tmp = ch->bags->bag2->next_content;
-      obj = ch->bags->bag2;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag2 = tmp;
-    }
-    while (ch->bags->bag3)
-    {
-      tmp = ch->bags->bag3->next_content;
-      obj = ch->bags->bag3;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag3 = tmp;
-    }
-    while (ch->bags->bag4)
-    {
-      tmp = ch->bags->bag4->next_content;
-      obj = ch->bags->bag4;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag4 = tmp;
-    }
-    while (ch->bags->bag5)
-    {
-      tmp = ch->bags->bag5->next_content;
-      obj = ch->bags->bag5;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag5 = tmp;
-    }
-    while (ch->bags->bag6)
-    {
-      tmp = ch->bags->bag6->next_content;
-      obj = ch->bags->bag6;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag6 = tmp;
-    }
-    while (ch->bags->bag7)
-    {
-      tmp = ch->bags->bag7->next_content;
-      obj = ch->bags->bag7;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag7 = tmp;
-    }
-    while (ch->bags->bag8)
-    {
-      tmp = ch->bags->bag8->next_content;
-      obj = ch->bags->bag8;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag8 = tmp;
-    }
-    while (ch->bags->bag9)
-    {
-      tmp = ch->bags->bag9->next_content;
-      obj = ch->bags->bag9;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag9 = tmp;
-    }
-    while (ch->bags->bag10)
-    {
-      tmp = ch->bags->bag10->next_content;
-      obj = ch->bags->bag10;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag10 = tmp;
-    }
   }
 }
