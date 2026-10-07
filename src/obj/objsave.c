@@ -104,7 +104,6 @@ static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long
 static void log_pet_object_failure(const char *operation, struct char_data *owner,
                                    long int pet_idnum, int obj_vnum, unsigned int error_code,
                                    const char *detail);
-void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long int idnum);
 obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum, int sheath_slot,
                                                struct obj_data *sheath);
 
@@ -5021,12 +5020,12 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         if (sheath_slot == 1)
         {
           log("SHEATH2e");
-          sheath->sheath_primary = temp;
+          obj_to_sheath(temp, sheath, 1);
         }
         else if (sheath_slot == 2)
         {
           log("SHEATH2f");
-          sheath->sheath_secondary = temp;
+          obj_to_sheath(temp, sheath, 2);
         }
         log("SHEATH2g");
       }
@@ -5067,21 +5066,4 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
   mysql_free_result(result);
   objsave_sync_loaded_objects(head);
   return head;
-}
-
-void objs_from_sheath(struct char_data *ch, struct obj_data *sheath)
-{
-  if (!sheath)
-    return;
-
-  if (sheath->sheath_primary)
-  {
-    obj_to_char(sheath->sheath_primary, ch);
-    sheath->sheath_primary = NULL;
-  }
-  if (sheath->sheath_secondary)
-  {
-    obj_to_char(sheath->sheath_secondary, ch);
-    sheath->sheath_secondary = NULL;
-  }
 }

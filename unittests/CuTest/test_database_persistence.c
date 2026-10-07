@@ -2371,12 +2371,12 @@ void Test_pet_save_stores_a_sheaths_weapons_as_its_own(CuTest *tc)
   /* A worn sheath with a blade and a shield, a carried one with a dagger. */
   worn = described_object("a worn sheath");
   SET_BIT_AR(GET_OBJ_WEAR(worn), ITEM_WEAR_SHEATH);
-  worn->sheath_primary = described_object("a sheathed blade");
-  worn->sheath_secondary = described_object("a slung shield");
+  obj_to_sheath(described_object("a sheathed blade"), worn, 1);
+  obj_to_sheath(described_object("a slung shield"), worn, 2);
   equip_char(&pet, worn, WEAR_SHEATH);
   carried = described_object("a carried sheath");
   SET_BIT_AR(GET_OBJ_WEAR(carried), ITEM_WEAR_SHEATH);
-  carried->sheath_primary = described_object("a sheathed dagger");
+  obj_to_sheath(described_object("a sheathed dagger"), carried, 1);
   obj_to_char(carried, &pet);
 
   saved = GET_EQ(&pet, WEAR_SHEATH) == worn && create_pet_snapshot_temporary_schema(connection);
@@ -3286,8 +3286,8 @@ void Test_object_extraction_takes_a_sheaths_weapons(CuTest *tc)
   struct obj_data *sheath;
 
   sheath = create_obj();
-  sheath->sheath_primary = create_obj();
-  sheath->sheath_secondary = create_obj();
+  obj_to_sheath(create_obj(), sheath, 1);
+  obj_to_sheath(create_obj(), sheath, 2);
   CuAssertTrue(tc, object_list != saved_objects);
 
   extract_obj(sheath);

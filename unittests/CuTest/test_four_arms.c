@@ -2384,25 +2384,25 @@ static void fill_sheath(struct four_arm_fixture *fixture, struct sheath_case *sh
     init_armor(&sheath->sheath, "a test sheath", ITEM_WEAR_SHEATH, 0, 0);
     equip_char(&fixture->ch, &sheath->sheath, WEAR_SHEATH);
   }
-  sheath->sheath.sheath_primary = primary;
-  sheath->sheath.sheath_secondary = secondary;
+  obj_to_sheath(primary, &sheath->sheath, 1);
+  obj_to_sheath(secondary, &sheath->sheath, 2);
   reset_output(fixture);
   do_unsheath(&fixture->ch, "", 0, 0);
 }
 
-/* every object is in exactly one place: sheathed, worn or carried */
+/* every object is in exactly one place, sheathed, worn or carried, and knows
+ * its sheath only while sheathed */
 static bool sheath_item_accounted(struct char_data *ch, struct sheath_case *sheath,
                                   struct obj_data *obj)
 {
-  int places = 0;
+  bool sheathed = sheath->sheath.sheath_primary == obj || sheath->sheath.sheath_secondary == obj;
+  int places = sheathed ? 1 : 0;
 
-  if (sheath->sheath.sheath_primary == obj || sheath->sheath.sheath_secondary == obj)
-    places++;
   if (worn_position(ch, obj) >= 0)
     places++;
   if (obj->carried_by == ch)
     places++;
-  return places == 1;
+  return places == 1 && obj->sheathed_in == (sheathed ? &sheath->sheath : NULL);
 }
 
 /* Unsheathing draws each item only into an open, empty first-pair position
@@ -2429,6 +2429,8 @@ void TestArmCountUnsheathChecksEachItem(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, sheath.sheath.sheath_primary);
   CuAssertPtrEquals(tc, NULL, sheath.sheath.sheath_secondary);
   CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "You unsheath a sheathed sword and"));
+  CuAssertTrue(tc, sheath_item_accounted(&fixture.ch, &sheath, &sword));
+  CuAssertTrue(tc, sheath_item_accounted(&fixture.ch, &sheath, &off));
   unequip_char(&fixture.ch, WEAR_WIELD_1);
   unequip_char(&fixture.ch, WEAR_WIELD_OFFHAND);
 

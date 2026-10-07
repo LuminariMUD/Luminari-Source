@@ -771,6 +771,7 @@ static void overwrite_object(struct obj_data *to, const struct obj_data *from)
   SCRIPT(to) = kept.script;
   to->sheath_primary = kept.sheath_primary;
   to->sheath_secondary = kept.sheath_secondary;
+  to->sheathed_in = kept.sheathed_in;
   to->trap = kept.trap;
   to->events = kept.events;
   to->event_owner_generation = kept.event_owner_generation;

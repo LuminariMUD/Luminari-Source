@@ -6101,6 +6101,7 @@ struct obj_data
 
   struct obj_data *sheath_primary;   // for wielded or 2H weapon
   struct obj_data *sheath_secondary; // for offhand weapon or shield
+  struct obj_data *sheathed_in;      // the sheath holding this object
 
   /* Trap system - trap attached to this object (container/door) */
   struct trap_data *trap; // Trap on this object

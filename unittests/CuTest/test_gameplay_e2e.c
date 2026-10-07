@@ -15311,3 +15311,38 @@ void Test_spatial_audio_words_distant_and_immediate_sounds(CuTest *tc)
   CuAssertStrEquals(tc, "the immediate north", spatial_direction_to_string(SPATIAL_DIR_NORTH, 0.5));
   CuAssertStrEquals(tc, "the north", spatial_direction_to_string(SPATIAL_DIR_NORTH, 2.0));
 }
+
+/* A sheathed weapon can be extracted on its own: a deleted prototype or a
+ * timer takes it while only the sheath's slot points at it. It leaves the
+ * slot, so the sheath's extraction does not follow it into freed memory.
+ * Before, the slot kept the address. */
+void Test_gameplay_sheathed_weapon_extracted_alone_leaves_its_slot(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct obj_data *saved_objects = object_list;
+  struct obj_data *sheath, *blade, *shield;
+  bool sheathed, left;
+
+  begin_gameplay_fixture(&f);
+  sheath = attack_test_object("a sheath", ITEM_ARMOR, 0);
+  SET_BIT_AR(GET_OBJ_WEAR(sheath), ITEM_WEAR_SHEATH);
+  blade = attack_test_object("a blade", ITEM_WEAPON, WEAPON_TYPE_LONG_SWORD);
+  shield = attack_test_object("a shield", ITEM_ARMOR, 0);
+  SET_BIT_AR(GET_OBJ_WEAR(shield), ITEM_WEAR_SHIELD);
+  equip_char(&f.actor, sheath, WEAR_SHEATH);
+  equip_char(&f.actor, blade, WEAR_WIELD_1);
+  equip_char(&f.actor, shield, WEAR_SHIELD);
+  do_sheath(&f.actor, "", 0, 0);
+  sheathed = sheath->sheath_primary == blade && sheath->sheath_secondary == shield &&
+             GET_EQ(&f.actor, WEAR_WIELD_1) == NULL && GET_EQ(&f.actor, WEAR_SHIELD) == NULL;
+
+  extract_obj(blade);
+  left = sheath->sheath_primary == NULL && sheath->sheath_secondary == shield;
+
+  /* The sheath's extraction takes the shield. */
+  extract_obj(unequip_char(&f.actor, WEAR_SHEATH));
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, sheathed);
+  CuAssertTrue(tc, left);
+  CuAssertPtrEquals(tc, saved_objects, object_list);
+}
