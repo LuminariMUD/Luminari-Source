@@ -3405,9 +3405,13 @@ void extract_char_final(struct char_data *ch)
 
     /* What the character held is in the room now, so its object save must
      * not bring it back. A character that left with a save holds nothing
-     * here, and its save stands. */
-    if (dropped && GET_PFILEPOS(ch) >= 0)
-      Crash_crashsave(ch);
+     * here, and its save stands. A save that did not reach the database is
+     * written once more; if that fails too, the staff are told. */
+    if (dropped && GET_PFILEPOS(ch) >= 0 && !Crash_crashsave(ch) && !Crash_crashsave(ch))
+      mudlog(BRF, LVL_STAFF, TRUE,
+             "SYSERR: %s's object save could not be emptied as the character left the game; "
+             "its next login brings back what it dropped in the room.",
+             GET_NAME(ch));
   }
   PERF_prof_sect_exit(pr_world_remove);
 

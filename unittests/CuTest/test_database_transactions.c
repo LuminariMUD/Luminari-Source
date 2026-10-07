@@ -1196,6 +1196,80 @@ void Test_leaving_without_a_save_drops_everything_and_keeps_no_object_save(CuTes
   transactions_world_end(tc, &w);
 }
 
+/* The empty save a leave without a save writes is tried once more when it
+ * did not reach the database. After two failures the last save stands, so
+ * the next login brings back what was dropped, and the staff are told. */
+void Test_leaving_without_a_save_writes_the_empty_save_again_and_tells_the_staff(CuTest *tc)
+{
+  static char no_socket[] = "/nonexistent/s13.sock";
+  struct transactions_world w;
+  struct descriptor_data descriptor;
+  char output[4096] = {'\0'};
+  struct char_data *saved_character_list = character_list;
+  char *unix_socket;
+  unsigned int tcp_port;
+
+  if (!transactions_world_begin(tc, &w))
+    return;
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.character = &w.owner;
+  descriptor.connected = CON_PLAYING;
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  w.owner.desc = &descriptor;
+  GET_IDNUM(&w.owner) = 4313;
+
+  /* The connection goes as the first attempt deletes the last save's rows.
+   * The second attempt empties the save. */
+  saves_carry(&w, "a first gem");
+  CuAssertTrue(tc, Crash_crashsave(&w.owner));
+  CuAssertIntEquals(tc, 1, saves_player_rows(&w));
+  w.room.people = &w.owner;
+  character_list = &w.owner;
+  mysql_test_drop_connection_at("delete from player_save_objs", 1, FALSE);
+  extract_char(&w.owner);
+  extract_pending_chars();
+  CuAssertPtrEquals(tc, NULL, w.owner.carrying);
+  CuAssertPtrNotNull(tc, w.room.contents);
+  CuAssertIntEquals(tc, 0, saves_player_rows(&w));
+  CuAssertStrEquals(tc, "", transactions_staff_heard(&w));
+
+  /* The database is away for both attempts: the last save stands, and the
+   * staff are told. */
+  saves_carry(&w, "a second gem");
+  CuAssertTrue(tc, Crash_crashsave(&w.owner));
+  CuAssertIntEquals(tc, 1, saves_player_rows(&w));
+  IN_ROOM(&w.owner) = 0;
+  w.room.people = &w.owner;
+  character_list = &w.owner;
+  tcp_port = conn->port;
+  unix_socket = conn->unix_socket;
+  conn->port = 1;
+  conn->unix_socket = no_socket;
+  transactions_drop_socket(conn);
+  extract_char(&w.owner);
+  extract_pending_chars();
+  conn->port = tcp_port;
+  conn->unix_socket = unix_socket;
+  CuAssertPtrEquals(tc, NULL, w.owner.carrying);
+  CuAssertIntEquals(tc, 1, saves_player_rows(&w));
+  CuAssertTrue(tc, strstr(transactions_staff_heard(&w),
+                          SAVES_OWNER "'s object save could not be emptied as the character "
+                                      "left the game") != NULL);
+
+  character_list = saved_character_list;
+  w.owner.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  transactions_world_end(tc, &w);
+}
+
 /* ------------------------------------------------------------------------ */
 /* Vessel sites                                                             */
 /* ------------------------------------------------------------------------ */
