@@ -4957,8 +4957,8 @@ void Test_gameplay_utter_passes_over_an_ability_with_no_command_word(CuTest *tc)
   CuAssertIntEquals(tc, 0, activated);
 }
 
-/* A mobile has no bag storage. The bag commands tell it so and leave what it
- * carries where it is. */
+/* A mobile has no bag storage. The bag commands, and put and get into a bag,
+ * tell it so and leave what it carries where it is. */
 void Test_gameplay_bag_commands_refuse_a_character_without_bags(CuTest *tc)
 {
   struct gameplay_fixture fixture;
@@ -4984,6 +4984,9 @@ void Test_gameplay_bag_commands_refuse_a_character_without_bags(CuTest *tc)
   do_sort(&fixture.actor, "gem bag1", 0, SCMD_SORTTO);
   do_sort(&fixture.actor, "gem bag1", 0, SCMD_SORTFROM);
   do_sort(&fixture.actor, "all bag1", 0, SCMD_SORTFROM);
+  do_put(&fixture.actor, "gem bag1", 0, 0);
+  do_get(&fixture.actor, "gem bag1", 0, 0);
+  do_get(&fixture.actor, "all bag1", 0, 0);
   do_bags(&fixture.actor, "", 0, 0);
   do_bags(&fixture.actor, "1", 0, 0);
   carried = gem->carried_by == &fixture.actor && fixture.actor.carrying == gem;
@@ -4996,7 +4999,7 @@ void Test_gameplay_bag_commands_refuse_a_character_without_bags(CuTest *tc)
   extract_obj(gem);
   end_gameplay_fixture(&fixture);
   CuAssertTrue(tc, carried);
-  CuAssertIntEquals(tc, 5, refusals);
+  CuAssertIntEquals(tc, 8, refusals);
 }
 
 void Test_gameplay_retainer_call_preserves_cooldown_and_rejects_remote_duplicate(CuTest *tc)
