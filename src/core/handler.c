@@ -3299,7 +3299,15 @@ void extract_char_final(struct char_data *ch)
 
   PERF_prof_sect_init(&pr_assets, "extract.assets");
   PERF_prof_sect_enter(pr_assets);
-  empty_bags_to_inventory(ch);
+  /* transfer bagged objects to room: only a player has bags, and a player is
+   * always in a room here */
+  for (i = 1; !IS_NPC(ch) && i <= MAX_BAGS; i++)
+    while ((obj = get_char_bag(ch, i)) != NULL)
+    {
+      dropped = true;
+      obj_from_bag(ch, obj, i);
+      obj_to_room(obj, IN_ROOM(ch));
+    }
 
   /* transfer objects to room, if any */
   while (ch->carrying)
@@ -4262,84 +4270,5 @@ void save_chars(void)
     if (!d->account)
       continue;
     save_char(ch, 0);
-  }
-}
-
-void empty_bags_to_inventory(struct char_data *ch)
-{
-  // empty bags
-  if (!IS_NPC(ch))
-  {
-    struct obj_data *tmp, *obj;
-    while (ch->bags->bag1)
-    {
-      tmp = ch->bags->bag1->next_content;
-      obj = ch->bags->bag1;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag1 = tmp;
-    }
-    while (ch->bags->bag2)
-    {
-      tmp = ch->bags->bag2->next_content;
-      obj = ch->bags->bag2;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag2 = tmp;
-    }
-    while (ch->bags->bag3)
-    {
-      tmp = ch->bags->bag3->next_content;
-      obj = ch->bags->bag3;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag3 = tmp;
-    }
-    while (ch->bags->bag4)
-    {
-      tmp = ch->bags->bag4->next_content;
-      obj = ch->bags->bag4;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag4 = tmp;
-    }
-    while (ch->bags->bag5)
-    {
-      tmp = ch->bags->bag5->next_content;
-      obj = ch->bags->bag5;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag5 = tmp;
-    }
-    while (ch->bags->bag6)
-    {
-      tmp = ch->bags->bag6->next_content;
-      obj = ch->bags->bag6;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag6 = tmp;
-    }
-    while (ch->bags->bag7)
-    {
-      tmp = ch->bags->bag7->next_content;
-      obj = ch->bags->bag7;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag7 = tmp;
-    }
-    while (ch->bags->bag8)
-    {
-      tmp = ch->bags->bag8->next_content;
-      obj = ch->bags->bag8;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag8 = tmp;
-    }
-    while (ch->bags->bag9)
-    {
-      tmp = ch->bags->bag9->next_content;
-      obj = ch->bags->bag9;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag9 = tmp;
-    }
-    while (ch->bags->bag10)
-    {
-      tmp = ch->bags->bag10->next_content;
-      obj = ch->bags->bag10;
-      obj_from_bag(ch, obj, 1);
-      ch->bags->bag10 = tmp;
-    }
   }
 }

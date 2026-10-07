@@ -91,7 +91,6 @@ void obj_from_char(struct obj_data *object);
 void obj_from_inv_to_bag(struct char_data *ch, struct obj_data *object, int bagnum);
 void obj_from_bag(struct char_data *ch, struct obj_data *object, int bagnum);
 void obj_to_bag(struct char_data *ch, struct obj_data *object, int bagnum);
-void empty_bags_to_inventory(struct char_data *ch);
 void obj_to_craft(struct obj_data *object, struct char_data *ch);
 void obj_from_craft(struct obj_data *object, struct char_data *ch);
 
