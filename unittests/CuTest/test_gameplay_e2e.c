@@ -4957,6 +4957,48 @@ void Test_gameplay_utter_passes_over_an_ability_with_no_command_word(CuTest *tc)
   CuAssertIntEquals(tc, 0, activated);
 }
 
+/* A mobile has no bag storage. The bag commands tell it so and leave what it
+ * carries where it is. */
+void Test_gameplay_bag_commands_refuse_a_character_without_bags(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct descriptor_data descriptor = {0};
+  char output[MAX_STRING_LENGTH] = {'\0'};
+  struct obj_data *gem;
+  const char *told;
+  int refusals = 0;
+  bool carried;
+
+  begin_gameplay_fixture(&fixture);
+  gem = create_obj();
+  gem->name = strdup("gem");
+  gem->short_description = strdup("a gem");
+  obj_to_char(gem, &fixture.actor);
+  descriptor.character = &fixture.actor;
+  descriptor.connected = CON_PLAYING;
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  fixture.actor.desc = &descriptor;
+
+  do_sort(&fixture.actor, "gem bag1", 0, SCMD_SORTTO);
+  do_sort(&fixture.actor, "gem bag1", 0, SCMD_SORTFROM);
+  do_sort(&fixture.actor, "all bag1", 0, SCMD_SORTFROM);
+  do_bags(&fixture.actor, "", 0, 0);
+  do_bags(&fixture.actor, "1", 0, 0);
+  carried = gem->carried_by == &fixture.actor && fixture.actor.carrying == gem;
+  for (told = strstr(output, "You have no bags."); told != NULL;
+       told = strstr(told + 1, "You have no bags."))
+    refusals++;
+
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  extract_obj(gem);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, carried);
+  CuAssertIntEquals(tc, 5, refusals);
+}
+
 void Test_gameplay_retainer_call_preserves_cooldown_and_rejects_remote_duplicate(CuTest *tc)
 {
   struct gameplay_fixture fixture;

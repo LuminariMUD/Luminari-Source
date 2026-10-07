@@ -8451,6 +8451,12 @@ ACMD(do_sort)
   int i = 0;
   struct obj_data *obj, *next_obj;
 
+  if (ch->bags == NULL) /* a mobile has no bags */
+  {
+    send_to_char(ch, "You have no bags.\r\n");
+    return;
+  }
+
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (*arg1 && is_abbrev(arg1, "all") && subcmd == SCMD_SORTTO)
