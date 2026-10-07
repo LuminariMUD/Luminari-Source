@@ -5175,10 +5175,11 @@ void remove_obj_from_rnum_hash(struct obj_data *obj)
 
   hash_key = obj_rnum_hash_key(obj->item_number);
 
-  /* Update the linked list pointers */
+  /* Update the linked list pointers. An object given an rnum without
+   * read_object() is on no chain, and a chain it does not head stays. */
   if (obj->prev_in_hash)
     obj->prev_in_hash->next_in_hash = obj->next_in_hash;
-  else
+  else if (obj_rnum_hash[hash_key].objs == obj)
     obj_rnum_hash[hash_key].objs = obj->next_in_hash;
 
   if (obj->next_in_hash)

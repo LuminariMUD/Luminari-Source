@@ -40,6 +40,7 @@
 #include "../../src/olc/prefedit.h"
 #include "../../src/olc/genobj.h"
 #include "../../src/olc/genolc.h"
+#include "../../src/comms/boards.h"
 #include "../../src/vessels/transport.h"
 #include "../../src/vessels/transport_jobs.h"
 #include "../../src/quest/staff_events.h"
@@ -7570,6 +7571,133 @@ void Test_gameplay_object_prototype_save_leaves_live_objects_whole(CuTest *tc)
   CuAssertTrue(tc, own_lists);
   CuAssertTrue(tc, kept_links);
   CuAssertTrue(tc, prototype_whole);
+}
+
+/* A prototype table of the test's own, vnums 91001 and up four apart, in a
+ * zone with no reset commands. OLC can grow and shrink it. */
+struct object_table_fixture
+{
+  struct zone_data zone;
+  struct reset_com zone_end;
+  struct obj_data *saved_proto;
+  struct index_data *saved_index;
+  obj_rnum saved_top;
+  struct zone_data *saved_zones;
+  zone_rnum saved_top_zone;
+};
+
+static void begin_object_table(struct object_table_fixture *f, int count)
+{
+  int i;
+
+  memset(f, 0, sizeof(*f));
+  f->saved_proto = obj_proto;
+  f->saved_index = obj_index;
+  f->saved_top = top_of_objt;
+  f->saved_zones = zone_table;
+  f->saved_top_zone = top_of_zone_table;
+  f->zone.number = 910;
+  f->zone.bot = 91000;
+  f->zone.top = 91099;
+  f->zone_end.command = 'S';
+  f->zone.cmd = &f->zone_end;
+  CREATE(obj_proto, struct obj_data, count);
+  CREATE(obj_index, struct index_data, count);
+  for (i = 0; i < count; i++)
+  {
+    clear_object(&obj_proto[i]);
+    obj_proto[i].item_number = i;
+    obj_index[i].vnum = 91001 + 4 * i;
+  }
+  top_of_objt = count - 1;
+  zone_table = &f->zone;
+  top_of_zone_table = 0;
+}
+
+static void end_object_table(struct object_table_fixture *f)
+{
+  obj_rnum i;
+
+  for (i = 0; i <= top_of_objt; i++)
+  {
+    free_object_strings(&obj_proto[i]);
+    free_obj_special_abilities(obj_proto[i].special_abilities);
+    free(obj_proto[i].sbinfo);
+    free_proto_script(&obj_proto[i].proto_script);
+  }
+  free(obj_proto);
+  free(obj_index);
+  remove_from_save_list(f->zone.number, SL_OBJ);
+  obj_proto = f->saved_proto;
+  obj_index = f->saved_index;
+  top_of_objt = f->saved_top;
+  zone_table = f->saved_zones;
+  top_of_zone_table = f->saved_top_zone;
+}
+
+/* The edit copy handed its lists to the prototype; its strings are its own. */
+static void free_object_edit_copy(struct obj_data *edit)
+{
+  free_object_strings(edit);
+  free(edit);
+}
+
+/* A new prototype below others moves their live objects up an rnum, and a
+ * deleted one moves them back down. Each moves to the hash chain of its new
+ * rnum, and an object with no prototype keeps NOTHING. So does a notice
+ * board with no object, and a letter numbered without read_object(), which
+ * is on no chain, leaves the chain it was counted on alone. */
+void Test_gameplay_object_renumber_keeps_the_hash_and_unnumbered_objects(CuTest *tc)
+{
+  struct object_table_fixture f;
+  struct obj_data *first, *second, *loose, *letter, *added, *reloaded;
+  obj_rnum boards[NUM_OF_BOARDS];
+  bool inserted, deleted, boards_kept = true;
+  int i;
+
+  for (i = 0; i < NUM_OF_BOARDS; i++)
+  {
+    boards[i] = BOARD_RNUM(i);
+    BOARD_RNUM(i) = NOTHING;
+  }
+  begin_object_table(&f, 2);
+  /* The letter comes after the others in object_list, so it is renumbered
+   * after the first object has moved onto the chain of rnum 1. */
+  letter = create_obj();
+  letter->item_number = 1;
+  first = read_object(0, REAL);
+  second = read_object(1, REAL);
+  loose = create_obj();
+
+  CREATE(added, struct obj_data, 1);
+  clear_object(added);
+  added->name = strdup("sash red");
+  inserted = add_object(added, 91000) == 0 && GET_OBJ_RNUM(first) == 1 &&
+             GET_OBJ_RNUM(second) == 2 && get_obj_num(1) == first && GET_OBJ_RNUM(letter) == 2 &&
+             GET_OBJ_RNUM(loose) == NOTHING;
+  deleted = delete_object(0) == 0 && GET_OBJ_RNUM(first) == 0 && GET_OBJ_RNUM(second) == 1 &&
+            get_obj_num(0) == first && GET_OBJ_RNUM(letter) == 1 && GET_OBJ_RNUM(loose) == NOTHING;
+  for (i = 0; i < NUM_OF_BOARDS; i++)
+  {
+    boards_kept = boards_kept && BOARD_RNUM(i) == NOTHING;
+    BOARD_RNUM(i) = boards[i];
+  }
+
+  /* Freed objects left at the head of a chain would be written to here. */
+  extract_obj(first);
+  extract_obj(letter);
+  reloaded = read_object(0, REAL);
+  extract_obj(reloaded);
+  extract_obj(second);
+  reloaded = read_object(1, REAL);
+  extract_obj(reloaded);
+  extract_obj(loose);
+  free_object_edit_copy(added);
+  remove_from_save_list(f.zone.number, SL_ZON);
+  end_object_table(&f);
+  CuAssertTrue(tc, inserted);
+  CuAssertTrue(tc, deleted);
+  CuAssertTrue(tc, boards_kept);
 }
 
 static void verify_native_transport(CuTest *tc, int mode)

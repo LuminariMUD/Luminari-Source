@@ -110,9 +110,15 @@ obj_rnum adjust_objects(obj_rnum refpt)
 #endif
     return NOTHING;
 
-  /* Renumber live objects. */
+  /* Renumber live objects, each onto the hash chain of its new rnum. */
   for (obj = object_list; obj; obj = obj->next)
-    GET_OBJ_RNUM(obj) += (GET_OBJ_RNUM(obj) != NOTHING && GET_OBJ_RNUM(obj) >= refpt);
+    if (GET_OBJ_RNUM(obj) != NOTHING && GET_OBJ_RNUM(obj) >= refpt)
+    {
+      remove_obj_from_rnum_hash(obj);
+      GET_OBJ_RNUM(obj)++;
+      add_obj_to_rnum_hash(obj);
+    }
+
 
   /* Renumber zone table. */
   for (zone = 0; zone <= top_of_zone_table; zone++)
@@ -140,7 +146,7 @@ obj_rnum adjust_objects(obj_rnum refpt)
 
   /* Renumber notice boards. */
   for (i = 0; i < NUM_OF_BOARDS; i++)
-    BOARD_RNUM(i) += (BOARD_RNUM(i) >= refpt);
+    BOARD_RNUM(i) += (BOARD_RNUM(i) != NOTHING && BOARD_RNUM(i) >= refpt);
 
   /* Renumber shop produce. */
   for (shop = 0; shop <= top_shop; shop++)
@@ -696,11 +702,20 @@ int delete_object(obj_rnum rnum)
   spec_binding_free(&obj_index[rnum].spec_binding);
   spec_effective_binding_free(&obj_index[rnum].effective_binding);
 
-  /* Adjust rnums of all other objects. */
+  /* The prototype's strings and triggers go with it. An edit copy can point
+   * at its spellbook and abilities, so those are given up, not freed. */
+  free_object_strings(obj);
+  free_proto_script(&obj->proto_script);
+
+  /* Adjust rnums of all other objects, each onto the hash chain of its new rnum. */
   for (tmp = object_list; tmp; tmp = tmp->next)
-  {
-    GET_OBJ_RNUM(tmp) -= (GET_OBJ_RNUM(tmp) > rnum);
-  }
+    if (GET_OBJ_RNUM(tmp) != NOTHING && GET_OBJ_RNUM(tmp) > rnum)
+    {
+      remove_obj_from_rnum_hash(tmp);
+      GET_OBJ_RNUM(tmp)--;
+      add_obj_to_rnum_hash(tmp);
+    }
+
 
   for (i = rnum; i < top_of_objt; i++)
   {
@@ -715,7 +730,7 @@ int delete_object(obj_rnum rnum)
 
   /* Renumber notice boards. */
   for (j = 0; j < NUM_OF_BOARDS; j++)
-    BOARD_RNUM(j) -= (BOARD_RNUM(j) > rnum);
+    BOARD_RNUM(j) -= (BOARD_RNUM(j) != NOTHING && BOARD_RNUM(j) > rnum);
 
   /* Renumber shop produce. */
   for (shop = 0; shop <= top_shop; shop++)
