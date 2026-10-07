@@ -5175,10 +5175,11 @@ void remove_obj_from_rnum_hash(struct obj_data *obj)
 
   hash_key = obj_rnum_hash_key(obj->item_number);
 
-  /* Update the linked list pointers */
+  /* Update the linked list pointers. An object given an rnum without
+   * read_object() is on no chain, and a chain it does not head stays. */
   if (obj->prev_in_hash)
     obj->prev_in_hash->next_in_hash = obj->next_in_hash;
-  else
+  else if (obj_rnum_hash[hash_key].objs == obj)
     obj_rnum_hash[hash_key].objs = obj->next_in_hash;
 
   if (obj->next_in_hash)
@@ -5188,11 +5189,56 @@ void remove_obj_from_rnum_hash(struct obj_data *obj)
   obj->prev_in_hash = NULL;
 }
 
+/* An object written from its prototype shares the prototype's arcane mark,
+ * restring identifier, spellbook and special abilities. Give it copies of its
+ * own: free_obj() frees each with the object. */
+void give_obj_own_copies(struct obj_data *obj, const struct obj_data *proto)
+{
+  struct obj_special_ability *proto_specab, *specab_list;
+  int j;
+
+  if (proto->arcane_mark)
+    obj->arcane_mark = strdup(proto->arcane_mark);
+
+  if (proto->restring_identifier)
+    obj->restring_identifier = strdup(proto->restring_identifier);
+
+  /* Copy the spellbook information - Uses pointer math to access and array...*/
+  if (proto->sbinfo)
+  {
+    CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+    memset((char *)obj->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
+    for (j = 0; j < SPELLBOOK_SIZE; j++)
+    {
+      obj->sbinfo[j].spellname = proto->sbinfo[j].spellname;
+      obj->sbinfo[j].pages = proto->sbinfo[j].pages;
+    }
+  }
+
+  obj->special_abilities = NULL;
+
+  /* Copy the special ability information. */
+  for (proto_specab = proto->special_abilities; proto_specab != NULL;
+       proto_specab = proto_specab->next)
+  {
+    CREATE(specab_list, struct obj_special_ability, 1);
+    /* Populate the node. */
+    *specab_list = *proto_specab;
+
+    /* Copy the command word (pointer, not copied above. */
+    if (proto_specab->command_word != NULL)
+      specab_list->command_word = strdup(proto_specab->command_word);
+
+    /* Put the new node on the list. */
+    specab_list->next = obj->special_abilities;
+    obj->special_abilities = specab_list;
+  }
+}
+
 /* create a new object from a prototype */
 struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
 {
   struct obj_data *obj;
-  struct obj_special_ability *proto_specab, *specab_list;
   int j;
   obj_rnum i = type == VIRTUAL ? real_object(nr) : nr;
   zone_rnum origin_zone;
@@ -5229,45 +5275,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
 
   GET_ID(obj) = 0;
 
-  /* Handle string fields that shouldn't be shared with prototype */
-  /* For arcane_mark and restring_identifier, we need to create instance-specific copies
-   * if they exist in the prototype, so modifications to one instance don't affect others */
-  if (obj_proto[i].arcane_mark)
-    obj->arcane_mark = strdup(obj_proto[i].arcane_mark);
-
-  if (obj_proto[i].restring_identifier)
-    obj->restring_identifier = strdup(obj_proto[i].restring_identifier);
-
-  /* Copy the spellbook information - Uses pointer math to access and array...*/
-  if (obj_proto[i].sbinfo)
-  {
-    CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
-    memset((char *)obj->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
-    for (j = 0; j < SPELLBOOK_SIZE; j++)
-    {
-      obj->sbinfo[j].spellname = obj_proto[i].sbinfo[j].spellname;
-      obj->sbinfo[j].pages = obj_proto[i].sbinfo[j].pages;
-    }
-  }
-
-  obj->special_abilities = NULL;
-
-  /* Copy the special ability information. */
-  for (proto_specab = obj_proto[i].special_abilities; proto_specab != NULL;
-       proto_specab = proto_specab->next)
-  {
-    CREATE(specab_list, struct obj_special_ability, 1);
-    /* Populate the node. */
-    *specab_list = *proto_specab;
-
-    /* Copy the command word (pointer, not copied above. */
-    if (proto_specab->command_word != NULL)
-      specab_list->command_word = strdup(proto_specab->command_word);
-
-    /* Put the new node on the list. */
-    specab_list->next = obj->special_abilities;
-    obj->special_abilities = specab_list;
-  }
+  give_obj_own_copies(obj, &obj_proto[i]);
 
   /* going to put some caps here -zusuk */
   /* weapons, max_weapon_x is defined in oasis.h */

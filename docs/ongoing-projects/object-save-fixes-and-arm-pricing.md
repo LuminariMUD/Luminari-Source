@@ -22,7 +22,7 @@ phase 7.
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Not started |
 | 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
 | 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
-| 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | Not started |
+| 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | In review: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), tag `object-save-fixes-p7` |
 
 Why this order:
 
@@ -42,7 +42,8 @@ Why this order:
 ## Every phase
 
 1. Branch `<iid>-<slug>` from `gitlab/master`, checked out in this plan's worktree
-   (`../Luminari-Source-object-save-fixes-and-arm-pricing`): one phase at a time.
+   (`../Luminari-Source-object-save-fixes-and-arm-pricing`): one phase at a time. Phase 7 is the
+   one exception: its branch starts at the phase 3 tag, because phase 3 was still in review.
 2. Write the failing test (for #18, run the repro), then the fix.
 3. `CUTEST_FILTER=<test> ./cutest` while working, with the `LUMINARI_TEST_MYSQL_*` settings for
    database tests; then `make -j$(nproc) test && make install`.
@@ -482,6 +483,139 @@ neighbour on its hash chain: its lists are its own, `get_obj_num()` still finds 
 and extracting it leaves the prototype whole. An iedit commit after the hash chain changed:
 the live object keeps its current links. Both under the sanitizer and memory-check jobs.
 
+### Built 2026-10-06
+
+Branch `30-an-olc-save-of-an-object-prototype-leaves-its-live-objects-sharing-the-prototype-s-lists`,
+MR !26, tag `object-save-fixes-p7`. The branch starts at `object-save-fixes-p3`. Phase 3's
+review fix `ddacf712f` and its record were merged into this branch on 2026-10-06 (`15f66c7c9`).
+MR !25 was merged the same day and master was merged into this branch (`16b1abdf5`), so the
+merge request shows phase 7's commits alone. The worktree is on this branch, and `src/` and
+`unittests/` are as on `5328a0005`.
+
+One code commit, `584524ec5`:
+
+- `overwrite_object()` (`src/olc/genobj.c`) is the one list of what a target keeps when another
+  object is written over it: where it is, what holds it and what it holds, its list, hash and
+  registry links, its events and transfer state, its sheath pointers and trap, and the other
+  runtime-only fields. `copy_object_main()` and `update_all_objects()` both go through it. The
+  iedit commit's own restore list is gone.
+- An OLC save: `free_all_object_strings()` frees each live object's own strings before the
+  prototype's are replaced, while the two can still be told apart. After the copy,
+  `give_obj_own_copies()` gives the object what `read_object()` gives a new one; it is that part
+  of `read_object()`, moved into a function of its own in `src/core/db.c`.
+- `index_object()` clears the slot a new prototype goes into and `oedit_setup_existing()` clears
+  its edit copy, since a copy now keeps the target's runtime fields.
+- What an OLC save does to a live object is unchanged: it still resets values, flags, strings,
+  mark and abilities to the prototype's. The phase changes which memory the object points at
+  afterwards, not what it holds.
+
+Found while building, fixed in the same commit:
+
+- An edit copy shared `char_sdesc` with the live object and both freed it: the iedit commit of
+  a corpse ended in a double free. `copy_object_strings()` now duplicates it. The review of phase
+  3 found the same double free on its own, and `ddacf712f` is the same line, so the two merge
+  requests share one copy of it.
+- A new prototype kept the event and registry fields of whatever its slot held, and a slot at
+  the end of the table is not initialised.
+- The preview copy of #29 took the list, hash and holder links of the object it previews. The
+  keep list ends that (read, not run). What that copy still shares is #29's.
+
+Left as it was:
+
+- The special abilities, spellbook and script a live object held before an OLC save are still
+  dropped without a free. Two objects can point at one list today: #29's preview copy shares
+  the previewed object's lists and script, and an open iedit copy shares its spellbook. Freeing
+  them at the save could free one list twice, so #29 has to end the sharing first. A note on #29
+  says so.
+- An edit copy and the object it was made from still share the special-ability list (oedit)
+  and the spellbook (oedit and iedit). The editors hand those over on purpose.
+
+Tests, all in `unittests/CuTest/test_gameplay_e2e.c`:
+
+- `Test_gameplay_object_prototype_save_leaves_live_objects_whole`: two live objects, one
+  restrung, marked and with a weapon in its sheath; the edit adds an ability and a spellbook
+  page. Fails before the change on the shared lists.
+- `Test_gameplay_object_editor_copy_leaves_each_object_its_own_links`: an edit copy and its
+  commit across a change of the live object's hash links and sheath. Ends in the `char_sdesc`
+  double free before the change.
+- `Test_gameplay_object_new_prototype_takes_nothing_from_its_slot`: a new prototype in a slot
+  full of stale data. Fails before the change.
+
+Verification, on `584524ec5`:
+
+- The three tests fail as described on the code of `8556f9ca8`, and are clean under valgrind
+  after the change, as are the two older editor-copy tests.
+- `make -j16 test`: 2044 tests pass. `make install` done.
+- `./cutest` with the database tests on, first run on a fresh database: 2044 of 2044 pass.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (1457 s).
+
+### Review 2026-10-07
+
+Five findings, three of them use-after-frees reproduced under ASan by the reviewer. All are
+fixed in the two commits after the tag.
+
+`8e7b0b073`, pre-existing: `adjust_objects()` and `delete_object()` renumbered live objects but
+left them on the hash chain of the old rnum, and the next `read_object()` into that bucket wrote
+into a freed object. Each renumbered object now moves to the chain of its new rnum. Found on the
+same loops and fixed with them:
+
+- `delete_object()` also renumbered objects with no prototype. NOTHING is the largest rnum, so a
+  corpse took a bogus rnum that `extract_obj()` used as an `obj_index` subscript. An insert
+  turned a notice board with no object into rnum 0.
+- A mail letter or a forged note has rnum 1 and is on no chain (filed as #31). Removing it from
+  the hash emptied whatever chain held that bucket. `remove_obj_from_rnum_hash()` now leaves a
+  chain the object does not head alone.
+- `delete_object()` never freed the deleted prototype's strings and trigger list.
+
+`dd9732777`, the other four:
+
+- Data loss: an OLC save of a carrier prototype (`WEAPON_PROTO` and the rest) rewrote every
+  generated item in the game. Any save also took restrings, arcane marks, scribed pages, a
+  disenchanted essence's level and a resized item's size. `update_all_objects()` now gives a
+  live object the new definition field by field where it still held the old prototype's, and
+  keeps the rest, as a reload from a save would. This replaces "what an OLC save does to a live
+  object is unchanged" above.
+- The save dropped each live object's script while it stayed registered for random and time
+  triggers. The save no longer touches the script, and `overwrite_object()` keeps the target's.
+- `overwrite_object()` kept a live target's hash links but took the source's rnum. A live target
+  now keeps its rnum.
+- Pre-existing: a save or an iedit commit replaced the weight in place, and the totals of the
+  containers and the carrier around the object went out of step. Both now carry the change to
+  them, as `obj_to_obj()` counts it.
+- Found while fixing: the save lost the old prototype's trigger list and each live object's
+  trigger list. Both are freed now.
+
+Decided with the fix:
+
+- An ability or spellbook page the builder edits in place reaches the live objects at their next
+  load, not at the save. The oedit copy shares those lists with the prototype, so the old
+  prototype already shows the edit when the save compares. An added or cleared ability does reach
+  them.
+- An ability list or spellbook that still matched the old prototype is replaced by a copy and
+  given up, not freed, as before: #29's preview copy and an open iedit copy can point at it.
+- `MAX_TEST_CASES` rises from 2048 to 4096: the suite now has 2049 tests.
+
+Tests, in `unittests/CuTest/test_gameplay_e2e.c`:
+
+- `Test_gameplay_object_renumber_keeps_the_hash_and_unnumbered_objects`
+- `Test_gameplay_object_prototype_save_keeps_what_each_object_made_its_own`
+- `Test_gameplay_object_overwrite_keeps_weight_totals`
+- `Test_gameplay_object_prototype_save_extracts_live_scripts`
+- `Test_gameplay_object_copy_keeps_a_live_targets_rnum`
+- `Test_gameplay_object_prototype_save_leaves_live_objects_whole` now expects the restrung and
+  marked object to keep its name and mark.
+
+Verification, on `dd9732777`:
+
+- Each new test fails on `6a55903f5`. The renumber test ends there in a segmentation fault, and
+  also fails without the chain check in `remove_obj_from_rnum_hash()`.
+- The 11 object tests are clean under valgrind.
+- `make -j16 test`: 2049 tests pass. `make install` done.
+- `./cutest` with the database tests on, first run on a fresh database: 2049 of 2049 pass.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (577 s), the olc
+  changed lines 99.39% covered. The clang-tidy gate first found `memcmp()` on pointer fields;
+  they are compared directly now.
+
 ## Left out
 
 - A `pet_save_objs_sheathed` table (#17): the house rule already covers it without a schema
@@ -496,4 +630,4 @@ the live object keeps its current links. Both under the sanitizer and memory-che
 
 ## Closing
 
-When all six items are closed, delete this file; nothing here needs to outlive them.
+When all seven items are closed, delete this file; nothing here needs to outlive them.
