@@ -3299,9 +3299,9 @@ void extract_char_final(struct char_data *ch)
 
   PERF_prof_sect_init(&pr_assets, "extract.assets");
   PERF_prof_sect_enter(pr_assets);
-  /* transfer bagged objects to room: only a player has bags, and a player is
-   * always in a room here */
-  for (i = 1; !IS_NPC(ch) && i <= MAX_BAGS; i++)
+  /* transfer bagged objects to room: a player is always in a room here, and
+   * a character without bag storage has no bagged objects */
+  for (i = 1; i <= MAX_BAGS; i++)
     while ((obj = get_char_bag(ch, i)) != NULL)
     {
       dropped = true;

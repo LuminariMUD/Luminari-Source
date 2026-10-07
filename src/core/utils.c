@@ -11218,9 +11218,11 @@ bool is_valid_ability_number(int num)
   return false;
 }
 
+/* The head of one of a character's bags. NULL for a character without bag
+ * storage: a mobile, or a player body built for a staff command. */
 struct obj_data *get_char_bag(struct char_data *ch, int bagnum)
 {
-  if (bagnum < 1 || bagnum > MAX_BAGS)
+  if (ch->bags == NULL || bagnum < 1 || bagnum > MAX_BAGS)
     return NULL;
 
   switch (bagnum)

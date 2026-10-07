@@ -5002,6 +5002,37 @@ void Test_gameplay_bag_commands_refuse_a_character_without_bags(CuTest *tc)
   CuAssertIntEquals(tc, 8, refusals);
 }
 
+/* A player body built for a staff command, as stat file builds one for a
+ * player who is not online, has no bag storage. Extracting it drops nothing
+ * and leaves the room as it was. */
+void Test_gameplay_extraction_of_a_player_body_without_bags(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data *body;
+  struct char_data *saved_characters = character_list;
+
+  begin_gameplay_fixture(&fixture);
+  character_list = &fixture.actor;
+  fixture.actor.next = &fixture.victim;
+  CREATE(body, struct char_data, 1);
+  clear_char(body);
+  CREATE(body->player_specials, struct player_special_data, 1);
+  new_mobile_data(body);
+  body->player.name = strdup("Bodiless");
+  GET_LEVEL(body) = 10;
+  char_to_room(body, 0);
+  CuAssertPtrEquals(tc, body, fixture.rooms[0].people);
+  CuAssertPtrEquals(tc, NULL, get_char_bag(body, 1));
+
+  extract_char_final(body);
+
+  character_list = saved_characters;
+  fixture.actor.next = NULL;
+  CuAssertPtrEquals(tc, &fixture.actor, fixture.rooms[0].people);
+  CuAssertPtrEquals(tc, NULL, fixture.rooms[0].contents);
+  end_gameplay_fixture(&fixture);
+}
+
 void Test_gameplay_retainer_call_preserves_cooldown_and_rejects_remote_duplicate(CuTest *tc)
 {
   struct gameplay_fixture fixture;
