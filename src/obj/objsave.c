@@ -1194,6 +1194,19 @@ static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct cha
     if (result && !objsave_save_obj_record_db_pet(obj, ch, owner, pet_idnum, location))
       result = FALSE;
 
+    /* A sheath's weapons are stored under their owner's name, and a pet has
+     * no rows there: they are the pet's own objects, beside the sheath, as a
+     * house's are. A worn sheath's go to the inventory, since the validator
+     * refuses two records on one wear position. */
+    if (result && obj->sheath_primary &&
+        !objsave_save_obj_record_db_pet(obj->sheath_primary, ch, owner, pet_idnum,
+                                        MIN(0, location)))
+      result = FALSE;
+    if (result && obj->sheath_secondary &&
+        !objsave_save_obj_record_db_pet(obj->sheath_secondary, ch, owner, pet_idnum,
+                                        MIN(0, location)))
+      result = FALSE;
+
     for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
       GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
   }

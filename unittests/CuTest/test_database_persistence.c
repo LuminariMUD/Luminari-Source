@@ -2315,6 +2315,111 @@ void Test_pet_object_record_leaves_out_an_extra_description_that_does_not_fit(Cu
   CuAssertIntEquals(tc, 1, collar_rows);
 }
 
+/* An object with no prototype, told apart by its description. */
+static struct obj_data *described_object(const char *short_description)
+{
+  struct obj_data *obj = create_obj();
+
+  obj->short_description = strdup(short_description);
+  return obj;
+}
+
+/* How many objects of that description the character carries. */
+static int carried_count(const struct char_data *ch, const char *short_description)
+{
+  const struct obj_data *obj;
+  int count = 0;
+
+  for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
+    if (obj->short_description != NULL && strcmp(obj->short_description, short_description) == 0)
+      count++;
+  return count;
+}
+
+/* A sheath's weapons are stored under their owner's name, and a pet has no
+ * rows there. A pet save writes them as the pet's own objects beside the
+ * sheath, as a house save does; a worn sheath's go to the inventory, since the
+ * loader refuses two records on one wear position. The restored pet carries
+ * the weapons and an empty sheath. Before, the sheath came back empty and the
+ * weapons were in no row. */
+void Test_pet_save_stores_a_sheaths_weapons_as_its_own(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct char_data owner, pet, restored;
+  struct player_special_data specials = {0};
+  struct obj_data *worn, *carried, *obj;
+  MYSQL *connection, *saved_conn = conn;
+  bool saved_available = mysql_available;
+  bool saved, loaded, worn_back, carried_back;
+  int rows, worn_rows, total = 0;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_test_database();
+  CuAssertPtrNotNull(tc, connection);
+  conn = connection;
+  mysql_available = true;
+  clear_char(&owner);
+  owner.player_specials = &specials;
+  owner.player.name = CuMutableString("SheathOwner");
+  clear_char(&pet);
+  SET_BIT_AR(MOB_FLAGS(&pet), MOB_ISNPC);
+  clear_char(&restored);
+  SET_BIT_AR(MOB_FLAGS(&restored), MOB_ISNPC);
+
+  /* A worn sheath with a blade and a shield, a carried one with a dagger. */
+  worn = described_object("a worn sheath");
+  SET_BIT_AR(GET_OBJ_WEAR(worn), ITEM_WEAR_SHEATH);
+  worn->sheath_primary = described_object("a sheathed blade");
+  worn->sheath_secondary = described_object("a slung shield");
+  equip_char(&pet, worn, WEAR_SHEATH);
+  carried = described_object("a carried sheath");
+  SET_BIT_AR(GET_OBJ_WEAR(carried), ITEM_WEAR_SHEATH);
+  carried->sheath_primary = described_object("a sheathed dagger");
+  obj_to_char(carried, &pet);
+
+  saved = GET_EQ(&pet, WEAR_SHEATH) == worn && create_pet_snapshot_temporary_schema(connection) &&
+          pet_save_objs(&pet, &owner, 703);
+  rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
+  /* Only the worn sheath keeps a wear position: its weapons are inventory records. */
+  worn_rows = query_single_int(
+      connection, "SELECT COUNT(*) FROM pet_save_objs WHERE serialized_obj LIKE '%Loc : %'", -1);
+
+  loaded = pet_load_objs(&restored, &owner, 703) == PET_OBJECT_LOAD_OK;
+  obj = GET_EQ(&restored, WEAR_SHEATH);
+  worn_back = obj != NULL && obj->short_description != NULL &&
+              strcmp(obj->short_description, "a worn sheath") == 0 && obj->sheath_primary == NULL &&
+              obj->sheath_secondary == NULL;
+  for (obj = restored.carrying; obj != NULL; obj = obj->next_content)
+    total++;
+  carried_back = total == 4 && carried_count(&restored, "a carried sheath") == 1 &&
+                 carried_count(&restored, "a sheathed blade") == 1 &&
+                 carried_count(&restored, "a slung shield") == 1 &&
+                 carried_count(&restored, "a sheathed dagger") == 1;
+  for (obj = restored.carrying; obj != NULL; obj = obj->next_content)
+    if (obj->sheath_primary != NULL || obj->sheath_secondary != NULL)
+      carried_back = false;
+
+  /* A sheath's extraction takes its weapons. */
+  extract_obj(worn);
+  while (pet.carrying != NULL)
+    extract_obj(pet.carrying);
+  if (GET_EQ(&restored, WEAR_SHEATH) != NULL)
+    extract_obj(GET_EQ(&restored, WEAR_SHEATH));
+  while (restored.carrying != NULL)
+    extract_obj(restored.carrying);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 5, rows);
+  CuAssertIntEquals(tc, 1, worn_rows);
+  CuAssertTrue(tc, loaded);
+  CuAssertTrue(tc, worn_back);
+  CuAssertTrue(tc, carried_back);
+}
+
 /* The keeper's COMMIT can go unanswered. The pet's row is read back before
  * the pet leaves play or enters it, so a follower is never both stabled and
  * following, or neither. */

@@ -248,6 +248,12 @@ InnoDB refuses foreign keys on temporary tables, so the temporary fixtures in
 the test suite model the tables without it; the cascade and the orphan
 rejection are exercised against the live tables instead.
 
+A sheath's weapons are stored under their owner's name
+(`player_save_objs_sheathed`), and a pet has no rows there. A pet save writes
+them as the pet's own objects beside the sheath, as a house save does; a worn
+sheath's go to the inventory, since the loader refuses two records on one wear
+position. The restored pet carries the weapons and an empty sheath.
+
 Pet object loading never terminates the server. A query or result failure, an
 unknown or unreadable prototype, a partial numeric field, an unclosed nested
 container, a doubly claimed wear slot, or an out-of-range location all return
