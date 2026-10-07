@@ -914,10 +914,7 @@ void Test_house_save_stores_a_sheaths_weapons_as_its_own(CuTest *tc)
                                                    "WHERE owner_name = '" SAVES_OWNER "'"));
   CuAssertStrEquals(tc, "", transactions_staff_heard(&w));
 
-  extract_obj(sheath->sheath_primary);
-  extract_obj(sheath->sheath_secondary);
-  sheath->sheath_primary = NULL;
-  sheath->sheath_secondary = NULL;
+  /* The sheath's extraction takes its weapons. */
   transactions_world_end(tc, &w);
 }
 

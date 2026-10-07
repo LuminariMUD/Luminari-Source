@@ -3093,6 +3093,12 @@ void extract_obj(struct obj_data *obj)
   while (obj->contains)
     extract_obj(obj->contains);
 
+  /* A sheath's weapons hang off it and nothing else holds them. */
+  if (obj->sheath_primary)
+    extract_obj(obj->sheath_primary);
+  if (obj->sheath_secondary)
+    extract_obj(obj->sheath_secondary);
+
   REMOVE_FROM_LIST(obj, object_list, next);
   obj->object_list_member = false;
 

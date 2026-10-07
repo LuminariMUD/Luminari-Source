@@ -3155,6 +3155,23 @@ void Test_object_without_a_prototype_frees_its_arcane_mark(CuTest *tc)
   CuAssertTrue(tc, marked);
 }
 
+/* A sheath's weapons hang off the sheath and nothing else holds them: the
+ * extraction of a loaded sheath takes them with it. Before, it freed the
+ * sheath alone and left the weapons in object_list with no holder. */
+void Test_object_extraction_takes_a_sheaths_weapons(CuTest *tc)
+{
+  struct obj_data *saved_objects = object_list;
+  struct obj_data *sheath;
+
+  sheath = create_obj();
+  sheath->sheath_primary = create_obj();
+  sheath->sheath_secondary = create_obj();
+  CuAssertTrue(tc, object_list != saved_objects);
+
+  extract_obj(sheath);
+  CuAssertPtrEquals(tc, saved_objects, object_list);
+}
+
 /* An ability with no command word is saved as seven numbers and an empty
  * word: the record production rejected was a vampiric weapon's, level 30, on
  * hit and on critical hit. The file, player and pet loaders all read it back. */
