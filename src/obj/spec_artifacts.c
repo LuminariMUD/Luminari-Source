@@ -2923,7 +2923,7 @@ void artifact_end_persistence_extract(void)
 /* Called at the top of extract_obj(), while location links are still valid.
  * Rent extraction is explicitly scoped by objsave.c.  A locationless object
  * is a temporary prototype clone (for example, do_vstat), not the live
- * artifact instance. */
+ * artifact instance; a sheathed object has no holder but its sheath. */
 void artifact_on_extract(struct obj_data *obj)
 {
   struct artifact_data *art = NULL;
@@ -2940,7 +2940,8 @@ void artifact_on_extract(struct obj_data *obj)
     return;
   }
 
-  if (!obj->carried_by && !obj->worn_by && !obj->in_obj && IN_ROOM(obj) == NOWHERE)
+  if (!obj->carried_by && !obj->worn_by && !obj->in_obj && !obj->sheathed_in &&
+      IN_ROOM(obj) == NOWHERE)
     return;
 
   if (artifact_is_owned(art->vnum))
