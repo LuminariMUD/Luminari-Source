@@ -806,6 +806,36 @@ Verification:
 - `python3 scripts/ci/local/run.py --base gitlab/master` on `429ce84b6`: 33 of 33 jobs pass
   (216 s). The format, hygiene and secrets jobs pass again on the record commit.
 
+### Review 2026-10-08
+
+Two findings, both on the audit record; neither changes the result. Fixed in the two commits
+after the tag.
+
+- `5b2917cd4`: the house audit read the `lib/house` files, which `House_load()` opens only to
+  see that a house exists; the objects come from `house_data`, as a character's come from
+  `player_save_objs` through `Crash_load()`. The query ran read-only on production: 7951 rows
+  over 44 houses, none with 1320 or 1321, 282 with some feat affect; the development copy 9743
+  rows, 44 houses, none and 301. The table, the recipe, the item's note and the MR description
+  name the table, and the files row says what the game does with the files.
+- `f4c5c9624`: the recorded world-file recipe missed two forms the loader takes. A two-field
+  `A` line (`parse_object()`; four on each side, `1 1` and `17 1`, none at location 49) has no
+  trailing space after the feat, and a CR-terminated `A` header (`get_line()` strips the CR)
+  does not match `^A$` under GNU grep, which production runs. None of the second kind exists on
+  either side: the 72 the review counted were ugrep, the development `grep`, breaking the CR in
+  its pattern into an alternation, and the three files hold one CRLF line each, a description.
+  The proposed `$'^A\r\?$'` matches nothing under GNU grep, since bash decodes `\?` to `?`, so
+  the recipe uses `'^A[[:cntrl:]]?$'` and `( |$)`, which give 33 location-49 records on both
+  hosts. It also says that a prototype's own affects never reach `serialized_obj`
+  (`objsave_save_obj_record_db()` writes an `Aff :` line only where the copy differs), so the
+  world grep on the files production loads is the only check for a prototype's grant.
+
+Verification, on `f4c5c9624`:
+
+- The recorded recipe, run on both hosts: 33 location-49 records, none 1320 or 1321, as before.
+- `pre-commit run mdformat` passes.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (218 s).
+- The format, hygiene and secrets jobs pass again on the record commit.
+
 ## Phase 7: #30 object copies in OLC
 
 **Cause.** `update_all_objects()` (`src/olc/genobj.c`) writes the new prototype over every live
