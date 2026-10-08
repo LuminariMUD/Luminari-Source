@@ -622,8 +622,10 @@ take the higher.
 | Caster level bonus (level / 6) | Magical Heritage | 2 |
 | Casting 10 percent faster per rank (a part-tick saving is that percent chance of one tick less; ten ranks make every cast instant) | Fast Casting | 0.5 per rank, up to 10 ranks |
 | Charge into an adjacent room, stun on a connecting charge (Fortitude save) | Bull Charge | 2 |
-| One more arm per rank toward the arm count | Extra Arms | 3 per rank (set for the old extra swing; under review) |
-| Two more arms: the lower weapon pair and doubled arm, hand, wrist slots | Four Arms | 15, exempt from the single-trait cap |
+| Third arm: a third weapon hand, lower sleeves and gloves, a third wrist | Extra Arms, first rank on a two-armed race | 9 |
+| Fourth arm: a fourth weapon hand, the second two-hand position, a fourth wrist | Extra Arms, second rank | 6 |
+| Each arm past four: a hand, no position | Extra Arms, later ranks | 1 |
+| Two more arms: the third and the fourth arm | Four Arms | 15 (9 + 6), exempt from the single-trait cap for Thri-Kreen |
 
 Prices set by the closest row when the Duris races were scored: Stampede 2 (as
 Bull Charge); Bodyslam, Groundfighting, Battle Frenzy, Racial Flurry,
@@ -662,12 +664,45 @@ Arms are a count (see
 [GAME_MECHANICS_SYSTEMS.md](../systems/GAME_MECHANICS_SYSTEMS.md#racial-innate-feats-and-spell-like-abilities)).
 Extra Arms is the general trait: one more full arm per rank, so its third
 arm opens the third hand, lower sleeves and gloves and a third wrist, and its
-fourth the rest of the lower pair. It no longer adds a swing of its own, so
-its 3 RP per rank, set for that swing, is under review and no race grants it.
+fourth the rest of the lower pair. It adds no swing of its own, and no race
+grants it. An arm is priced by what it opens, not by the rank or the trait
+that adds it, and `arm_count()` is the only count the game reads, so a race
+is priced by the arm count it ends with, whatever mix of Four Arms, Extra
+Arms ranks and `race_data.arm_adjust` produces it:
+
+- The third arm is 9 RP: three worn positions (lower sleeves, lower gloves
+  and a third wrist, 1 each, the lost-slot row the other way) and a third
+  weapon hand. A weapon there mirrors the first pair's whole primary chain in
+  `plan_second_pair()`, the base swing, the haste swing and every BAB and
+  flurry bonus swing, so the arm scales with level.
+- The fourth arm is 6 RP: one worn position (a fourth wrist) and a fourth
+  weapon hand, which makes the pair dual: its own swing and the Improved,
+  Greater and Epic Two-Weapon Fighting swings, each behind a feat. The second
+  two-hand position is the pair's alternative to its one-handers, not a slot
+  of its own.
+- Each arm past four is 1 RP: it opens no position and adds a hand.
+- Four Arms is the third and the fourth arm, 15 RP, so two Extra Arms ranks
+  on a two-armed race cost the same, and so do `arm_adjust` 1 and one rank.
+- A negative `arm_adjust` is a drawback by the lost-slot row. One arm closes
+  the offhand weapon, both two-hand positions and the left wrist and leaves
+  one hand for the weapon, shield or held item: the cap, -6. No arms is the
+  cap too.
+
+The 15 of Four Arms splits between the two arms by what each opens: the worn
+positions three to one, and the weapon hands by their swings, five candidates
+to four at level 30 with haste, the fourth hand's last three behind feats, so
+the 11 RP of weapon hands split 6 to 5, which makes 9 and 6. A third arm is
+over the 30 percent single-trait cap in every tier but Epic quest, and four
+arms fit only there.
 The Thri-Kreen mechanic (issue #168) is the Four Arms innate: two more arms,
 giving a second weapon pair plus doubled sleeve, glove and wrist slots, and an
 unarmed third hand for monks. It is priced at 15 RP and, being unique to
-Thri-Kreen, is exempt from the single-trait cap (composition rule 2). Thri-Kreen
+Thri-Kreen, is exempt from the single-trait cap (composition rule 2); the
+exemption is Thri-Kreen's, not the trait's. The monk's empty third hand is
+the swing a weapon there makes, with monk dice: `plan_second_pair()` plans
+one third-hand chain, set by either, and gives the monk no candidate of its
+own, so it is class interaction, which this model does not price, and is
+inside the 15 RP. Thri-Kreen
 holds it with these settled decisions (the
 [design study](https://github.com/LuminariMUD/Luminari-Source/blob/e33ed0d6f98d28d4218c98aa57b16de9742ac8c5/docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md)
 has the source mechanics):
@@ -720,8 +755,10 @@ Composition rules, applied inside any tier:
 1. Ability points may not exceed 50 percent of the budget. A race is a set of
    traits, not a stat stick. (Wemic and Vampire currently break this.)
 2. No single trait may exceed 30 percent of the budget. Above that the race
-   is defined by one mechanic and every other choice becomes noise. Four
-   Arms, unique to Thri-Kreen, is exempt.
+   is defined by one mechanic and every other choice becomes noise.
+   Thri-Kreen's Four Arms is exempt, and no other arm source is: a race whose
+   arms exceed the cap (every tier but Epic quest, for a third arm) records
+   its own exemption here.
 3. Drawback refund and penalty credit together may not exceed 25 percent of
    the budget, or 7 for Epic.
 4. An advanced or epic race should carry at least one trait that scales with

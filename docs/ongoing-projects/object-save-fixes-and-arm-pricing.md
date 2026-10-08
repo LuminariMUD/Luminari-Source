@@ -21,7 +21,7 @@ phase 7.
 | 3 | #15 | An object with no prototype leaks its arcane mark | One free path, two tests | Merged 2026-10-06: [MR !25](https://gitlab.com/max757/Luminari-Source/-/merge_requests/25), `5fd630349` |
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Merged 2026-10-07: [MR !27](https://gitlab.com/max757/Luminari-Source/-/merge_requests/27), `f26c9b0ed` |
 | 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Merged 2026-10-08: [MR !28](https://gitlab.com/max757/Luminari-Source/-/merge_requests/28), `05c76111f` |
-| 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
+| 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | In review 2026-10-08: [MR !29](https://gitlab.com/max757/Luminari-Source/-/merge_requests/29), tag `object-save-fixes-p6` |
 | 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | Merged 2026-10-07: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), `632b50242` |
 
 Why this order:
@@ -724,6 +724,117 @@ grants Extra Arms.
 
 **Done when.** The reference prices every arm source, the audit result is in the item, and no
 text says the price is open.
+
+### Built 2026-10-08
+
+Branch `1-price-extra-arms-and-the-monk-third-hand-after-the-arm-count`, from master
+`55c934d5c`, MR !29, tag `object-save-fixes-p6`. The worktree is on it. One documentation
+commit, `429ce84b6`, in `docs/guides/PLAYER_RACES_REFERENCE.md`, and this record; no code.
+
+Step 1, the audit, done read-only on 2026-10-08. The production half ran as the game user over
+the `lumi2` login, on the authority of this phase's assignment: greps over the production
+`lib/`, and `SELECT`s through a temporary credentials file built from its `mysql_config` and
+removed afterwards. Nothing on production was written. Production is on `d5cd6a735`, with the
+arm count.
+
+| Where | Extra Arms (1320) | Four Arms (1321) |
+| -- | -- | -- |
+| World objects, `A` records with location 49 (`APPLY_FEAT`), by the recipe below: 33, the same on both sides | none | none |
+| World mobiles, `Feat:` and `MFeat:` lines: 1659, the same on both sides | none | none |
+| Production player files, 7428, the `Feat:` section of each | none | one, a level 30 Thri-Kreen: the race's own innate |
+| Production `player_save_objs` (509487 rows), `pet_save_objs` (1), `player_save_objs_sheathed` (0): `Aff :` lines with location 49; `object_database_bonuses` | none | none |
+| Production `house_data`, 7951 rows over 44 houses, the table `House_load()` reads | none | none |
+| Production `lib/house` and `lib/plrobjs` files, which the game does not load: `House_load()` opens a house file only to see that it exists, and `Crash_load()` reads `player_save_objs` | none | none |
+| The development copy: 7097 player files, 489375 object rows, 34 pet rows, 9743 house rows, the same files | none | none |
+
+So no grant changed meaning: nothing carries Extra Arms, and Four Arms gave the same four arms
+before the count (the four-arm flag) as after it. The item has the result; it names no
+character.
+
+The recipe, for the next audit: an object's `A` record is `location modifier bonus specific`,
+or two fields where `parse_object()` takes them, under a header that `get_line()` reads with or
+without a CR, so
+`grep -rn -A1 -E '^A[[:cntrl:]]?$' lib/world/obj | tr -d '\r' | grep -E -- '-49 132[01]( |$)'`
+(the class rather than a CR in the pattern: ugrep, the development `grep`, breaks a pattern at
+a CR, and `$'...'` turns `\?` into `?`); a mobile's feats are
+`grep -rn "^M\?Feat: 132[01] " lib/world/mob`; a player file's feats are the `<feat> <rank>`
+lines between `Feat:` and `0 0`, so an `awk` over that section (a bare `grep "^1320 "` also
+matches quest and other sections); a saved object's affects are
+`Aff : <i> <loc> <mod> <bonus> <specific>` in `serialized_obj` of `player_save_objs`,
+`pet_save_objs`, `player_save_objs_sheathed` and `house_data`, so
+`WHERE serialized_obj REGEXP 'Aff : [0-9]+ 49 132[01] '` on each. A prototype's own affects
+never reach `serialized_obj`: `objsave_save_obj_record_db()` writes an `Aff :` line only where
+the copy differs from its prototype, so the world grep, on the files production loads, is the
+only check for a prototype's grant.
+
+Steps 2 to 5, the decisions, in the arms paragraph, the pricing table and composition rule 2 of
+the reference:
+
+- Price by the arm: the third arm 9 RP, the fourth 6 RP, each arm past four 1 RP. Derived from
+  `wear_slot_arms_needed()` and `plan_second_pair()`. The third arm opens three worn positions
+  (lower sleeves, lower gloves, third wrist) and a weapon hand whose chain mirrors the first
+  pair's primary chain: the base swing, the haste swing and the bonus swings, three at
+  `ATTACK_CAP`, five candidates at level 30 with haste. The fourth opens one worn position
+  (fourth wrist) and the hand that makes the pair dual: its swing and the three trained swings,
+  each behind a two-weapon feat, four candidates. Worn positions at 1 each, the lost-slot row the
+  other way, leave 11 RP for the weapon hands, split 6 to 5 by the candidates: 9 and 6. The
+  second two-hand position is an alternative to the pair's one-handers, not a slot.
+- Mixed sources: price the count the race ends with. A negative `arm_adjust` is a drawback by
+  the lost-slot row: one arm closes four positions and leaves one hand, the cap of -6; no arms
+  the cap too.
+- The cap exemption stays with Thri-Kreen's Four Arms; rule 2 says so, and that another race's
+  arms record their own exemption there. A third arm (9) is over 30 percent of every budget but
+  Epic quest (15), and four arms (15) fit only there.
+- Monk third hand, confirmed in `plan_second_pair()`: `sp->third` is one flag, set by a weapon
+  in the third hand or by a monk's empty third position with `monk_gear_ok()`, and the candidate
+  list ("Third hand", "Third hand (Haste)", one "Third hand Bonus" per bonus swing) is the same
+  for both; the monk gets no candidate of its own, and the fourth hand (`sp->dual`) always needs
+  a weapon. So it is inside the 15 RP under the class-interaction rule, and Thri-Kreen stays at
+  20.0 RP; the calibration table does not change.
+
+Nothing else carries a price: the help entries `EXTRA-ARMS` and `FOUR-ARMS` and
+`docs/systems/GAME_MECHANICS_SYSTEMS.md` describe the mechanics only, and no text outside this
+plan says the price is open (`grep -rn "under review" docs/`).
+
+Ablation: the plan was already minimal, the one file the prices live in and the audit the item
+asks for. Nothing was added for it: no audit script in the repo (the recipe above is enough),
+no help change, no change to the mechanics doc.
+
+Verification:
+
+- `pre-commit run mdformat` on both files passes.
+- `python3 scripts/ci/local/run.py --base gitlab/master` on `429ce84b6`: 33 of 33 jobs pass
+  (216 s). The format, hygiene and secrets jobs pass again on the record commit.
+
+### Review 2026-10-08
+
+Two findings, both on the audit record; neither changes the result. Fixed in the two commits
+after the tag.
+
+- `5b2917cd4`: the house audit read the `lib/house` files, which `House_load()` opens only to
+  see that a house exists; the objects come from `house_data`, as a character's come from
+  `player_save_objs` through `Crash_load()`. The query ran read-only on production: 7951 rows
+  over 44 houses, none with 1320 or 1321, 282 with some feat affect; the development copy 9743
+  rows, 44 houses, none and 301. The table, the recipe, the item's note and the MR description
+  name the table, and the files row says what the game does with the files.
+- `f4c5c9624`: the recorded world-file recipe missed two forms the loader takes. A two-field
+  `A` line (`parse_object()`; four on each side, `1 1` and `17 1`, none at location 49) has no
+  trailing space after the feat, and a CR-terminated `A` header (`get_line()` strips the CR)
+  does not match `^A$` under GNU grep, which production runs. None of the second kind exists on
+  either side: the 72 the review counted were ugrep, the development `grep`, breaking the CR in
+  its pattern into an alternation, and the three files hold one CRLF line each, a description.
+  The proposed `$'^A\r\?$'` matches nothing under GNU grep, since bash decodes `\?` to `?`, so
+  the recipe uses `'^A[[:cntrl:]]?$'` and `( |$)`, which give 33 location-49 records on both
+  hosts. It also says that a prototype's own affects never reach `serialized_obj`
+  (`objsave_save_obj_record_db()` writes an `Aff :` line only where the copy differs), so the
+  world grep on the files production loads is the only check for a prototype's grant.
+
+Verification, on `f4c5c9624`:
+
+- The recorded recipe, run on both hosts: 33 location-49 records, none 1320 or 1321, as before.
+- `pre-commit run mdformat` passes.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (218 s).
+- The format, hygiene and secrets jobs pass again on the record commit.
 
 ## Phase 7: #30 object copies in OLC
 
