@@ -743,8 +743,9 @@ arm count.
 | World mobiles, `Feat:` and `MFeat:` lines: 1659, the same on both sides | none | none |
 | Production player files, 7428, the `Feat:` section of each | none | one, a level 30 Thri-Kreen: the race's own innate |
 | Production `player_save_objs` (509487 rows), `pet_save_objs` (1), `player_save_objs_sheathed` (0): `Aff :` lines with location 49; `object_database_bonuses` | none | none |
-| Production `lib/house` and `lib/plrobjs` files | none | none |
-| The development copy: 7097 player files, 489375 object rows, 34 pet rows, the same files | none | none |
+| Production `house_data`, 7951 rows over 44 houses, the table `House_load()` reads | none | none |
+| Production `lib/house` and `lib/plrobjs` files, which the game does not load: `House_load()` opens a house file only to see that it exists, and `Crash_load()` reads `player_save_objs` | none | none |
+| The development copy: 7097 player files, 489375 object rows, 34 pet rows, 9743 house rows, the same files | none | none |
 
 So no grant changed meaning: nothing carries Extra Arms, and Four Arms gave the same four arms
 before the count (the four-arm flag) as after it. The item has the result; it names no
@@ -755,8 +756,9 @@ so `grep -rn -A1 "^A$" lib/world/obj | grep -E -- "-49 132[01] "`; a mobile's fe
 `grep -rn "^M\?Feat: 132[01] " lib/world/mob`; a player file's feats are the `<feat> <rank>`
 lines between `Feat:` and `0 0`, so an `awk` over that section (a bare `grep "^1320 "` also
 matches quest and other sections); a saved object's affects are
-`Aff : <i> <loc> <mod> <bonus> <specific>` in `serialized_obj`, so
-`WHERE serialized_obj REGEXP 'Aff : [0-9]+ 49 132[01] '`.
+`Aff : <i> <loc> <mod> <bonus> <specific>` in `serialized_obj` of `player_save_objs`,
+`pet_save_objs`, `player_save_objs_sheathed` and `house_data`, so
+`WHERE serialized_obj REGEXP 'Aff : [0-9]+ 49 132[01] '` on each.
 
 Steps 2 to 5, the decisions, in the arms paragraph, the pricing table and composition rule 2 of
 the reference:
