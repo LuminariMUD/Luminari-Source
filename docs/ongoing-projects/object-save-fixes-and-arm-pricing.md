@@ -20,7 +20,7 @@ phase 7.
 | 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Merged 2026-10-05: [MR !24](https://gitlab.com/max757/Luminari-Source/-/merge_requests/24), `0efe4d145` |
 | 3 | #15 | An object with no prototype leaks its arcane mark | One free path, two tests | Merged 2026-10-06: [MR !25](https://gitlab.com/max757/Luminari-Source/-/merge_requests/25), `5fd630349` |
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Merged 2026-10-07: [MR !27](https://gitlab.com/max757/Luminari-Source/-/merge_requests/27), `f26c9b0ed` |
-| 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | In review 2026-10-07: [MR !28](https://gitlab.com/max757/Luminari-Source/-/merge_requests/28), tag `object-save-fixes-p5` |
+| 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Merged 2026-10-08: [MR !28](https://gitlab.com/max757/Luminari-Source/-/merge_requests/28), `05c76111f` |
 | 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
 | 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | Merged 2026-10-07: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), `632b50242` |
 
@@ -690,6 +690,8 @@ Verification, on `da68e251a`:
   persistence changed lines are 100% covered (8 of 8) and the olc changed lines 75% (15 of 20),
   both above their floors, and the clang-tidy gate has no finding.
 - The format, hygiene and secrets jobs pass again on the record commit.
+
+Merged 2026-10-08 as merge commit `05c76111f`; #17 is closed.
 
 ## Phase 6: #1 price Extra Arms and the monk third hand
 
