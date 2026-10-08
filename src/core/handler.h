@@ -108,6 +108,8 @@ void obj_to_room(struct obj_data *object, room_rnum room);
 void obj_from_room(struct obj_data *object);
 void obj_to_obj(struct obj_data *obj, struct obj_data *obj_to);
 void obj_from_obj(struct obj_data *obj);
+void obj_to_sheath(struct obj_data *obj, struct obj_data *sheath, int slot);
+void obj_from_sheath(struct obj_data *obj);
 void object_list_new_owner(struct obj_data *list, struct char_data *ch);
 
 void extract_obj(struct obj_data *obj);

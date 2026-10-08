@@ -3014,6 +3014,31 @@ void obj_from_obj(struct obj_data *obj)
   obj->next_content = NULL;
 }
 
+/* Put an object in a sheath, which then holds it alone: slot 1 takes the
+ * wielded or two-handed weapon, slot 2 the off-hand weapon or shield. */
+void obj_to_sheath(struct obj_data *obj, struct obj_data *sheath, int slot)
+{
+  if (slot == 2)
+    sheath->sheath_secondary = obj;
+  else
+    sheath->sheath_primary = obj;
+  obj->sheathed_in = sheath;
+}
+
+/* Take a sheathed object out of its sheath. */
+void obj_from_sheath(struct obj_data *obj)
+{
+  struct obj_data *sheath = obj->sheathed_in;
+
+  if (sheath == NULL)
+    return;
+  if (sheath->sheath_primary == obj)
+    sheath->sheath_primary = NULL;
+  else if (sheath->sheath_secondary == obj)
+    sheath->sheath_secondary = NULL;
+  obj->sheathed_in = NULL;
+}
+
 /* Set all carried_by to point to new owner */
 void object_list_new_owner(struct obj_data *list, struct char_data *ch)
 {
@@ -3075,6 +3100,8 @@ void extract_obj(struct obj_data *obj)
     if (ch != NULL && ch->bags != NULL)
       obj_from_bag(ch, obj, obj->transfer_bag.slot);
   }
+  else if (obj->sheathed_in)
+    obj_from_sheath(obj);
 
   if (OBJ_SAT_IN_BY(obj))
   {
@@ -3092,6 +3119,12 @@ void extract_obj(struct obj_data *obj)
   /* Get rid of the contents of the object, as well. */
   while (obj->contains)
     extract_obj(obj->contains);
+
+  /* A sheath's weapons hang off it and nothing else holds them. */
+  if (obj->sheath_primary)
+    extract_obj(obj->sheath_primary);
+  if (obj->sheath_secondary)
+    extract_obj(obj->sheath_secondary);
 
   REMOVE_FROM_LIST(obj, object_list, next);
   obj->object_list_member = false;

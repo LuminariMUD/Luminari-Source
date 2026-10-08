@@ -20,7 +20,7 @@ phase 7.
 | 2 | #18 | Pet legacy-migration test fails on a `master_schema.sql`-only database | Test fixture | Merged 2026-10-05: [MR !24](https://gitlab.com/max757/Luminari-Source/-/merge_requests/24), `0efe4d145` |
 | 3 | #15 | An object with no prototype leaks its arcane mark | One free path, two tests | Merged 2026-10-06: [MR !25](https://gitlab.com/max757/Luminari-Source/-/merge_requests/25), `5fd630349` |
 | 4 | #16 | Bagged objects stay in memory when their owner leaves | Leaving save, `extract_char()` | Merged 2026-10-07: [MR !27](https://gitlab.com/max757/Luminari-Source/-/merge_requests/27), `f26c9b0ed` |
-| 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | Not started |
+| 5 | #17 | A loaded sheath loses its weapons on a pet and leaks them when extracted | Pet save, `extract_obj()` | In review 2026-10-07: [MR !28](https://gitlab.com/max757/Luminari-Source/-/merge_requests/28), tag `object-save-fixes-p5` |
 | 6 | #1 | Extra Arms and the monk third hand are not priced after the arm count | Docs, data audit | Not started |
 | 7 | #30 | An object copy in OLC keeps or drops the wrong fields | Object copies in `src/olc/genobj.c` | Merged 2026-10-07: [MR !26](https://gitlab.com/max757/Luminari-Source/-/merge_requests/26), `632b50242` |
 
@@ -548,6 +548,148 @@ back and the record set is accepted. A loaded sheath extracted: both weapons lea
 `object_list`.
 
 **Docs.** The pet rule in `docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`.
+
+### Built 2026-10-07
+
+Branch `17-a-loaded-sheath-loses-its-weapons-on-a-pet-and-leaks-them-when-extracted`, from
+master `0b88bb81d`, MR !28, tag `object-save-fixes-p5`. The worktree is on it.
+
+Three commits:
+
+- `59bc44f45`: `extract_obj()` extracts what a sheath holds, beside the loop that extracts a
+  container's contents. Nothing nulls the pointers afterwards: the sheath is freed in the same
+  call.
+- `2b8959cdd`: `Crash_save_pet()` writes a sheath's weapons as the pet's own objects beside the
+  sheath, through the pet record writer, as `House_save()` does. A worn sheath's weapons are
+  written at `MIN(0, location)`, inventory records; a carried sheath's at its own depth, so a
+  sheath in a bag puts its weapons in the bag. The restored pet carries the weapons and an empty
+  sheath.
+- `4a9bd579b`: the pet test also refuses a weapon's row, the blade's and then the shield's; each
+  attempt fails the save, as any refused row does, and leaves the records written before it.
+  The first matrix had left those two failure lines uncovered.
+
+The check before the change held, with nothing to change: `overwrite_object()` keeps a target's
+own sheath pointers (phase 7), every writer's temporary object comes from `read_object()` or
+`create_obj()`, and the editors free their copies with `free_object_strings()`, never
+`extract_obj()`. `pet_object_graph_valid()` needs no change either: weapons at the sheath's own
+depth are its siblings, and a worn sheath's go to the inventory.
+
+Found while building:
+
+- The leak #17 describes never showed in the memory-check or sanitizer jobs, and could not
+  have: a weapon left behind stays on its rnum hash chain, so valgrind and LeakSanitizer count
+  it as still reachable. `Test_house_save_stores_a_sheaths_weapons_as_its_own` is clean under
+  valgrind with and without the fix. The extraction test watches `object_list` instead.
+- The player sheath loader logs a debug trace (`SHEATH1` to `SHEATH6`, `SHEATH2a` to
+  `SHEATH2g`) and the text of its `SELECT` at every load of a sheath, and `objs_from_sheath()`
+  has no caller. Filed as #33, not changed here; the review round below removed the function.
+
+Left as it is:
+
+- `Crash_extract_norents()` does not walk a sheath's weapons: a rentable sheath keeps a no-rent
+  weapon through a rent, as before.
+
+Tests, both in `unittests/CuTest/test_database_persistence.c`:
+
+- `Test_object_extraction_takes_a_sheaths_weapons`, no database: a sheath and its two weapons;
+  extracting the sheath leaves `object_list` as it was.
+- `Test_pet_save_stores_a_sheaths_weapons_as_its_own`, database: a pet with a worn sheath
+  holding a blade and a shield, and a carried sheath holding a dagger, through `pet_save_objs()`
+  and `pet_load_objs()`: five rows, one of them with a wear position, and the restored pet wears
+  an empty sheath and carries the other sheath, empty, and the three weapons.
+- `Test_house_save_stores_a_sheaths_weapons_as_its_own` no longer extracts its weapons by hand:
+  the teardown's extraction of the sheath takes them.
+
+`docs/systems/SAVE_SYSTEMS_BREAKDOWN.md` has the pet rule, in the pets section.
+
+Verification:
+
+- Both new tests fail on the code of `0b88bb81d`: the extraction test with the two weapons
+  still in `object_list`, the pet test with 2 rows written instead of 5.
+- The two new tests, the house sheath test and the refused-row save test are clean under
+  valgrind, with the database tests on.
+- `make -j16 test` on `4a9bd579b`: 2055 tests pass. `make install` done.
+- `./cutest` with the database tests on, on a database freshly built from `sql/master_schema.sql`:
+  2055 of 2055 pass.
+- `python3 scripts/ci/local/run.py --base gitlab/master` on `2b8959cdd`: 33 of 33 jobs pass
+  (522 s); the unit, sanitizer and memory-check jobs run 2055 tests each. The persistence changed
+  lines were 4 of 6 covered, above the floor, the two uncovered being the refusals `4a9bd579b`
+  then covered.
+- On `4a9bd579b`: 33 of 33 jobs pass (256 s); the unit, sanitizer and memory-check jobs run 2055
+  tests each, and the persistence changed lines are 100% covered.
+
+### Review 2026-10-08
+
+Three findings, two of them reads of freed memory reproduced by the reviewer under valgrind. All
+are fixed in the three commits after the tag.
+
+- `079e9bd6e`, high: a sheathed object has no holder, only its sheath's slot points at it, and
+  nothing cleared the slot when the object left on its own. `delete_object()` extracts every
+  instance of a deleted prototype and the point update extracts an object whose timer runs out,
+  a sheathed one included; the sheath kept the freed address, and its own extraction, which this
+  phase made follow the slots, read the freed block and could extract whatever object had reused
+  it. A sheathed object now knows its sheath (`sheathed_in`): `obj_to_sheath()` sets the slot and
+  the back-pointer together, where `sheath` and the player sheath loader fill a slot, and
+  `obj_from_sheath()` clears both, where `unsheath` draws an item and where `extract_obj()` takes
+  an object out of wherever it is. The two copies of a live object, `overwrite_object()` and
+  `otransform`, keep the target's sheath links with its other holder links. `objs_from_sheath()`
+  had no caller and would have needed the clear; it is removed, and #33 is the debug trace alone.
+- `8a8f0fdd7`, medium: `artifact_on_extract()` took an object with no holder for a temporary
+  prototype clone, so a sheathed artifact's destruction left its owner on the ledger with the
+  instance marked persisted and no instance anywhere, and every zone reset refused the zone's
+  copy. Before this phase the same scenario ended there through the leak. A sheathed object now
+  counts as placed; the check runs before `extract_obj()` clears the slot.
+- `da68e251a`, high: `delete_object()` handed a deleted instance's contents to its room, its
+  wearer or carrier, or the object around it, but not its sheathed weapons: deleting a sheath's
+  prototype destroyed them, and when the weapon created just before the sheath was one of them,
+  the walk over `object_list` resumed on it freed. The sheathed weapons now go over with the
+  contents, by the same places. An instance that is nowhere, in a bag, keeps what it holds for
+  the extraction, as a container there does.
+
+Found while fixing: `otransform` copies a fresh object over the live one and keeps eleven of its
+fields. The live object comes out with the fresh copy's hash links and event list while its own
+chain still links to it, and the prototype counts are off by one each way. Pre-existing and
+independent of sheaths: filed as #34, not changed here beyond the kept sheath links.
+
+Tests:
+
+- `Test_gameplay_sheathed_weapon_extracted_alone_leaves_its_slot`, in
+  `unittests/CuTest/test_gameplay_e2e.c`: a blade and a shield sheathed with the `sheath`
+  command; the blade extracted alone leaves its slot empty, and the sheath's extraction takes the
+  shield and leaves `object_list` as it was.
+- `Test_player_load_puts_a_sheaths_weapons_back_in_it`, in
+  `unittests/CuTest/test_database_transactions.c`, database: a loaded sheath saved and read back
+  through the sheath rows; both weapons are in the sheath and know it, and the sheath's
+  extraction takes them.
+- `TestArmCountUnsheathChecksEachItem` accounts for the back-pointer, set while sheathed and
+  cleared when drawn.
+- `Test_artifact_integration_sheathed_instance_destruction_releases_ownership`, in
+  `unittests/CuTest/test_artifact_integration.c`: a claimed artifact, sheathed and destroyed;
+  the ownership is released, the destruction counted, and a zone reset allowed.
+- `Test_gameplay_object_delete_hands_a_sheaths_weapons_to_its_wearer`, in
+  `unittests/CuTest/test_gameplay_e2e.c`: two daggers created before the sheath, sheathed with
+  the command, and the sheath's prototype deleted; the wearer carries both, out of any sheath and
+  renumbered onto the remaining prototype's chain, and `object_list` is as it was.
+- The by-hand sheath slots of the house, refused-row, pet and extraction tests go through
+  `obj_to_sheath()`.
+
+Verification, on `da68e251a`:
+
+- The first gameplay test fails on `bfaaa8799` on the slot, and valgrind there reports the
+  reviewer's read of the freed block at `handler.c:3098`. The artifact and delete tests, on
+  `079e9bd6e` with only their test patch, fail on the ledger and on the carried daggers, and
+  valgrind reports the walk reading the freed dagger at `genobj.c:831`. The load and four-arms
+  tests use the new field and do not build on the reviewed head.
+- The six sheath tests and the artifact lifecycle and renumber tests are clean under valgrind,
+  with the database tests on.
+- `make -j16 test`: 2059 tests pass. `make install` done.
+- `./cutest` with the database tests on, on a database freshly built from `sql/master_schema.sql`:
+  2059 of 2059 pass.
+- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (1431 s, beside the
+  suite runs above); the unit, sanitizer and memory-check jobs run 2059 tests each, the
+  persistence changed lines are 100% covered (8 of 8) and the olc changed lines 75% (15 of 20),
+  both above their floors, and the clang-tidy gate has no finding.
+- The format, hygiene and secrets jobs pass again on the record commit.
 
 ## Phase 6: #1 price Extra Arms and the monk third hand
 

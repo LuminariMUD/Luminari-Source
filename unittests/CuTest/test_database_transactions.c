@@ -827,13 +827,12 @@ void Test_object_save_commits_around_a_refused_row_and_tells_the_staff(CuTest *t
   /* A sheathed blade the database refuses counts with its scabbard. */
   scabbard = saves_carry(&w, "a scabbard");
   SET_BIT_AR(GET_OBJ_WEAR(scabbard), ITEM_WEAR_SHEATH);
-  scabbard->sheath_primary = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
+  obj_to_sheath(read_object(SAVES_OBJECT_VNUM, VIRTUAL), scabbard, 1);
   scabbard->sheath_primary->short_description = strdup("a refused blade");
   CuAssertTrue(tc, !Crash_crashsave(&w.owner));
   CuAssertIntEquals(tc, 3, saves_player_rows(&w));
   CuAssertTrue(tc, strstr(transactions_staff_heard(&w), "2 of " SAVES_OWNER "'s objects") != NULL);
   extract_obj(scabbard->sheath_primary);
-  scabbard->sheath_primary = NULL;
 
   /* Once the database takes the rows, the next save is whole. */
   CuAssertIntEquals(tc, 0,
@@ -898,9 +897,9 @@ void Test_house_save_stores_a_sheaths_weapons_as_its_own(CuTest *tc)
 
   sheath = saves_furnish(&w, "a sheath");
   SET_BIT_AR(GET_OBJ_WEAR(sheath), ITEM_WEAR_SHEATH);
-  sheath->sheath_primary = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
+  obj_to_sheath(read_object(SAVES_OBJECT_VNUM, VIRTUAL), sheath, 1);
   sheath->sheath_primary->short_description = strdup("a sheathed blade");
-  sheath->sheath_secondary = read_object(SAVES_OBJECT_VNUM, VIRTUAL);
+  obj_to_sheath(read_object(SAVES_OBJECT_VNUM, VIRTUAL), sheath, 2);
   sheath->sheath_secondary->short_description = strdup("a slung shield");
 
   CuAssertTrue(tc, House_crashsave(SAVES_HOUSE_VNUM));
@@ -914,10 +913,55 @@ void Test_house_save_stores_a_sheaths_weapons_as_its_own(CuTest *tc)
                                                    "WHERE owner_name = '" SAVES_OWNER "'"));
   CuAssertStrEquals(tc, "", transactions_staff_heard(&w));
 
-  extract_obj(sheath->sheath_primary);
-  extract_obj(sheath->sheath_secondary);
-  sheath->sheath_primary = NULL;
-  sheath->sheath_secondary = NULL;
+  /* The sheath's extraction takes its weapons. */
+  transactions_world_end(tc, &w);
+}
+
+/* A player's sheath rows come back into the sheath at the next load, and the
+ * weapons know their sheath: its extraction takes them. */
+void Test_player_load_puts_a_sheaths_weapons_back_in_it(CuTest *tc)
+{
+  struct transactions_world w;
+  struct obj_data *sheath;
+  obj_save_data *loaded;
+  long sheath_idnum;
+
+  if (!transactions_world_begin(tc, &w))
+    return;
+  sheath = saves_carry(&w, "a scabbard");
+  SET_BIT_AR(GET_OBJ_WEAR(sheath), ITEM_WEAR_SHEATH);
+  obj_to_sheath(read_object(SAVES_OBJECT_VNUM, VIRTUAL), sheath, 1);
+  sheath->sheath_primary->short_description = strdup("a sheathed blade");
+  obj_to_sheath(read_object(SAVES_OBJECT_VNUM, VIRTUAL), sheath, 2);
+  sheath->sheath_secondary->short_description = strdup("a slung shield");
+  CuAssertTrue(tc, Crash_crashsave(&w.owner));
+  CuAssertIntEquals(tc, 1, saves_player_rows(&w));
+  CuAssertIntEquals(tc, 2,
+                    transactions_value(w.observer, "SELECT COUNT(*) FROM player_save_objs_sheathed "
+                                                   "WHERE owner_name = '" SAVES_OWNER "'"));
+
+  /* The owner leaves: the sheath's extraction takes its weapons. */
+  extract_obj(sheath);
+  CuAssertPtrEquals(tc, NULL, w.owner.carrying);
+  CuAssertPtrEquals(tc, NULL, object_list);
+
+  loaded = objsave_parse_objects_db(GET_NAME(&w.owner), NOWHERE);
+  CuAssertPtrNotNull(tc, loaded);
+  sheath_idnum = loaded->db_idnum;
+  CuAssertIntEquals(tc, 1, test_restore_loaded_objects(&w.owner, loaded));
+  sheath = w.owner.carrying;
+  CuAssertPtrNotNull(tc, sheath);
+  CuAssertStrEquals(tc, "a scabbard", sheath->short_description);
+  load_sheath_contents(&w.owner, sheath, sheath_idnum);
+  CuAssertPtrNotNull(tc, sheath->sheath_primary);
+  CuAssertStrEquals(tc, "a sheathed blade", sheath->sheath_primary->short_description);
+  CuAssertPtrEquals(tc, sheath, sheath->sheath_primary->sheathed_in);
+  CuAssertPtrNotNull(tc, sheath->sheath_secondary);
+  CuAssertStrEquals(tc, "a slung shield", sheath->sheath_secondary->short_description);
+  CuAssertPtrEquals(tc, sheath, sheath->sheath_secondary->sheathed_in);
+
+  extract_obj(sheath);
+  CuAssertPtrEquals(tc, NULL, object_list);
   transactions_world_end(tc, &w);
 }
 

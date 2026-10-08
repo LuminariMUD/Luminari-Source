@@ -771,6 +771,7 @@ static void overwrite_object(struct obj_data *to, const struct obj_data *from)
   SCRIPT(to) = kept.script;
   to->sheath_primary = kept.sheath_primary;
   to->sheath_secondary = kept.sheath_secondary;
+  to->sheathed_in = kept.sheathed_in;
   to->trap = kept.trap;
   to->events = kept.events;
   to->event_owner_generation = kept.event_owner_generation;
@@ -807,11 +808,25 @@ int copy_object_main(struct obj_data *to, struct obj_data *from,
   return TRUE;
 }
 
+/* Give what a deleted instance holds to its room, its wearer or carrier, or
+ * the object around it: the places its holder looks. */
+static void delete_object_hand_over(struct obj_data *held, struct obj_data *from,
+                                    struct char_data *holder)
+{
+  if (IN_ROOM(from) != NOWHERE)
+    obj_to_room(held, IN_ROOM(from));
+  else if (holder != NULL)
+    obj_to_char(held, holder);
+  else
+    obj_to_obj(held, from->in_obj);
+}
+
 int delete_object(obj_rnum rnum)
 {
   obj_rnum i;
   zone_rnum zone, zrnum;
-  struct obj_data *obj, *tmp, *next_obj;
+  struct obj_data *obj, *tmp, *next_obj, *held;
+  struct char_data *holder;
   int shop, j, cmd_no;
 
   if (rnum == NOTHING || rnum > top_of_objt)
@@ -831,31 +846,27 @@ int delete_object(obj_rnum rnum)
     if (tmp->item_number != obj->item_number)
       continue;
 
-    /* extract_obj() will just axe contents. */
-    if (tmp->contains)
+    /* What the instance holds, its contents and its sheathed weapons, goes
+     * where the instance is: extract_obj() takes it along, as it does from
+     * an instance that is nowhere. */
+    holder = tmp->worn_by != NULL ? tmp->worn_by : tmp->carried_by;
+    if (IN_ROOM(tmp) != NOWHERE || holder != NULL || tmp->in_obj != NULL)
     {
-      struct obj_data *this_content, *next_content;
-      for (this_content = tmp->contains; this_content; this_content = next_content)
+      while (tmp->contains != NULL)
       {
-        next_content = this_content->next_content;
-        if (IN_ROOM(tmp) != NOWHERE)
-        {
-          /* Transfer stuff from object to room. */
-          obj_from_obj(this_content);
-          obj_to_room(this_content, IN_ROOM(tmp));
-        }
-        else if (tmp->worn_by || tmp->carried_by)
-        {
-          /* Transfer stuff from object to person inventory. */
-          obj_from_obj(this_content);
-          obj_to_char(this_content, tmp->worn_by ? tmp->worn_by : tmp->carried_by);
-        }
-        else if (tmp->in_obj)
-        {
-          /* Transfer stuff from object to containing object. */
-          obj_from_obj(this_content);
-          obj_to_obj(this_content, tmp->in_obj);
-        }
+        held = tmp->contains;
+        obj_from_obj(held);
+        delete_object_hand_over(held, tmp, holder);
+      }
+      if ((held = tmp->sheath_primary) != NULL)
+      {
+        obj_from_sheath(held);
+        delete_object_hand_over(held, tmp, holder);
+      }
+      if ((held = tmp->sheath_secondary) != NULL)
+      {
+        obj_from_sheath(held);
+        delete_object_hand_over(held, tmp, holder);
       }
     }
     /* Remove from object_list, etc. - handles weightchanges, and similar. */

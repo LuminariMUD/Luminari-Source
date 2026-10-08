@@ -150,6 +150,7 @@ struct obj_data {
     int activate_spell[5];                       // Usable spells
     struct obj_data *sheath_primary;             // Weapon sheathing
     struct obj_data *sheath_secondary;           // Off-hand sheathing
+    struct obj_data *sheathed_in;                // The sheath holding this object
     bool drainKilled;                            // Special corpse flag
     char *char_sdesc;                            // Corpse owner description
 };
