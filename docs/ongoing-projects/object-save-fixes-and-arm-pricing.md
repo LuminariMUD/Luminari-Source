@@ -739,7 +739,7 @@ arm count.
 
 | Where | Extra Arms (1320) | Four Arms (1321) |
 | -- | -- | -- |
-| World objects, `A` records with location 49 (`APPLY_FEAT`): 33, the same on both sides | none | none |
+| World objects, `A` records with location 49 (`APPLY_FEAT`), by the recipe below: 33, the same on both sides | none | none |
 | World mobiles, `Feat:` and `MFeat:` lines: 1659, the same on both sides | none | none |
 | Production player files, 7428, the `Feat:` section of each | none | one, a level 30 Thri-Kreen: the race's own innate |
 | Production `player_save_objs` (509487 rows), `pet_save_objs` (1), `player_save_objs_sheathed` (0): `Aff :` lines with location 49; `object_database_bonuses` | none | none |
@@ -752,13 +752,20 @@ before the count (the four-arm flag) as after it. The item has the result; it na
 character.
 
 The recipe, for the next audit: an object's `A` record is `location modifier bonus specific`,
-so `grep -rn -A1 "^A$" lib/world/obj | grep -E -- "-49 132[01] "`; a mobile's feats are
+or two fields where `parse_object()` takes them, under a header that `get_line()` reads with or
+without a CR, so
+`grep -rn -A1 -E '^A[[:cntrl:]]?$' lib/world/obj | tr -d '\r' | grep -E -- '-49 132[01]( |$)'`
+(the class rather than a CR in the pattern: ugrep, the development `grep`, breaks a pattern at
+a CR, and `$'...'` turns `\?` into `?`); a mobile's feats are
 `grep -rn "^M\?Feat: 132[01] " lib/world/mob`; a player file's feats are the `<feat> <rank>`
 lines between `Feat:` and `0 0`, so an `awk` over that section (a bare `grep "^1320 "` also
 matches quest and other sections); a saved object's affects are
 `Aff : <i> <loc> <mod> <bonus> <specific>` in `serialized_obj` of `player_save_objs`,
 `pet_save_objs`, `player_save_objs_sheathed` and `house_data`, so
-`WHERE serialized_obj REGEXP 'Aff : [0-9]+ 49 132[01] '` on each.
+`WHERE serialized_obj REGEXP 'Aff : [0-9]+ 49 132[01] '` on each. A prototype's own affects
+never reach `serialized_obj`: `objsave_save_obj_record_db()` writes an `Aff :` line only where
+the copy differs from its prototype, so the world grep, on the files production loads, is the
+only check for a prototype's grant.
 
 Steps 2 to 5, the decisions, in the arms paragraph, the pricing table and composition rule 2 of
 the reference:
