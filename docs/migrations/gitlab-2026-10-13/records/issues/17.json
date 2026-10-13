@@ -1,0 +1,97 @@
+{
+  "id": 205367658,
+  "iid": 17,
+  "project_id": 86882182,
+  "title": "A loaded sheath loses its weapons on a pet and leaks them when extracted",
+  "description": "**Defect.** A sheath's weapons hang off the sheath object (`sheath_primary`, `sheath_secondary`) and are handled only by the player save and by `sheath` / `unsheath`. Two paths lose track of them.\n\n1. **Pet saves.** `objsave_save_obj_record_db_pet()` writes no sheath rows. A loaded sheath given to a pet comes back empty when the pet is restored, and its weapons are in no row.\n2. **Extraction.** `extract_obj()` does not look at a sheath's weapons. Extracting a loaded sheath (junk, a shop sale, the extraction after a rent save) frees the sheath and leaves the weapons in `object_list` with no holder. After a rent save that is a memory leak only, since the rows were written. After a junk or a sale the weapons are gone from play without having been destroyed.\n\n**Not part of this.** A loaded sheath lying in a house: MR !20 (review P1) made the house save store its weapons as the house's own objects.\n\n**Fix.** Give the pet writer the sheath rows the player writer has (or refuse a loaded sheath on a pet), and make `extract_obj()` extract what a sheath holds.\n\nFound while fixing the review of MR !20 (S13); read from the code, not played. Not changed there.",
+  "state": "closed",
+  "created_at": "2026-10-04T08:02:19.310Z",
+  "updated_at": "2026-10-08T06:39:19.712Z",
+  "closed_at": "2026-10-08T06:38:02.316Z",
+  "closed_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 3,
+  "merge_requests_count": 1,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/17",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/17",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/17/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/17/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#17",
+    "relative": "#17",
+    "full": "max757/Luminari-Source#17"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

@@ -1,0 +1,141 @@
+{
+  "id": 541446852,
+  "iid": 13,
+  "project_id": 86882182,
+  "title": "Vessels S8: client data over MSDP",
+  "description": "Vessels study step S8 (`docs/ongoing-projects/vessels-ships.md`, Part 5 step 8; design in 3.3.9). The plan, interpretations, ablation, decisions made while building, and verification are in the \"Phase 8 (S8) progress\" section.\n\nReview range: `vessels-s8-base..vessels-s8`. The first two commits close S7 (the regenerated `help.hlp` order from the S7 help sync and the Phase 7 record moving to the history document).\n\n## What changes for players\n\nA client with native MSDP (or GMCP, through the standard `MSDP` package) can now REPORT twelve more vessel variables, refreshed every half second while aboard and sent only when they change:\n\n- `SHIP_ID` and `SHIP_TARGET`: the hull's contact ID and the ID of the contact her guns are locked on.\n- `SHIP_ARMOR` and `SHIP_INTERNAL`: tables keyed `fore`, `port`, `rear`, and `starboard`, each with `CURRENT` and `MAX`.\n- `SHIP_SAIL`, `SHIP_RUDDER`, `SHIP_STAMINA`, each with a `_MAX`, as `shipstatus` shows them.\n- `SHIP_WEAPONS`: one table per mounted weapon with `SLOT`, `NAME`, `ARC`, `AMMO`, `READY`, and `DAMAGE`.\n- `SHIP_CONTACTS`: the `contacts` list, nearest 20 first, with `ID`, `NAME`, `RANGE`, `BEARING`, and `ARC`.\n\nAshore every one of them is sent empty or zero, as the nine existing vessel variables already are.\n\n## Code and docs\n\n- `src/net/protocol.h` and `protocol.c` declare the variables; `vessel_msdp_update()` in `src/vessels/vessels_admin.c` fills them.\n- Help: the MSDP entry lists the new vessel variables in `help.hlp`. It is not a vessel-component entry, so its body goes into the development database at merge (as HEDIT writes it) before the help sync.\n- `VESSEL_SYSTEM.md` documents the full vessel MSDP contract, including the GMCP mapping the protocol layer already provides; `MSDP_VARIABLES.md` now lists the vessel variables.\n- New live gate: `scripts/vessels/test_vessel_client_in_game.sh` (tactical harness `--client`, login helper `--vessel-client-check`), a raw native MSDP session at sea.\n\n## Verification\n\n- `make test-all` with the database cases on: 1,964 CuTest cases (the new `Test_vessel_msdp_reports_condition_weapons_and_contacts` checks every new value, the GMCP JSON of the contacts, and the empty state ashore) and the protocol harness.\n- All 20 live gates pass in the private namespace on the installed build of `1159a0e52`: the 19 existing gates and the new client gate (28 s; 43 s on its first run).\n- Local CI (`scripts/ci/local/run.py --base gitlab/master`): all 33 jobs pass on `1159a0e52`, the last code commit; only documentation follows it.\n\nAfter merge: put the MSDP help body into the development database and sync help to production. No SQL changes, so production needs only the code deploy.",
+  "state": "merged",
+  "created_at": "2026-10-01T12:43:06.325Z",
+  "updated_at": "2026-10-01T17:18:43.895Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-01T17:18:43.684Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "feat/vessels-s8",
+  "user_notes_count": 1,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": ["Feature"],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "168e4247cc438ceec2187219824c560c5b7f58a6",
+  "merge_commit_sha": "2a4815b1a325faa734b6c9d0dfd2e1b1a6661858",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": false,
+  "force_remove_source_branch": false,
+  "prepared_at": "2026-10-01T12:43:07.900Z",
+  "reference": "!13",
+  "references": {
+    "short": "!13",
+    "relative": "!13",
+    "full": "max757/Luminari-Source!13"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/13",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "13",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "cce9ff323d07eec923fdacfb85e354c06c8c606c",
+    "head_sha": "168e4247cc438ceec2187219824c560c5b7f58a6",
+    "start_sha": "cce9ff323d07eec923fdacfb85e354c06c8c606c"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

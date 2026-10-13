@@ -1,0 +1,88 @@
+{
+  "id": 205408845,
+  "iid": 26,
+  "project_id": 86882182,
+  "title": "Vessel cleanups: dead code, stale comments, and stale document figures",
+  "description": "## Problem\n\nSmall stale or dead items noted while the vessel steps were built and reviewed. None changes\nbehavior; each misleads a reader.\n\nCode:\n\n1. `route_save()` in `src/vessels/vessels_autopilot.c` (declared in `src/vessels/vessels.h`)\n   has no callers.\n2. The comment on `save_all_vessels()` in `src/vessels/vessels_db.c` says \"Should be called at\n   shutdown and periodically during auto-save\". It is called at shutdown and at copyover only,\n   and the checked-purchase design relies on that (`docs/systems/VESSEL_SYSTEM.md`: \"nothing\n   saves the fleet periodically\").\n3. `vesseldebug balance` prints \"holding the healthier beam at 6-9 rooms\"\n   (`src/vessels/vessels_balance.c`). The harness captain holds 7.5 rooms\n   (`VESSEL_BALANCE_DUEL_HOLD`); the 6-9 band was replaced.\n4. `GET_VESSEL_INSURANCE_CLAIM()` and `GET_VESSEL_MERCHANT_CONSEQUENCE()` in\n   `src/core/utils.h` do not parenthesize their argument; `GET_VESSEL_SETTLEMENT()` beside\n   them does.\n5. Two `INSERT` statements in `src/vessels/vessels_autopilot.c` (`ship_waypoints`,\n   `ship_routes`) are still formatted SQL, not prepared statements.\n\nSQL comments:\n\n6. `sql/components/vessels_phase25_schema.sql` describes `player_id`, and\n   `vessels_phase24_schema.sql` describes `creator_id`, as `player_data.player_idnum`. The code\n   stores the player-file ID (`GET_IDNUM()`), and `VESSEL_SYSTEM.md` calls\n   `player_data.player_idnum` an unrelated key. Confirm and correct the comments.\n\nDocuments:\n\n7. The size of `struct greyhawk_ship_data` is stated as 2,672 bytes in `VESSEL_SYSTEM.md`\n   (three places), 5,120 in the same document's tier table and in\n   `docs/testing/VESSEL_BENCHMARKS.md`, and 5,104 in `docs/development/CONSIDERATIONS.md` and\n   `docs/adr/0001-unified-vessel-system.md`. The built object reports 2,712\n   (`gdb -batch -ex 'print sizeof(struct greyhawk_ship_data)' src/vessels/vessels_movement.o`\n   on master `d5cd6a735`).\n8. `docs/testing/VESSEL_SYSTEM_TESTING.md` (\"Mechanical Balance Diagnostic\") says the balance\n   report \"lists crew payroll\" (crew wages were removed) and records only the 2026-08-02 run\n   as the latest balance result.\n\n## Completion criteria\n\n- Items 1-5 corrected or removed, with the build, `make test-all`, and the SQL interpolation\n  baseline passing.\n- Item 6 confirmed against the code and the comments corrected in the SQL and, if it carries\n  the same text, the boot DDL.\n- Items 7-8: one measured structure size in every document that states it, and the balance\n  section describing the current report.",
+  "state": "opened",
+  "created_at": "2026-10-04T20:37:25.633Z",
+  "updated_at": "2026-10-04T20:37:27.454Z",
+  "closed_at": null,
+  "closed_by": null,
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 0,
+  "merge_requests_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/26",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/26",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/26/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/26/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#26",
+    "relative": "#26",
+    "full": "max757/Luminari-Source#26"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

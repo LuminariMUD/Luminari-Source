@@ -1,0 +1,88 @@
+{
+  "id": 205408839,
+  "iid": 25,
+  "project_id": 86882182,
+  "title": "A command that waits in the action queue is followed by a second, empty prompt",
+  "description": "## Problem\n\nWhen a command waits a pulse in the action queue, the server sends a second prompt that is\nempty except for the telnet go-ahead (IAC GA), so the command's reply follows two prompts.\nA client that ignores GA shows both prompts on one line.\n\n## Current evidence\n\n- Observed on 2026-10-02 during the vessel play test in the Luminari Web client, and in the\n  transcripts of the scripted login helper (`scripts/development/dev_kohdee_login_smoke.sh`)\n  from the vessel gates. It happens with any queued command, not only vessel commands.\n- `make_prompt()` in `src/core/comm.c` appends IAC GA to the prompt even when the prompt text\n  is empty (the branch that sets `*prompt = '\\0'`), so an otherwise empty prompt is still sent.\n  `src/core/comm.c` has not changed since the observation. The exact path that asks for the\n  extra prompt was not traced.\n\n## Completion criteria\n\n- The path that produces the second prompt is identified.\n- A command that waits in the action queue is followed by one prompt, or the bare go-ahead is\n  shown to be intended and is documented in `docs/systems/PROTOCOL_SYSTEMS.md`.\n- A test in the prompt tests (`comm_make_prompt_for_test()` exists for them) or a transcript\n  check covers it.",
+  "state": "opened",
+  "created_at": "2026-10-04T20:37:22.303Z",
+  "updated_at": "2026-10-04T20:37:24.237Z",
+  "closed_at": null,
+  "closed_by": null,
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 0,
+  "merge_requests_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/25",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/25",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/25/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/25/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#25",
+    "relative": "#25",
+    "full": "max757/Luminari-Source#25"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

@@ -60,7 +60,11 @@
 > `sql/components/verify_help_vessel_entries.sql`, then reload or restart help
 > and search every command in game. The vessel sweep is automated by
 > `scripts/development/dev_kohdee_login_smoke.sh --vessel-help-check`; it requires a
-> database `Help Tag` and rejects missing or file-fallback results.
+> database `Help Tag` and rejects missing or file-fallback results. Compare tags
+> case-insensitively in verify scripts, never with `BINARY`: `help_entries.tag`
+> is a case-insensitive key, and the help-sync engine stores a new entry's tag in
+> lowercase, so an entry that first reaches production through the engine (for
+> example `shiprenown`) has a different case there than the migration gave it.
 >
 > Runtime files under `lib/text/help/` are ignored deployment data. Standalone
 > files such as `autopilot.hlp` and `schedule.hlp` are not listed in `index` and

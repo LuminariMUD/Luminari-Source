@@ -1,0 +1,87 @@
+{
+  "id": 204672217,
+  "iid": 9,
+  "project_id": 86882182,
+  "title": "Artificer device feat text describes temporary devices",
+  "description": "Found in the live check of #4 (its item 29); still true on master `962463fa6`.\n\nThe artificer feat `FEAT_WEIRD_SCIENCE` (`src/character/feats.c:5862-5867`) says its devices are\ntemporary with a limited number of uses per day. In the code, devices are permanent (the saved\n`duration` field is never read) and regain one use per tick out of combat (`check_device_one()`,\n`src/core/limits.c`). The device help entry already states the real rules.\n\n## Done when\n\n- [ ] The `FEAT_WEIRD_SCIENCE` description matches the device mechanic and the device help entry.\n- [ ] `make -j$(nproc)` passes.",
+  "state": "opened",
+  "created_at": "2026-09-28T10:24:28.829Z",
+  "updated_at": "2026-09-28T10:24:28.829Z",
+  "closed_at": null,
+  "closed_by": null,
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 0,
+  "merge_requests_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/9",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 2,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": false,
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/9",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/9/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/9/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#9",
+    "relative": "#9",
+    "full": "max757/Luminari-Source#9"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

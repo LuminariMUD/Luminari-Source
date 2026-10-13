@@ -1,0 +1,291 @@
+[
+  {
+    "id": 204485053,
+    "iid": 1,
+    "project_id": 86882182,
+    "title": "Price Extra Arms and the monk third hand after the arm count",
+    "description": "Follow-up from !1, which replaced the four-arm flag with an arm count. The open items are recorded in `docs/ongoing-projects/EXTRA_LIMB_MECHANICS.md#open-balance-work`.\n\n- Extra Arms still costs 3 race points per rank, the price set when a rank was one extra swing. A rank is now one full arm. The doc suggests 7.5 RP for each rank that adds the third or fourth arm and 1 RP for each rank past four, but equal pricing is not established: the third arm alone opens lower gloves and sleeves.\n- Pricing for mixed Four Arms, Extra Arms and race adjustments is undecided, and so is whether the Thri-Kreen cap exception applies.\n- Four Arms stays at 15 RP. The unarmed monk third hand raises its value for monks, and that value is not priced.\n- Before deploying: Extra Arms grants on saved characters or staff-built items now mean arms instead of swings. Check them.",
+    "state": "closed",
+    "created_at": "2026-09-26T17:32:49.949Z",
+    "updated_at": "2026-10-08T09:34:44.931Z",
+    "closed_at": "2026-10-08T09:32:46.764Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 7,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/1",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/1",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/1/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/1/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#1",
+      "relative": "#1",
+      "full": "max757/Luminari-Source#1"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9625718,
+    "link_type": "relates_to",
+    "link_created_at": "2026-09-26T19:06:22.767Z",
+    "link_updated_at": "2026-09-26T19:06:22.767Z"
+  },
+  {
+    "id": 204557763,
+    "iid": 3,
+    "project_id": 86882182,
+    "title": "Add the quests that grant the five Duris descend forms",
+    "description": "Follow-up from !2 (merged as 2d7923cac, work item #2). The five Duris descend forms are registered, hard-locked, and convertible through a standard quest race reward. No quest awards one yet, so nobody can become a form.\n\n## What to build\n\nEach form needs a quest line whose final quest sets the race reward to the form's ID. Model it on the Vampire line in zone 347 (`lib/world/qst/347.qst`): quests 34700-34721 from questmaster mobile 29906 (Erich) are chained through previous/next, and the final quest, 34721, carries race reward 46.\n\n`descend_form_conversions[]` in `src/quest/quest.c` owns the conversion. When the final quest completes, it requires:\n\n- level 30;\n- levels in one of the form's classes;\n- no group, leader, or followers;\n- a real race that is not already a Lich, Vampire, or descend form.\n\nIt then respecs the character to the form's class, sets experience to 0 and alignment to -1000, and saves.\n\n| Form | ID | Class levels required | Respec to | Duris lore |\n| -- | -- | -- | -- | -- |\n| Death Knight | 55 | Blackguard or Warrior | Blackguard | Fallen paladins raised to undeath; the anti-paladin form |\n| Wight | 56 | Warrior | Warrior | Duris's old descend made level 35+ necromancers into Wights (as Warriors) |\n| Revenant | 57 | Warrior or Rogue | Warrior | Corpses driven by revenge; Duris's old descend (as Mercenaries) |\n| Shadow Beast | 58 | Rogue or Assassin | Rogue | Duris let level 50 Revenants become Shadow Beasts (Assassin) |\n| Phantom | 59 | Wizard, Summoner, or Psionicist | Wizard | Duris let level 50 Vampires become Phantoms (Conjurer); here a Vampire is refused |\n\nQEDIT and `wtool` already accept race rewards 55-59 (`docs/world_game-data/QUEST_FILE_FORMAT.md`). Each form's stats, feats, and lore are in the \"Descend forms\" rows of `docs/guides/PLAYER_RACES_REFERENCE.md` and its `RACE-<FORM>` help topic.\n\n## Done when\n\n- [ ] Each of the five forms has a reachable quest line (giver, stages, rooms, and mobs), ending in a quest whose race reward is the form's ID.\n- [ ] `python3 scripts/world/wtool.py validate` is clean for the new quests.\n- [ ] Live check on port 4100, for each form: a level 30 character with a qualifying class completes the line and becomes the form, with its class, XP 0, alignment -1000, registry size, level-one feats, and DR 9/-. It keeps all of that after reconnecting, and a second conversion is refused. This is the one item of the race guide's final checklist that !2 left open.\n- [ ] The `RACE-<FORM>` help topics (`sql/components/help_duris_races_entries.sql` and `lib/text/help/help.hlp`) and the acquisition section of `PLAYER_RACES_REFERENCE.md` name where each quest starts.",
+    "state": "opened",
+    "created_at": "2026-09-27T08:30:06.005Z",
+    "updated_at": "2026-09-27T08:30:14.350Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/3",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 4,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/3",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/3/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/3/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#3",
+      "relative": "#3",
+      "full": "max757/Luminari-Source#3"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9629788,
+    "link_type": "relates_to",
+    "link_created_at": "2026-09-27T08:30:15.786Z",
+    "link_updated_at": "2026-09-27T08:30:15.786Z"
+  },
+  {
+    "id": 204672081,
+    "iid": 5,
+    "project_id": 86882182,
+    "title": "Grant saved characters the single-rank racial feats their race gained later",
+    "description": "## Problem\n\nA character receives racial feats only from `process_race_level_feats()`\n(`src/character/class.c:3086`), which `advance_level()` runs for the level just reached. A feat\nadded to an existing race therefore reaches only characters created or respecced afterwards (a\nrespec reruns `do_start()`). Saved characters silently lack mechanics their race now provides.\n\nEvidence on master `962463fa6`, counted from the development player files (`lib/plrfiles/*/*.plr`,\ncharacters whose `Feat:` block records any feats):\n\n| Race | Feat (assigned at level 1 in `src/character/race.c`) | Added by | Characters missing it |\n| -- | -- | -- | -- |\n| Half-Troll | Bodyslam (`FEAT_BODYSLAM`) | `0831ef644` (2026-09-12), which turned the race check into a feat check | 85 of 85 |\n| Crystal Dwarf | Stability (`FEAT_STABILITY`) | `0831ef644` | 31 of 33 |\n| Trelux | Psionic Resistance (`FEAT_PSIONIC_RESISTANCE`) | the Duris races work (#2) | 20 of 20 |\n| Gnome | Brilliance and Blunder (`FEAT_BRILLIANCE_AND_BLUNDER`) | #4 (`e4946d92e`) | 215 of 215 |\n\nSo old Half-Trolls lost the bodyslam skill, old Crystal Dwarves their knockdown resistance, and no\nexisting gnome can build a four-spell artificer device. `racefix` cannot help: it reads the\ndeprecated `level_feats[][]` array in `src/character/class.c:2072`, which has none of these rows.\n\nBecause of this gap, two damage checks in `src/combat/fight.c` keep a race test beside the feat:\n`GET_RACE(ch) == RACE_TRELUX || HAS_FEAT(ch, FEAT_PSIONIC_RESISTANCE)` (line 3915) and\n`IS_LICH(ch) || HAS_FEAT(ch, FEAT_COLD_IMMUNITY)` (line 3429). `docs/systems/GAME_MECHANICS_SYSTEMS.md`\n(\"Racial Innate Feats and Spell-Like Abilities\") documents that workaround.\n\n## Fix\n\nWhen a character enters the game, grant each single-rank racial feat that its real race assigns\nat or below its level and that it does not hold, through the same code the level-up path uses.\n\n1. Shared grant: move the per-assignment body of `process_race_level_feats()` (special handling\n   via `special_handling_level_feats()` or the \"[race] You have gained/improved\" message, then\n   the rank increment and the `FEAT_DAMAGE_REDUCTION` update) into one static helper, so a\n   repaired feat behaves exactly like a level-up grant.\n2. Repair: add `grant_missing_race_feats()` beside it, declared in `src/character/class.h`. Skip\n   NPCs and invalid races. Walk `race_list[GET_REAL_RACE(ch)].featassign_list` (the real race,\n   as the level-up path does, so a disguise or wild shape changes nothing) and grant each\n   assignment whose `level_received` is at most `GET_LEVEL(ch)`, whose feat has `can_stack`\n   false in `feat_list[]`, and whose `HAS_REAL_FEAT()` is zero (gear granting the feat must not\n   hide the gap). Log character, race and feat for each grant; return the number granted.\n3. Hook: call it in `enter_player_game()` (`src/core/interpreter.c:7695`) right after the\n   class-spell top-up (\"make sure we assign any new spells\"). Menu login, copyover recovery\n   (`src/core/comm.c`) and description-completion entry (`src/character/char_descs.c`) all pass\n   through there. A new character enters at level 0 and gets nothing until `do_start()` runs.\n   The next save persists the feat; a login before that save repeats the same grant.\n\nStackable (multi-rank) racial feats stay out: a saved rank does not show which ranks came from\nthe race and which from class or study, so a top-up could over- or under-grant. Current racial\ngrants of stackable feats: Armor Skin, Damage Reduction, Enhanced Spell Damage, Fast Casting,\nFast Healing, Fast Movement, Slow Casting. No migration script, `racefix` change or new command\nis needed.\n\nOnce the repair lands, drop the Trelux race test from the psionic resistance check. All 14\ndevelopment Liches already hold Cold Immunity; drop `IS_LICH()` from the cold check too unless\nproduction data shows otherwise (Lich electric immunity stays a race check).\n\n## Done when\n\n- [ ] `grant_missing_race_feats()` exists and is called from `enter_player_game()`.\n- [ ] Tests in `unittests/CuTest/test_racial_innate_feats.c`: a saved Half-Troll without\n  Bodyslam and a Crystal Dwarf without Stability each gain it once and a second call grants\n  nothing; a held feat keeps its rank; an assignment above the character's level is skipped; a\n  stackable racial feat (Armor Skin on a Half-Ogre) is not topped up; the real race is read\n  while a disguise race is set; an NPC is untouched.\n- [ ] Live check on port 4100 (`MUD_PORT=4100 ./scripts/autorun/autorun.sh`): remove a racial\n  feat with `featset <name> '<feat>' -1` (for example Bodyslam on a Half-Troll), reconnect, see\n  the \"[race] You have gained\" line, use the feat, find it in the player file after the next\n  save; repeat through a copyover.\n- [ ] The two race tests in `compute_damtype_reduction()` are removed or their retention is\n  justified in the code.\n- [ ] `docs/systems/GAME_MECHANICS_SYSTEMS.md` (racial innate section) and\n  `docs/guides/ADDING_NEW_RACE_GUIDE.md` (racial feats) say that a single-rank feat added to an\n  existing race reaches saved characters at their next login, while a stackable grant still\n  reaches only new or respecced characters.\n- [ ] `make -j$(nproc)`, `make test` and `make install` pass.\n\nRollout note: production picks the repair up at the next restart, which needs its own approval;\nthe log lines count the repaired characters. A rollback leaves granted feats in place, which is\nwhat those characters should hold.",
+    "state": "closed",
+    "created_at": "2026-09-28T10:22:38.654Z",
+    "updated_at": "2026-10-02T17:50:29.685Z",
+    "closed_at": "2026-10-02T17:50:29.676Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/5",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 6,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/5",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/5/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/5/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#5",
+      "relative": "#5",
+      "full": "max757/Luminari-Source#5"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9642088,
+    "link_type": "relates_to",
+    "link_created_at": "2026-09-28T10:24:37.479Z",
+    "link_updated_at": "2026-09-28T10:24:37.479Z"
+  }
+]

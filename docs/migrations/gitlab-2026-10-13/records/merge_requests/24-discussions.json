@@ -1,0 +1,764 @@
+[
+  {
+    "id": "7b477e19322a3b9080bc26257060e878f8c59290",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957735530,
+        "type": null,
+        "body": "assigned to @max757",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T18:47:19.283Z",
+        "updated_at": "2026-10-05T18:47:19.284Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "07383eff78f2c9e8792e2ce6bd3d60af689e3030",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957738639,
+        "type": null,
+        "body": "mentioned in commit 115b6d846fa19396c0c4c5880002b59d2c1c5fb9",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T18:47:57.611Z",
+        "updated_at": "2026-10-05T18:47:57.613Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "e26b8f6e59aa6866291b8a8ca016e20a143fd117",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957738709,
+        "type": null,
+        "body": "added 1 commit\n\n<ul><li>115b6d84 - Record phase 2 of the object save fixes: built, in review as MR !24</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/24/diffs?diff_id=2077702172&start_sha=b06a2367fdb4f936af90dc248b4e65a61e781ae9)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T18:47:58.664Z",
+        "updated_at": "2026-10-05T18:47:58.667Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "bafe88d5026971fbd3d5ec5fcc609ccac09aa3d6",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957738872,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T18:48:01.268Z",
+        "updated_at": "2026-10-05T18:48:01.270Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "a6ccf826991333a95376541b7d28351270657208",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957746510,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T18:49:31.265Z",
+        "updated_at": "2026-10-05T18:49:31.267Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "e6a44f623887f1445aeeab5ecce918b9d4b68012",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957746624,
+        "type": null,
+        "body": "mentioned in issue #18",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T18:49:32.923Z",
+        "updated_at": "2026-10-05T18:49:32.925Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "9fe451f83914ee9e6c1d4dbce84500aaf8521639",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3957834414,
+        "type": "DiffNote",
+        "body": "**Finding 1 (data loss on a failure path): when the new permanent-table migration fails, the test overwrites `owner_id` on every permanent `pet_data` row**\n\n**Location.** `unittests/CuTest/test_database_persistence.c:832-845` at `115b6d846`.\n\n`fixture_created = live_tables_migrated && create_legacy_pet_temporary_schema(connection)` skips the temporary tables whenever the new first call returns false. Nothing below it stops. Line 842 runs `UPDATE pet_data SET owner_id = 4294967295` with no `WHERE` and no guard, and with no temporary `pet_data` in the session that name is the permanent table.\n\nOn base the statement could reach the permanent table only if a `CREATE TEMPORARY TABLE` failed. This MR puts in front of it a run of up to fifteen DDL statements on shared tables that fails in ordinary states; the description itself names one.\n\n**Effect.** Every row of the configured database's `pet_data` ends with `owner_id = 4294967295`. `prepare_saved_pet_row()` (`src/player/players.c:7245`) refuses a row whose `owner_id` is neither 0 nor the owner's, and the pet queries at `players.c:7110`, `:7775`, `:7823` and `:7877` filter on the same pair, so no owner loads or reclaims those pets again. CI's disposable databases hold no pet rows, so nothing is lost there; the loss is on any database that does hold them. The sibling `Test_pet_live_schema_cascades_objects_and_rejects_orphans` keeps its row writes in a transaction it rolls back; this test now has no such protection.\n\n**Repro.** mariadb:10.11, database built from `sql/master_schema.sql`, boot skipped, one pet row inserted with `owner_id = 7`. Three states that make the first call fail, each run on base `8c0c5bd16` and on head:\n\n| State | Base | Head |\n| -- | -- | -- |\n| Key added to the permanent `pet_save_objs` by hand, nothing recorded (the plan's step 1 probe state) | passes; row keeps `owner_id` 7 | fails at `:873`, `Failed to apply migration 2026080503: Cannot change column 'pet_idnum': used in a foreign key constraint`; row has 4294967295 |\n| Fully migrated database, test user granted only SELECT, INSERT, UPDATE, DELETE, CREATE TEMPORARY TABLES | fails at `:872`; row keeps 7 | fails at `:873`, `CREATE command denied ... schema_migrations`; row has 4294967295 |\n| Two `./cutest` processes started together on one fresh database | not applicable, the test was session-private | 3 of 3 rounds: one process fails with `Failed to record migration 2026080501: Duplicate entry`; row has 4294967295 |\n\nThe first state, start to finish:\n\n```bash\ndocker run -d --rm --name probe -p 127.0.0.24:3306:3306 -e MARIADB_ROOT_PASSWORD=probe \\\n  -e MARIADB_DATABASE=probe mariadb:10.11\ndocker exec -i probe mariadb -uroot -pprobe probe < sql/master_schema.sql\ndocker exec -i probe mariadb -uroot -pprobe probe <<'SQL'\nINSERT INTO pet_data (owner_name, vnum, hp, max_hp, str, con, dex, level, ac, pet_name,\n  pet_sdesc, pet_ldesc, pet_ddesc, owner_id, owner_created)\nVALUES ('Realowner', 1, 10, 10, 10, 10, 10, 1, 10, 'rex', 'a dog', 'A dog.', 'dog', 7, 1700000000);\nALTER TABLE pet_save_objs ADD CONSTRAINT fk_pet_save_objs_pet FOREIGN KEY (pet_idnum)\n  REFERENCES pet_data (pet_data_id) ON DELETE CASCADE ON UPDATE CASCADE;\nSQL\nLUMINARI_TEST_MYSQL_ENABLE=1 LUMINARI_TEST_MYSQL_HOST=127.0.0.24 LUMINARI_TEST_MYSQL_PORT=3306 \\\n  LUMINARI_TEST_MYSQL_USER=root LUMINARI_TEST_MYSQL_PASSWORD=probe \\\n  LUMINARI_TEST_MYSQL_DATABASE=probe LUMINARI_TEST_SKIP_SYNTAX_BOOT=1 \\\n  CUTEST_FILTER=Test_pet_persistence_legacy_schema_migration_is_idempotent ./cutest\ndocker exec probe mariadb -uroot -pprobe probe -e \"SELECT owner_name, owner_id FROM pet_data\"\n```\n\nHead prints `Realowner 4294967295`; base prints `Realowner 7`.\n\n**Fix.** Stop when the fixture is not in place. Everything below that point is written for the temporary tables.\n\n```diff\n   live_tables_migrated = run_pet_persistence_migrations();\n   fixture_created = live_tables_migrated && create_legacy_pet_temporary_schema(connection);\n-  first_migration = fixture_created && run_pet_persistence_migrations();\n+  if (!fixture_created)\n+  {\n+    /* Every statement below is written for the temporary tables; without\n+     * them it would reach the permanent ones. */\n+    conn = saved_conn;\n+    mysql_available = saved_available;\n+    mysql_close(connection);\n+    CuAssertTrue(tc, live_tables_migrated);\n+    CuFail(tc, \"could not create the legacy pet fixture\");\n+    return;\n+  }\n+  first_migration = run_pet_persistence_migrations();\n```\n\nChecked with this patch on head: in all three states the test still fails and the row keeps `owner_id` 7; on a fresh database the test passes twice in a row. The patch also covers a fixture that fails part-way, which base did not.\n\nWhat the patch leaves: of two processes started together on a never-migrated database, one still fails, because the runner checks a version and records it in separate statements. The live-schema test has had that property since before this MR; with the patch it costs a rerun and writes nothing outside the migrations.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:05:05.031Z",
+        "updated_at": "2026-10-05T19:23:36.721Z",
+        "system": false,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "8c0c5bd16875d7eab2bdceca19cfafae89d9aed8",
+          "start_sha": "8c0c5bd16875d7eab2bdceca19cfafae89d9aed8",
+          "head_sha": "4fe9a1c562b72415084385eb2431303621dd190b",
+          "old_path": "unittests/CuTest/test_database_persistence.c",
+          "new_path": "unittests/CuTest/test_database_persistence.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 833,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-05T19:23:36.721Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      },
+      {
+        "id": 3957940440,
+        "type": "DiffNote",
+        "body": "Confirmed, and fixed in `bf3ad8c39`.\n\n**Reproduced on `115b6d846`.** mariadb:10.11, database from `sql/master_schema.sql`, boot skipped, one pet row with `owner_id` 7. All three states end with `Realowner 4294967295`, with the errors in the table above; the two-process state did so in 3 of 3 rounds. A fourth state ends the same way on head, and by the code on base too: a user with every right except CREATE TEMPORARY TABLES, where the migration run succeeds and the fixture cannot be created.\n\n**Fix.** The statement runs only when the fixture was created:\n\n```c\n  /* Without the fixture this name is the permanent table, which the test must not write. */\n  max_owner_id_rows =\n      fixture_created && mysql_query(connection, \"UPDATE pet_data SET owner_id = 4294967295\") == 0\n```\n\nThis is narrower than the patch above, on purpose. The `UPDATE` is the only write below that point: the other statements are `SELECT COUNT(*)`, and the second `run_pet_persistence_migrations()` waits for `first_migration`, which waits for `fixture_created`. The fifteen migrations alter, update and delete but never drop or rename a table, so once the fixture exists the name is the temporary table to the end of the test. A guard on the one statement keeps the test's single teardown and its `&&` chain; stopping the test there would repeat the teardown at a second exit.\n\n**Checked on the pushed head** (the test file is the one of `bf3ad8c39`), same setup:\n\n| State | Test | Row after |\n| -- | -- | -- |\n| Fresh database | passes, and again on the same database | `owner_id` 7 |\n| Key added by hand, nothing recorded | fails at `:874`, `live_tables_migrated` | 7 |\n| User with SELECT, INSERT, UPDATE, DELETE, CREATE TEMPORARY TABLES | fails at `:874` | 7 |\n| Two processes started together, 3 rounds | each round one fails at `:874` and the other passes; a rerun passes | 7 |\n| User without CREATE TEMPORARY TABLES | fails at `:875`, `fixture_created` | 7 |\n\nNo test covers the failure path: reaching it takes a second database user or a hand-altered permanent schema, and the suite has one configured user.\n\nWhat stays, as the finding says: of two processes started together on a database that has not been migrated, one fails. It writes nothing outside the migrations and passes when run again. Every CI job has a database of its own; the testing guide now says not to start two suites that way (`f879086e4`, finding 2).",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:23:15.555Z",
+        "updated_at": "2026-10-05T19:23:36.721Z",
+        "system": false,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "8c0c5bd16875d7eab2bdceca19cfafae89d9aed8",
+          "start_sha": "8c0c5bd16875d7eab2bdceca19cfafae89d9aed8",
+          "head_sha": "4fe9a1c562b72415084385eb2431303621dd190b",
+          "old_path": "unittests/CuTest/test_database_persistence.c",
+          "new_path": "unittests/CuTest/test_database_persistence.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 833,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-05T19:23:36.721Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "ace4145db50efd6e6f2e351d56bc7cad03596adb",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3957837006,
+        "type": "DiscussionNote",
+        "body": "**Finding 2 (the guide now says the opposite of the code): `docs/guides/TESTING_GUIDE.md:526-535` still names one test that writes to the permanent pet tables**\n\n**Location.** `docs/guides/TESTING_GUIDE.md:526-535`, not touched by this MR; made false by `b06a2367f` (`unittests/CuTest/test_database_persistence.c:832`).\n\nThe paragraph reads: \"Most pet persistence tests also isolate themselves with temporary tables. The exception is `Test_pet_live_schema_cascades_objects_and_rejects_orphans` ...\". After this MR `Test_pet_persistence_legacy_schema_migration_is_idempotent` is a second exception: before it creates its temporary tables it runs the migration runner on the permanent `pet_data` and `pet_save_objs`, which is DDL, the `2026091005` orphan purge, and fifteen rows in the permanent `schema_migrations`.\n\nThe paragraph also ends \"the booted suite applies migration `2026091007` for real on every fresh database and this test observes its outcome\". That is the claim this MR removed from the fixture's comment because it does not hold when the boot is skipped.\n\nThis paragraph is where a reader learns which database tests leave the configured database changed, so it is the one place the change has to be recorded.\n\n**Repro.** On a database built from `sql/master_schema.sql`, boot skipped, run the legacy test alone on head: the permanent `pet_save_objs` gains `fk_pet_save_objs_pet` and `schema_migrations` gains versions 2026080501 to 2026091007. On base the same run leaves both as they were. The guide describes base.\n\n**Fix.** Replace the paragraph, for example:\n\n```text\nMost pet persistence tests also isolate themselves with temporary tables. Two\ndo not, because InnoDB refuses foreign keys on temporary tables and the\nvalidator reads the key from `information_schema`:\n`Test_pet_live_schema_cascades_objects_and_rejects_orphans` and\n`Test_pet_persistence_legacy_schema_migration_is_idempotent`. Both run the\nmigration runner on the live `pet_data` and `pet_save_objs` tables from\n`sql/master_schema.sql` and leave them migrated. The first then checks the\ncascade and orphan rejection inside a transaction that is rolled back; the\nsecond builds its legacy fixture in temporary tables. CI loads the master\nschema into its isolated database before the suite runs; the master schema\ncarries no foreign key, so whichever runs first on a fresh database (the\nsyntax-check boot or one of these two tests) applies migration `2026091007`\nfor real.\n```",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:05:26.214Z",
+        "updated_at": "2026-10-05T19:23:37.748Z",
+        "system": false,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-05T19:23:37.748Z",
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      },
+      {
+        "id": 3957940536,
+        "type": "DiscussionNote",
+        "body": "Confirmed, and fixed in `f879086e4`.\n\nOn head the legacy test alone, on a `master_schema.sql`-only database with the boot skipped, leaves `fk_pet_save_objs_pet` on the permanent `pet_save_objs` and the fifteen versions in the permanent `schema_migrations`. The guide described base.\n\nThe paragraph is the proposed text with two additions:\n\n- Both tests \"leave them migrated, as a server boot does\".\n- A last sentence for what finding 1 leaves: \"Do not start two suites at once on a database that has not been migrated: the runner checks a version and records it in separate statements, so one of them fails and passes when run again.\"",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:23:16.940Z",
+        "updated_at": "2026-10-05T19:23:37.748Z",
+        "system": false,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-05T19:23:37.748Z",
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "7905139c1bfb1b3aa6f2ed693e1d38f15a00fd5d",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957838967,
+        "type": null,
+        "body": "**Review of `115b6d846` against base `8c0c5bd16`: two findings, one thread each.**\n\n1. Data loss on a failure path: when the new permanent-table migration fails, the test's unguarded `UPDATE pet_data SET owner_id = 4294967295` lands on the permanent table. Reproduced three ways; patch given and checked. Thread on `test_database_persistence.c:833`.\n2. `docs/guides/TESTING_GUIDE.md:526-535` still says one pet test writes to the permanent tables; this MR makes it two. Replacement text given.\n\nFinding 1 should be fixed before merge. Nothing else was found in the two commits.\n\nRun during the review, on head, against a disposable database built from `sql/master_schema.sql` with the boot skipped:\n\n- The cause named in the description holds: on base the test passes with the key added by hand and fails without it.\n- The test alone passes on mariadb:10.11 and on mariadb:11.4; so do its two neighbours on 11.4. On 11.4 `information_schema.TABLES` lists the temporary table too, but the foreign-key lookup still returns the permanent table's key.\n- Each of the 36 tests in `test_database_persistence.c` passes alone on its own fresh database.\n- `./cutest` with the database tests on, first run on a fresh database: 2039 of 2039.\n- On an empty database the test fails at `:873` as the description says, and leaves a permanent `schema_migrations` behind.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:05:40.089Z",
+        "updated_at": "2026-10-05T19:05:40.089Z",
+        "system": false,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "c231b98a9e2c15eeaf75a02ee130c0b02dd655b2",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957937854,
+        "type": null,
+        "body": "mentioned in commit f879086e4a8ee3e3558aad0819dc9c1d58be3cd4",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:22:36.323Z",
+        "updated_at": "2026-10-05T19:22:36.324Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "5dba1e9a7a6da5e5c5235c3cd1863fb045f67dba",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957937890,
+        "type": null,
+        "body": "mentioned in commit bf3ad8c39262eb838bcfced94831f00bc08ae0b2",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:22:36.881Z",
+        "updated_at": "2026-10-05T19:22:36.883Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "78fa66394fb01c8708df6e350ba16415c43ee9dc",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957937896,
+        "type": null,
+        "body": "added 3 commits\n\n<ul><li>bf3ad8c3 - Keep the pet legacy-migration test&#39;s write off the permanent pet_data</li><li>f879086e - Name both pet tests that migrate the permanent tables in the testing guide</li><li>4fe9a1c5 - Record the review of phase 2: two findings, both fixed</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/24/diffs?diff_id=2077788224&start_sha=115b6d846fa19396c0c4c5880002b59d2c1c5fb9)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:22:36.946Z",
+        "updated_at": "2026-10-05T19:22:36.948Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "026a55e48fb63625f89ccb21e49bcecb639e11cd",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957942035,
+        "type": null,
+        "body": "resolved all threads",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:23:37.772Z",
+        "updated_at": "2026-10-05T19:23:37.778Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "f3657eb91cdf33e556cf6769b391646c906eaa33",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957942128,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:23:39.061Z",
+        "updated_at": "2026-10-05T19:23:39.062Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "f38921a9720973fe555d409aff54a03594ee81b0",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957942329,
+        "type": null,
+        "body": "**Both review findings are confirmed and fixed. Head is `4fe9a1c56`; the tag `object-save-fixes-p2` stays on `115b6d846`.**\n\n1. Data loss on a failure path: fixed in `bf3ad8c39`. The `UPDATE` runs only when the temporary fixture was created. It is the one write below that point, so the fix is a guard on that statement, not the early return proposed in the thread; the thread has the reasoning and the table of states. In every failure state the test still fails and the permanent row keeps its `owner_id`.\n2. Testing guide: fixed in `f879086e4`. Both tests are named, and the paragraph says not to start two suites at once on a database that has not been migrated.\n\n`4fe9a1c56` records the review in the plan.\n\nRun on `f879086e4`:\n\n- `make -j16 test`: 2039 tests pass.\n- `./cutest` with the database tests on, first run on a fresh `master_schema.sql`-only database: 2039 of 2039.\n- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (266 s). The format, hygiene and secrets jobs pass again on `4fe9a1c56`.\n\nBoth threads are resolved. Ready to merge: merge commit, no squash, as the plan's step 6 says.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T19:23:41.338Z",
+        "updated_at": "2026-10-05T19:23:41.338Z",
+        "system": false,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "a8d292fa91f2cd1ce9c85d6f4c5c2ecc2e85bbf1",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3958317093,
+        "type": null,
+        "body": "mentioned in commit 0efe4d145b5230d5d3debe23ada153e828089aa4",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T20:41:18.586Z",
+        "updated_at": "2026-10-05T20:41:18.588Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "ddfad56e8b52b817f1e073a81b8090bf23574a03",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3958319528,
+        "type": null,
+        "body": "mentioned in commit ee42019edb252420807c9cb84f7f090fdae9e811",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T20:41:52.510Z",
+        "updated_at": "2026-10-05T20:41:52.512Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "27aed99a7e975cd6657fb76be2e9884790004c3c",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3976369268,
+        "type": null,
+        "body": "mentioned in commit b8951c3aa5f16b6ec9f9f390fff34b976ffc46c5",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-08T09:34:19.495Z",
+        "updated_at": "2026-10-08T09:34:19.497Z",
+        "system": true,
+        "noteable_id": 543311620,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 24,
+        "commands_changes": {}
+      }
+    ]
+  }
+]

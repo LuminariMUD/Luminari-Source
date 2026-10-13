@@ -1,0 +1,130 @@
+{
+  "id": 539706304,
+  "iid": 6,
+  "project_id": 86882182,
+  "title": "Vessels S1: DurisMUD study defect fixes",
+  "description": "Step S1 of the DurisMUD vessel study (`docs/ongoing-projects/vessels-ships.md`): fixes defects L4, L5, L7, L8, L9, L11, L12, and L13.\n\n- **Gunnery:** only the owner, helm permit holders, the online owner's group, and staff may fire. A non-owner firing on another player's hull also needs the hull owner's consent. Only a permitted shot records PvP grace, once, for the actual gunner. Every shot costs lag, and hulls in port neither fire nor take fire.\n- **Contacts:** `contacts`, `tactical`, and `shipfire` share one nearest-first, sight-limited list with two-letter IDs.\n- **Weather:** manual sailing reads the real storm bands.\n- **Crew:** a one-time hire; wages and `shipwages` are removed.\n- **Shipyard:** prototypes get `for_sale` and `min_level`. The hull level gates departures (refused when it cannot be read), and a player may own at most 3 hulls (`cedit`, 1-10).\n- **Bounties:** decay after a quiet day; `bounty pay` clears one for 125% at a lawful port.\n- **Schema:** Phase 18 SQL, with rollback and verify files. Help is updated in `help.hlp` and the SQL component.\n\nReview range: `vessels-s1-base..vessels-s1`. Review fixes: `vessels-s1..feat/vessels-ships`.\n\nVerification: `make test-all` passes with DB cases on (1870 CuTest in the local CI matrix). The new `test_vessel_rules_in_game.sh` gate and the tactical, events, boarding, lookout, and narrative gates pass on the review fixes. All 33 jobs of the local CI matrix (`scripts/ci/local/run.py`) pass on the head.\n\nDeploy: apply `vessels_phase18_schema.sql`, then re-apply the frontier package (or run `vedit set <id> forsale yes`), or the shipyard sells nothing.",
+  "state": "merged",
+  "created_at": "2026-09-28T17:07:44.326Z",
+  "updated_at": "2026-09-28T20:03:20.433Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-09-28T20:03:20.193Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "feat/vessels-ships",
+  "user_notes_count": 11,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": ["Bug"],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "26bd5f995210a73d9ebf74abc65504f48e269daf",
+  "merge_commit_sha": "34dcbb34e01beac1e913669634fe7b775b78e07c",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": false,
+  "force_remove_source_branch": false,
+  "prepared_at": "2026-09-28T17:07:45.733Z",
+  "reference": "!6",
+  "references": {
+    "short": "!6",
+    "relative": "!6",
+    "full": "max757/Luminari-Source!6"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/6",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "47",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "b7f93628b74f763d98f5cafb12900dd1d1ee0703",
+    "head_sha": "26bd5f995210a73d9ebf74abc65504f48e269daf",
+    "start_sha": "b7f93628b74f763d98f5cafb12900dd1d1ee0703"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

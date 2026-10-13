@@ -1,0 +1,948 @@
+[
+  {
+    "id": "436d9ebc2a9f7380a40a64f505868bc315a5d063",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3972498997,
+        "type": null,
+        "body": "assigned to @max757",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T17:44:22.753Z",
+        "updated_at": "2026-10-07T17:44:22.754Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "ee7115259be74b87cd7f639666f0570b9f378591",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3972511296,
+        "type": null,
+        "body": "added 1 commit\n\n<ul><li>4a9bd579 - Test that a refused weapon row fails the pet save</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/28/diffs?diff_id=2084787282&start_sha=2b8959cdda35d4fb0781d1414556de8f07c6034b)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T17:47:03.174Z",
+        "updated_at": "2026-10-07T17:47:03.176Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "bae1005a9a5b6c777740080dfb9d755fe441a3ce",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3972545681,
+        "type": null,
+        "body": "mentioned in commit bfaaa8799c53f0ceedd27b35d987d2af5a4bfa83",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T17:53:56.143Z",
+        "updated_at": "2026-10-07T17:53:56.146Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "2c00522e3ef6449997e5de6da5aa7fe84057cd62",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3972545728,
+        "type": null,
+        "body": "added 1 commit\n\n<ul><li>bfaaa879 - Record phase 5 of the object save fixes: built, in review as MR !28</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/28/diffs?diff_id=2084803955&start_sha=4a9bd579beae57785c31f9dfef1413e89da79dc8)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T17:53:56.786Z",
+        "updated_at": "2026-10-07T17:53:56.788Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "4e6dc047181ba747ebb43cf116e4c9bc9576395e",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3972545951,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T17:53:59.923Z",
+        "updated_at": "2026-10-07T17:53:59.925Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "84808c377bc69d2904622cc3c6eb4719a7836ba7",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3973598635,
+        "type": "DiffNote",
+        "body": "**Stale sheath slot: the new traversal reads, and can extract, through freed memory**\n\nThe premise \"nothing else holds them\" is true, but the weapon can still leave on its own, and nothing clears the sheath's slot when it does: `do_sheath()` unequips the weapon and leaves only `sheath->sheath_primary` pointing at it, with no back-reference. Two paths extract a holder-less object:\n\n- `delete_object()` (`src/olc/genobj.c:828-863`, from `oedit` delete at `src/olc/oedit.c:3437`) walks `object_list` and extracts every instance of the vnum, a sheathed one included.\n- `point_update_object_one()` (`src/core/limits.c:2373-2405`) extracts on a timer trigger or `ITEM_DECAY`; `object_eligible()` (`src/events/point_update_periodic.c:34`) does not require a holder.\n\nRepro (builder): a player wields a weapon and `sheath`es it. A builder opens `oedit <weapon vnum>`, deletes, confirms. The sheathed instance is freed; the sheath's slot keeps the address. The next `extract_obj(sheath)` (`junk`, a sale, `Crash_extract_objs()` at quit or rent, the holder's extraction) now runs line 3098: `extract_obj()` reads `obj->transfer_extracting` from the freed block. Every `create_obj()` / `read_object()` allocates that same 872-byte size class, so once the block is reused the flag is false on the new object and an unrelated live object is extracted and freed.\n\nEvidence, valgrind on `bfaaa8799` with this appended to `test_database_persistence.c`:\n\n```c\nstruct obj_data *sheath = create_obj(), *weapon = create_obj();\nsheath->sheath_primary = weapon;\nextract_obj(weapon); /* what delete_object() or the timer does */\nextract_obj(sheath);\n```\n\n```\nInvalid read of size 1\n   at extract_obj (handler.c:3033)\n   by extract_obj.part.0 (handler.c:3098)\n Address is 105 bytes inside a block of size 872 free'd\n   by free (vgpreload_memcheck)\n   by extract_obj(weapon)\n```\n\nBefore this MR the stale slot was only read by the next player save and by `equipment`; this change makes the extraction itself follow it, which is the one path that frees.\n\nFix: a sheathed object knows its sheath. Add `struct obj_data *sheathed_in` to `obj_data`; set it where a slot is set (`do_sheath()`, `objsave_parse_objects_db_sheath()`), clear it where a slot is cleared (`unsheath_item()` on success, `objs_from_sheath()`), keep it in `overwrite_object()`'s kept list. Then in `extract_obj()`, before the holder removal:\n\n```c\nif (obj->sheathed_in)\n{\n  if (obj->sheathed_in->sheath_primary == obj)\n    obj->sheathed_in->sheath_primary = NULL;\n  if (obj->sheathed_in->sheath_secondary == obj)\n    obj->sheathed_in->sheath_secondary = NULL;\n}\n```\n\nThe snippet above is the test: `object_list` back as it was, clean under valgrind.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T21:03:27.964Z",
+        "updated_at": "2026-10-07T22:22:44.563Z",
+        "system": false,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+          "start_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+          "head_sha": "1d3b47128b270865d566f68db35defe9e526d3ca",
+          "old_path": "src/core/handler.c",
+          "new_path": "src/core/handler.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 3125,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-07T22:22:44.563Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      },
+      {
+        "id": 3973937390,
+        "type": "DiffNote",
+        "body": "Fixed in `079e9bd6e`, as proposed. A sheathed object knows its sheath (`sheathed_in`), and the pair lives in `src/core/handler.c`: `obj_to_sheath()` sets the slot and the back-pointer together, at the three `sheath` sites and the two loader sites, and `obj_from_sheath()` clears both, at the two `unsheath` sites and in `extract_obj()`, as the last branch of the holder removal. `overwrite_object()` keeps the back-pointer with the slots; so does `otransform`, which is the other copy of a live object and now keeps the sheath links too. `objs_from_sheath()` had no caller and would have needed the clear: removed, with a note on #33.\n\nTests:\n\n- `Test_gameplay_sheathed_weapon_extracted_alone_leaves_its_slot` sheathes a blade and a shield with the command, extracts the blade alone and finds the slot empty; the sheath's extraction takes the shield and `object_list` is as it was. On `bfaaa8799` it fails on the slot, and valgrind there reports your read at `handler.c:3098`, 105 bytes into the freed 872-byte block.\n- `Test_player_load_puts_a_sheaths_weapons_back_in_it` (database) saves a loaded sheath and reads it back through the sheath rows: both weapons are in the sheath and know it.\n- `TestArmCountUnsheathChecksEachItem` now accounts for the back-pointer: set while sheathed, cleared when drawn.\n\nFound on the way, not changed here: `otransform` leaves the live object on its old rnum hash chain with the fresh copy's links and miscounts both prototypes (#34, pre-existing).",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T22:22:43.480Z",
+        "updated_at": "2026-10-07T22:22:44.563Z",
+        "system": false,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+          "start_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+          "head_sha": "1d3b47128b270865d566f68db35defe9e526d3ca",
+          "old_path": "src/core/handler.c",
+          "new_path": "src/core/handler.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 3125,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-07T22:22:44.563Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "a1e9203b8c241b723cd124a56f0ae6e0ecbb2261",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3973598804,
+        "type": "DiffNote",
+        "body": "**A sheathed artifact's destruction is invisible to the artifact ledger**\n\n`artifact_on_extract()` (`src/obj/spec_artifacts.c:2923-2952`) runs at the top of `extract_obj()` and treats a locationless object as \"a temporary prototype clone, not the live artifact instance\": it returns before the mudlog, `destroy_count` and `artifact_set_owner(art, NULL)`. A sheathed object is locationless by construction (`do_sheath()` unequips it; only the sheath's slot holds it), and `artifact_of_obj()` matches by vnum (`:497`), so any wieldable artifact can be in that state.\n\nSo the destruction this MR introduces for a sheathed artifact (the sheath junked or sold, or its prototype deleted) leaves the player as owner with `instance_persisted` still true and no instance anywhere: `artifact_block_zone_load()` (`:2978`, from `src/core/db.c:5876`) then refuses the zone's copy on every reset. Junking the same weapon from inventory releases it (`:2945-2951`). Rent is already scoped by `artifact_begin_persistence_extract()` (`src/obj/objsave.c:1260`), so only the non-rent paths are affected. Before this MR the same scenario ended in the same stuck ledger through the leak, so the end state is not new, but this change is where sheathed objects start being destroyed and is the place to close it.\n\nFix: with the `sheathed_in` back-pointer from the other thread, `artifact_on_extract()` treats `obj->sheathed_in != NULL` as a location; it runs before the slot is cleared, and the sheath's own extraction reaches the weapon with the pointer intact. Without it, scope the two new calls as rent is scoped, a depth the early return consults.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T21:03:29.411Z",
+        "updated_at": "2026-10-07T22:22:46.753Z",
+        "system": false,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+          "start_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+          "head_sha": "1d3b47128b270865d566f68db35defe9e526d3ca",
+          "old_path": "src/core/handler.c",
+          "new_path": "src/core/handler.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 3127,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-07T22:22:46.753Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      },
+      {
+        "id": 3973937518,
+        "type": "DiffNote",
+        "body": "Fixed in `8a8f0fdd7`, the first way: `artifact_on_extract()` treats `obj->sheathed_in != NULL` as a location. It runs before `extract_obj()` clears the slot, and the sheath's own extraction reaches the weapon with the back-pointer intact, so the junked, sold and prototype-deleted cases all release the ownership.\n\n`Test_artifact_integration_sheathed_instance_destruction_releases_ownership` claims an artifact, sheathes it (out of the actor's hands, held by the sheath alone, still owned and persisted, zone reset refused) and destroys it: the ownership is released, `destroy_count` is 1 and `artifact_block_zone_load()` allows the reset. On `079e9bd6e` with only the test applied it fails on the release.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T22:22:45.682Z",
+        "updated_at": "2026-10-07T22:22:46.753Z",
+        "system": false,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+          "start_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+          "head_sha": "1d3b47128b270865d566f68db35defe9e526d3ca",
+          "old_path": "src/core/handler.c",
+          "new_path": "src/core/handler.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 3127,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-07T22:22:46.753Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "5d4a3bb9958058f3857f2c64df7f433ed33a3074",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3973598900,
+        "type": "DiscussionNote",
+        "body": "**`delete_object()` hands over a deleted container's contents but now destroys a deleted sheath's weapons, and can resume its walk on one of them freed**\n\n`src/olc/genobj.c:828-863`, reached from `oedit` delete (`src/olc/oedit.c:3437`). The loop saves `next_obj = tmp->next` (830), moves `tmp->contains` to the room, the holder or the containing object (834-860, \"extract_obj() will just axe contents\"), then `extract_obj(tmp)` (862). With this MR that call also frees `tmp->sheath_primary` and `tmp->sheath_secondary`:\n\n- Deleting a sheath prototype destroys every weapon sheathed in a live instance, while the loop exists to hand over what the instance holds. Before, they were orphaned, equally lost; the loop's contract is the point.\n- `object_list` is prepended on creation (`src/core/db.c:4988`, `5265`), so `tmp->next` is the object created just before the sheath. When that is one of its weapons, line 862 frees `next_obj`, and the next iteration reads `tmp->next` and `tmp->item_number` from the freed block, or from whatever object has reused it.\n\nRepro (builder, quiet port): `load obj <weapon>`, `load obj <sheath>`, `wear sheath`, `wield <weapon>`, `sheath`; then `oedit <sheath vnum>`, delete, confirm.\n\nFix: hand the sheathed objects over beside the contents, before `extract_obj(tmp)`: `obj_to_room()`, `obj_to_char()` or `obj_to_obj()` by the same branches, and null both slots. `Test_gameplay_object_renumber_keeps_the_hash_and_unnumbered_objects` (`test_gameplay_e2e.c:8041`) already drives `delete_object()`; a sibling that deletes the sheath worn by a character holding two weapons should find the character carrying both and `object_list` without the sheath.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T21:03:30.792Z",
+        "updated_at": "2026-10-07T22:22:48.652Z",
+        "system": false,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-07T22:22:48.652Z",
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      },
+      {
+        "id": 3973937642,
+        "type": "DiscussionNote",
+        "body": "Fixed in `da68e251a`. `delete_object()` hands the sheathed weapons over beside the contents, by the same places (room, wearer or carrier, outer object), through `obj_from_sheath()` and one `delete_object_hand_over()` for both. An instance that is nowhere, in a bag, keeps what it holds for the extraction, as a container there does; with `079e9bd6e` that extraction is clean.\n\n`Test_gameplay_object_delete_hands_a_sheaths_weapons_to_its_wearer` creates the two daggers before the sheath, so the sheath's `next` is the off-hand dagger, sheathes both with the command and deletes the sheath's prototype: the wearer carries both, out of any sheath, renumbered onto the remaining prototype's chain, and `object_list` is as it was. On `079e9bd6e` with only the test applied it fails on the carried daggers, and valgrind reports the walk reading the freed dagger at `genobj.c:831` and `:832`.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T22:22:47.710Z",
+        "updated_at": "2026-10-07T22:22:48.652Z",
+        "system": false,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-07T22:22:48.652Z",
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "5585c7aa7b1a329c1615a333dec2ad014c92bede",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3973598993,
+        "type": null,
+        "body": "Adversarial review of `bfaaa8799` against `0b88bb81d`. Three threads: a stale sheath slot the new traversal follows into freed memory (valgrind-confirmed; builder-triggered through `oedit` delete or a timer extraction), `delete_object()` now destroying and walking into a deleted sheath's weapons, and the artifact ledger missing a sheathed artifact's destruction.\n\nChecked and found sound: the pet record order and depth (`MIN(0, location)` after the sheath, worn to inventory) against `pet_object_graph_valid()` and `handle_obj()` for worn, carried, bagged and container sheaths; the weight bookkeeping (`do_sheath()` leaves the sheath's weight alone); the save transaction (`players.c:7146` rolls back on a refused weapon row); no duplication with `player_save_objs_sheathed`; `overwrite_object()`, `do_otransform()` and the record writers' temporaries; `Crash_extract_objs()`, corpse decay and `transactions_world_end()` as post-order walks; the world data (no sheathable prototype carries `ITEM_DECAY`, and the two with self-purging triggers fire on command or drop, which a sheathed object cannot receive).",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T21:03:31.864Z",
+        "updated_at": "2026-10-07T21:03:31.864Z",
+        "system": false,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "c06a2d12931ce161ba52886fc1685338d125a23c",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3973836711,
+        "type": null,
+        "body": "mentioned in issue #34",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T21:56:15.129Z",
+        "updated_at": "2026-10-07T21:56:15.131Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "eb8732455ff3bcbcdab694088a99911b066920b8",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3973840123,
+        "type": null,
+        "body": "mentioned in issue #33",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T21:57:09.382Z",
+        "updated_at": "2026-10-07T21:57:09.384Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "fb9f982dcd8afe1807657fefdffbc0de109db2fa",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3973936619,
+        "type": null,
+        "body": "mentioned in commit 1d3b47128b270865d566f68db35defe9e526d3ca",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T22:22:32.162Z",
+        "updated_at": "2026-10-07T22:22:32.164Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "616a3e2c3dcf1f6ccbb1e093dd542e662fb1dd29",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3973936678,
+        "type": null,
+        "body": "added 4 commits\n\n<ul><li>079e9bd6 - Clear a sheath&#39;s slot when its sheathed object is extracted</li><li>8a8f0fdd - Count a sheathed artifact&#39;s destruction in the artifact ledger</li><li>da68e251 - Hand a deleted sheath&#39;s weapons to its holder</li><li>1d3b4712 - Record the review of phase 5: three findings, fixed</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/28/diffs?diff_id=2085432249&start_sha=bfaaa8799c53f0ceedd27b35d987d2af5a4bfa83)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T22:22:32.953Z",
+        "updated_at": "2026-10-07T22:22:32.955Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "3894eabd50e1ee88a2a991e5bc3b39b04dfcd87c",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3973937714,
+        "type": null,
+        "body": "resolved all threads",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T22:22:48.682Z",
+        "updated_at": "2026-10-07T22:22:48.687Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "a686c6748fb2027fe6bbb341fe0c2d85023b4d04",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3973938113,
+        "type": null,
+        "body": "Review round done: three findings, one fix commit each with its test, and the plan's record, all after the tag `object-save-fixes-p5` (not moved). Head `1d3b47128`.\n\n| Thread | Commit | Test |\n| -- | -- | -- |\n| Stale sheath slot read through freed memory | `079e9bd6e` | `Test_gameplay_sheathed_weapon_extracted_alone_leaves_its_slot`, `Test_player_load_puts_a_sheaths_weapons_back_in_it`, `TestArmCountUnsheathChecksEachItem` |\n| A sheathed artifact's destruction invisible to the ledger | `8a8f0fdd7` | `Test_artifact_integration_sheathed_instance_destruction_releases_ownership` |\n| `delete_object()` destroys a deleted sheath's weapons and walks into one freed | `da68e251a` | `Test_gameplay_object_delete_hands_a_sheaths_weapons_to_its_wearer` |\n| Record | `1d3b47128` | |\n\nVerification, on `da68e251a`:\n\n- The first gameplay test fails on `bfaaa8799` on the slot, with the reported valgrind read at `handler.c:3098`; the artifact and delete tests fail on `079e9bd6e` with only their test applied, the delete one with the walk reading the freed dagger at `genobj.c:831` under valgrind.\n- The six sheath tests and the artifact lifecycle and renumber tests are clean under valgrind, database on.\n- `make -j16 test`: 2059 tests pass; `make install` done. `./cutest` with the database tests on, on a database freshly built from `sql/master_schema.sql`: 2059 of 2059.\n- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass; the unit, sanitizer and memory-check jobs run 2059 tests each; persistence changed lines 100% covered, olc 75%, both above their floors; clang-tidy gate clean.\n- The format, hygiene and secrets jobs pass on `1d3b47128`.\n\nFound on the way, filed and not changed here: #34, `otransform` leaving the live object on its old rnum hash chain and miscounting both prototypes (pre-existing). `objs_from_sheath()` is removed here, noted on #33.\n\nNo new tag, no rebase or squash: the project merges with a merge commit. Ready to merge.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T22:22:55.708Z",
+        "updated_at": "2026-10-07T22:22:55.708Z",
+        "system": false,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "6806520b493b406ea61e9a62100679b5ef9084c5",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3973938290,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T22:22:59.098Z",
+        "updated_at": "2026-10-07T22:22:59.100Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "5d6108d7cc3eb6dba7e2fd7fae28d715e5035cb1",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3975335028,
+        "type": null,
+        "body": "mentioned in commit 05c76111f0d290314f4cfd65520abaf039be1db6",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-08T06:38:02.298Z",
+        "updated_at": "2026-10-08T06:38:02.300Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "7afbb32be7662602b880a0e0704540e051d60ae1",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3975337888,
+        "type": null,
+        "body": "mentioned in commit 55c934d5c1aca704f662505321f3391d2ebc0686",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-08T06:38:46.626Z",
+        "updated_at": "2026-10-08T06:38:46.628Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "08cc5e43410f712ce661033d9fc88e9c354b27a2",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3975340237,
+        "type": null,
+        "body": "Merged on 2026-10-08 as merge commit `05c76111f`. Its parents are `0b88bb81d` and `1d3b47128`, and\nits tree is the reviewed head's, so every hash quoted here is on master. Branch commits were not\nrebased or squashed. #17 is closed, and GitLab deleted the source branch.\n\n- Plan close-out: `55c934d5c` on master.\n- The tag `object-save-fixes-p5` stays on `bfaaa8799`, the commit handed to review.\n- Follow-ups: #33 (filed during the build) and #34 (filed during the review).\n- No deploy: the fix reaches production with the next release.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-08T06:39:18.590Z",
+        "updated_at": "2026-10-08T06:39:18.590Z",
+        "system": false,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "2dbaaba673e1558e720e68da1c3480129156a7ae",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3975340324,
+        "type": null,
+        "body": "mentioned in issue #17",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-08T06:39:20.048Z",
+        "updated_at": "2026-10-08T06:39:20.050Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "afad24e1ea8dd942569ff155d3fb617bbcbcd232",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3976369291,
+        "type": null,
+        "body": "mentioned in commit b8951c3aa5f16b6ec9f9f390fff34b976ffc46c5",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-08T09:34:19.728Z",
+        "updated_at": "2026-10-08T09:34:19.730Z",
+        "system": true,
+        "noteable_id": 544717895,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 28,
+        "commands_changes": {}
+      }
+    ]
+  }
+]

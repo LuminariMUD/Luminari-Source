@@ -1,0 +1,102 @@
+[
+  {
+    "id": 204599592,
+    "iid": 4,
+    "project_id": 86882182,
+    "title": "Artificer device add rejects 3rd and 4th circle spells",
+    "description": "Player report (Voduk, level 22, room 103056, 2026-09-27): `device spells` lists 4th-level\nspells for a level 20 artificer, but adding anything above 2nd level to a device fails with\n\"That spell is not available to artificers of your level.\"\n\n## Cause\n\n`device add` in `ACMDU(do_device)` (`src/act/act.other.c`, around line 12819) compares a class\nlevel against a spell circle:\n\n```c\nif (spell_assignment_level >= LVL_IMMORT || spell_assignment_level > max_spell_level)\n```\n\n- `spell_assignment_level` is `MIN(min_level[CLASS_WIZARD], min_level[CLASS_CLERIC])`, a class\n  level (for example lightning bolt is wizard level 5).\n- `max_spell_level` is a circle cap: 4 at artificer 11+, 3 at 5+, 2 at 3+, else 1.\n\nAt artificer 11+ the cap of 4 admits class levels 1-4, which are circles 1-2. Every 3rd-circle\n(class level 5) and 4th-circle (class level 7) spell is rejected, exactly as reported. Lower\nartificer levels are affected the same way (at 5-10, cap 3 admits only circles 1-2).\n\n`device create` and `device spells` are correct: both convert to a circle with\n`(min_level + 1) / 2` / `compute_spells_circle()` before comparing to `max_spell_level`.\n\n## Fix\n\nConvert to a circle in `device add` the same way `device create` does before the cap\ncomparison.\n\nThe same block also skips work `device create` does: it does not store\n`inv->spell_levels[]` for the added spell and does not check the per-circle budget from\n`weird_science_table`. Once circles 3-4 become reachable through `add`, that lets `add`\nexceed the circle limits `device create` enforces; decide in the fix whether `add` should\napply the same budget check.\n\n## Test\n\nProduction-linked CuTest: a level 20 artificer with an existing device can `device add` a\n3rd- and 4th-circle wizard spell, and a level 3 artificer cannot add a 3rd-circle spell.\n\n## Other artificer defects (class pass, 2026-09-27)\n\nFound in a read-through of the whole class; each was confirmed by tracing the code, not\nreproduced in game. Lines are in `src/act/act.other.c` unless a file is named.\n\n### High\n\n1. **Stack overflow from `device create`.** `find_skill_num()` (`src/magic/spell_parser.c:509`)\n   copies each word with the unbounded `any_one_arg()` into the 256-byte `first2`, and the\n   device parser accepts a single word of up to 511 characters (12117-12133). A 300-character\n   word skips the exact match and overruns the buffer, crashing the server.\n2. **Broken state is not saved.** `broken` and `dc_penalty` are never written or read\n   (`src/player/players.c` 3370-3400 save, 5273-5381 load). Breaking also sets `uses = 0`,\n   so after relog a broken device comes back working, fully charged and with no penalty.\n   The rename scanner's line counts (`src/player/player_rename.c` 573/597/619) must match.\n3. **`device use` keeps casting after the target dies** (13064-13071). It ignores\n   `call_magic()` returning -1; the potion path breaks on `<= 0`\n   (`src/magic/spell_parser.c:1736`). A PvP victim moved to the start room gets hit by the\n   remaining spells there.\n4. **Metamagic Science on wands and staves costs 1 charge** (`src/magic/spell_parser.c`\n   1585, 1670). `calculate_metamagic_charge_cost()` is only used for stored wands/staves\n   (`src/obj/act.item.c` 7331, 7431), so `use wand maximized <target>` on a 1-charge wand\n   works when it should need 4.\n5. **Improved Metamagic Science UMD check can never fail.** It tests `umd_check < 0`, but\n   `skill_check()` returns 0 on failure (`src/magic/spell_parser.c:1541`,\n   `src/obj/act.item.c` 7071, 7203). Stored quaff/recite also build the DC from\n   `spell_level` still at its initial 99 (7026), giving DC 317+, so fixing only the\n   comparison makes it always fail.\n\n### Medium\n\n6. **`device create cancel` and `device repair cancel` are unreachable.** The busy\n   allow-list (`src/core/interpreter.c:6866`) blocks every `device` command during creation\n   or repair, and `device` has no `CMD_FEATURE_ACTIVITY_CONTROL`. The progress message\n   (13960) still tells the player to type the cancel. `quit` is blocked too, for the whole build (up to 630 s).\n7. **Skills pass as 1st-circle device spells.** `init_spell_levels()` gives every skill\n   `min_level` 1 for all classes (`src/character/class.c:3726-3731`). `device create kick`\n   uses a 1st-circle slot, and `device use` skips spell numbers `>= NUM_SPELLS`, so the\n   device does nothing.\n8. **Elbow Grease and Jack of All Trades never reach craft rolls.** The bonuses are added\n   only in `compute_ability()` (`src/character/abilities.c:130-172`); every craft check reads\n   raw ranks via `get_craft_skill_value()` -> `GET_ABILITY()`\n   (`src/craft/crafting_new.c:6191`, used by `craft.c`, `crafts.c`).\n9. **No starting gear for artificers.** `newbieEquipment()` has no `CLASS_ARTIFICER` case\n   (`src/character/class.c:2568-2650`) and logs \"Invalid class sent to newbieEquipment class!\".\n10. **Construct Iron Golem is unreachable.** Assigned at level 30 (`src/character/class.c:9257`)\n    but the class caps at 20, so `craft create golem type iron` is always refused for\n    artificers.\n11. **Brilliance and Blunder cannot be obtained.** `feato(..., can_learn FALSE)`\n    (`src/character/feats.c:5943`) and no race or class assigns it. The 4-spell devices and\n    the explosion code below are unreachable until it is granted.\n\n### Low\n\n12. **Explosion skips death handling** (12990-13020). It lowers HP with\n    `combat_apply_raw_damage()` and only prints \"proves fatal\"; the artificer or groupmate\n    stays standing below 0 HP. Latent until item 11 is fixed.\n13. **Explosion damage is 11d6 per non-wizard spell** (12976-12978).\n    `compute_spells_circle(CLASS_WIZARD)` returns `NUM_CIRCLES + 1` for cleric-only spells.\n    Latent until item 11 is fixed.\n14. **Circle slots are assigned greedily in typed order** (12359-12375). With one 1st-circle\n    slot left, `device create strength \"mage armor\"` fails but `\"mage armor\" strength`\n    succeeds.\n15. **Per-device cooldown is dead.** `cooldown_expires` is never set to a future time (only\n    zeroed at 13740, 14110), so the destroy lock (12578), `device cooldown`, and the\n    COOLDOWN tag in `device list` never trigger.\n16. **`device info` never shows BROKEN.** It infers status from `cooldown_expires` and\n    `uses` (13306) instead of reading `inv->broken`.\n17. **Failed uses cost no action.** A broken-device attempt (12877) and a failed UMD\n    (12950-13028) return before `USE_STANDARD_ACTION` (13074); the interpreter only checks\n    availability, so the player can retry at once.\n18. **Build time uses the wrong spell level** (12457-12459). It prefers the wizard level\n    even when the lower cleric level was assigned: `strength` takes 90 s instead of 30 s.\n19. **\"Available device slots\" is inflated** (12057-12064). It adds every existing device\n    that is off cooldown, so a level 1 artificer with a full slot is told 1 is available.\n20. **Extra spells are silently dropped** (12101). `device create a b c d` without\n    Brilliance and Blunder builds a 3-spell device with no warning.\n21. **Destroy warning says 30 minutes** (12611) but the code sets 20 (12653).\n22. **Premade artificer wastes feat picks** (`src/character/premadebuilds.c:2295-2303`). It\n    buys Craft Magical Arms and Armor at 1 and Craft Wonderous Item at 1 (human) and 3,\n    which the class grants free at 5 and 4.\n23. **Artificer Item Creation does nothing.** Granted at level 2\n    (`src/character/class.c:9249`) but never checked anywhere in `src/`.\n24. **No artificer class help.** `class-artificer` and `artificer-class` point to the\n    CLASS-ROSTER entry in both `help.hlp` (6415) and the help DB.\n25. **Device table read past its end at artificer level 21+** (12047,\n    `weird_science_table[artificer_level - 1]`). Only staff `advance` can push the class\n    level past 20.\n\n## Practical check: device creation at level 1 (live, dev server, 2026-09-27)\n\nCreated a fresh human premade artificer (Gizmotest) on the dev server and ran the device loop.\n\n**Is it essential?** Yes. The artificer has no spell progression (`classo` spell progression\n\"none\"; score shows MgcLvl 0). Weird Science devices are the class's only access to spells,\nand the feat is granted at level 1.\n\n**Can they build one early?** Yes. At level 1, `device create \"mage armor\"` built a device in\n30 s with no materials or gold. `device use 1` applied mage armor, and the single charge\nrecharged about 30 s later out of combat (`check_device_one()`, `src/core/limits.c:2236`).\nLevel 1 allows one 1st-circle device (`weird_science_table`); 2nd circle opens at 3, 3rd at\n5, 4th at 11. Items 6, 9, 22 and 24 above were reproduced live.\n\nNew findings from this check:\n\n26. **The device help describes a different mechanic.** The `DEVICES` entry (`device`,\n    `device-create`, `artificer-devices`; `help.hlp` 9807 and the help DB) gives\n    `device create <device-type>` and talks about components, blueprints, infusions and\n    automations. The real syntax is `device create <spell> [spell2] [spell3]` with quoted\n    multi-word names, and none of the other subcommands are documented. Its \"See also:\n    ARTIFICER\" leads to the class roster (item 24). A player guessing `create device` gets\n    \"Sorry, but you cannot do that here!\".\n27. **No starting weapon or armor (item 9, seen live).** After creation the artificer wears\n    nothing and carries only a quiver and a backpack, so at level 1 its only attack is one\n    device charge per fight.\n28. **Information subcommands need a free standard action.** The whole `device` command is\n    `ACTION_STANDARD` (`src/core/interpreter.c:1494`), so right after `device use`,\n    `device list`, `device usage` and `device cooldown` were refused with \"You must wait\n    for the required action before trying that command.\"\n29. **Weird Science text contradicts the mechanic.** The feat says devices \"are temporary\n    and can be used a limited number of times per day\" (`src/character/feats.c:5864`).\n    Devices are permanent (`duration = 24` is stored but never read) and recharge one use\n    per tick out of combat.\n30. **Spells that need an object or argument do nothing from a device.** `device spells`\n    lists and `device create` accepts spells such as enchant item (`TAR_OBJ_INV`) and\n    preserve (`TAR_OBJ_ROOM`), but `device use` always passes a NULL object, so they have no\n    effect. Minor creation reads the global `cast_arg3`, which only `do_gen_cast` sets\n    (`src/magic/spell_parser.c:3390`), so a device uses whatever argument the last player\n    to type `cast` supplied.",
+    "state": "closed",
+    "created_at": "2026-09-27T17:27:13.924Z",
+    "updated_at": "2026-09-28T10:24:38.858Z",
+    "closed_at": "2026-09-28T02:09:13.570Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 3,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/4",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/4",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/4/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/4/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#4",
+      "relative": "#4",
+      "full": "max757/Luminari-Source#4"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9642094,
+    "link_type": "relates_to",
+    "link_created_at": "2026-09-28T10:24:43.407Z",
+    "link_updated_at": "2026-09-28T10:24:43.407Z"
+  }
+]

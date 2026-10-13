@@ -1,0 +1,202 @@
+[
+  {
+    "id": 205253873,
+    "iid": 12,
+    "project_id": 86882182,
+    "title": "Vessel settlements: two-phase gold and cargo records across a crash",
+    "description": "## Problem\n\nA vessel settlement writes two stores that share no transaction: the ship's side (cargo\nmanifest, port supply, contract, dock-fee balance) goes to MariaDB, and the captain's gold goes\nto the player file. Since S11 (work item #10, MR !17), `cargobuy` and `cargosell` record the\ntrade first, then save the gold with `save_char_checked()`. If that save fails, they record the\npre-trade state again. If that undo cannot be recorded either, the trade stands, in memory as in\nthe database, and the persistence service's per-minute checked save stores the gold once the\ndisk recovers.\n\nOne window stays open: a failed player-file save, a failed undo, and then a crash before any\nlater save succeeds. The database then keeps the trade and the player file keeps the old gold,\nso a buyer keeps both the gold and the cargo, and a seller loses the cargo without being paid.\n\nA settlement record kept only in the database cannot close this window. At recovery it cannot\ntell whether a later save carried the gold, so a record left behind by a failed delete would\nundo a paid trade or put sold cargo back aboard (a dupe). It only moves the window to the mirror\ncase: the save succeeded, but the delete failed before the crash.\n\n## Full fix\n\nTreat each vessel settlement as two-phase, with a marker in the player file:\n\n- A settlement table (schema phase with rollback and verifier SQL, `master_schema.sql`, the boot\n  ensure function). Its row is written in the same transaction as the trade and carries the\n  undo: signed deltas for the supply and the lot, not absolute values.\n- A player-file field: the newest settlement id whose gold this file holds, saved with the gold.\n- Reconcile at login, and before the ship's next trade or cargo save: a row the player file\n  covers is settled (delete it), and a row it does not cover is undone (apply the deltas). The\n  ship's trading is held while a row is open.\n- \"Undone\" is reported only after the undo commits.\n\n## Same shape elsewhere\n\nFreight acceptance (`do_contractaccept`, `vessels_contracts.c`) and dock-fee payment\n(`do_dockfees`, `vessels_trade.c`) also compensate after a failed save, and on a failed\ncompensation they only log a `SYSERR` and report that no gold was taken. They should use the same\nsettlement path.\n\nContext: the MR !17 review thread\nhttps://gitlab.com/max757/Luminari-Source/-/merge_requests/17#note_3947012858",
+    "state": "closed",
+    "created_at": "2026-10-02T20:26:12.932Z",
+    "updated_at": "2026-10-04T12:58:28.339Z",
+    "closed_at": "2026-10-04T12:58:28.318Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/12",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/12",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/12/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/12/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#12",
+      "relative": "#12",
+      "full": "max757/Luminari-Source#12"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9721588,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-03T09:00:03.762Z",
+    "link_updated_at": "2026-10-03T09:00:03.762Z"
+  },
+  {
+    "id": 205185498,
+    "iid": 10,
+    "project_id": 86882182,
+    "title": "Cargo buy and sell move gold without a checked save",
+    "description": "## Problem\n\n`cargobuy` and `cargosell` (`src/vessels/vessels_trade.c`) move gold only in memory, then write the cargo manifest and the port's supply to the database. Neither saves the player file, and `vessel_db_save_cargo()`'s result is not checked.\n\n- **Buying:** `award_gold(ch, -cost)`, then `port_adjust_supply()` and `vessel_db_save_cargo()`. If the server crashes before the captain's next routine save, the cargo is in the database but the gold comes back on reload: free cargo.\n- **Selling:** `award_gold(ch, revenue)`, then the supply and manifest writes. A crash before the next save loses the sale's gold while the cargo is already gone. If the manifest write fails, a later save keeps the gold with the cargo still recorded aboard: sold cargo that can be sold again.\n\n## Background\n\nThis is the same gap MR !15's review found in freight contract acceptance ([P2], note 3943254722). That was fixed there in `a703572e3`:\n\n- the contract claim and the manifest commit in one transaction;\n- the bond is debited only after that commits, then saved with `save_char_checked()`;\n- a failed save restores the gold, reopens the contract and unloads the freight;\n- `vessel_db_save_cargo()` now returns whether its writes succeeded.\n\n`cargobuy` and `cargosell` predate S9 and were left out of that fix to keep it to the finding.\n\n## Fix\n\nGive both commands the same shape:\n\n- write the manifest and port supply in one transaction;\n- move the gold only after it commits, and save it with `save_char_checked()`;\n- on a failed save, restore the gold and undo the manifest and supply changes.\n\nAdd DB-backed tests for a refused manifest write and a failed character save, like `Test_vessel_freight_bond_pays_for_the_goods`. New SQL that carries values must use `PREPARED_STMT`, since `check_sql_interpolation.py` gates the file's count.",
+    "state": "closed",
+    "created_at": "2026-10-02T07:52:29.882Z",
+    "updated_at": "2026-10-03T18:54:11.063Z",
+    "closed_at": "2026-10-02T20:39:55.516Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/10",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/10",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/10/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/10/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#10",
+      "relative": "#10",
+      "full": "max757/Luminari-Source#10"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9725871,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-03T18:46:36.978Z",
+    "link_updated_at": "2026-10-03T18:46:36.978Z"
+  }
+]

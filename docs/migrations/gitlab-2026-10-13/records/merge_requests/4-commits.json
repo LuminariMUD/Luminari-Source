@@ -1,0 +1,36 @@
+[
+  {
+    "id": "474124f30bed159f80e1d97bdd644b13a2b2ba95",
+    "short_id": "474124f3",
+    "created_at": "2026-09-27T16:08:41.000+03:00",
+    "parent_ids": ["205408dba1620385acf919f198d366dca0fb1fbd"],
+    "title": "Match stored help keywords case-insensitively when verifying a sync",
+    "message": "Match stored help keywords case-insensitively when verifying a sync\n\nCatalog keywords are normalized to upper case, but most stored\nhelp_keywords rows keep their authored case (2510 on dev, 1709 on\nproduction). The representative lookup compared them with BINARY, so it\nfailed whenever a sampled entry, such as mastermind, was stored in mixed\ncase, and every sync stopped after the catalog grew enough to sample one.\nThe game's own lookup is case-insensitive; the check now is too.\n",
+    "author_name": "moshehbenavraham",
+    "author_email": "moshehwebservices@live.com",
+    "authored_date": "2026-09-27T16:08:41.000+03:00",
+    "committer_name": "moshehbenavraham",
+    "committer_email": "moshehwebservices@live.com",
+    "committed_date": "2026-09-27T16:08:41.000+03:00",
+    "trailers": {},
+    "extended_trailers": {},
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/commit/474124f30bed159f80e1d97bdd644b13a2b2ba95"
+  },
+  {
+    "id": "205408dba1620385acf919f198d366dca0fb1fbd",
+    "short_id": "205408db",
+    "created_at": "2026-09-27T16:08:39.000+03:00",
+    "parent_ids": ["2d7923cac18b91b6355623c3c0ff1e2bc03a68c1"],
+    "title": "Make an invocation of the help-sync skill run the full sync",
+    "message": "Make an invocation of the help-sync skill run the full sync\n\nThe skill treated a bare invocation as a read-only audit and plan, then\nasked before publishing, and let whether production runs the documented\ncode hold help back. Invoking it now means one complete\nsync --authorize-production run to verified publication on both\nendpoints, with no confirmation, and nothing about production's deployed\ncode may delay publication. Only engine-refused conflicts, deletions,\nrenames, and failed invariants stop the run.\n",
+    "author_name": "moshehbenavraham",
+    "author_email": "moshehwebservices@live.com",
+    "authored_date": "2026-09-27T16:08:39.000+03:00",
+    "committer_name": "moshehbenavraham",
+    "committer_email": "moshehwebservices@live.com",
+    "committed_date": "2026-09-27T16:08:39.000+03:00",
+    "trailers": {},
+    "extended_trailers": {},
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/commit/205408dba1620385acf919f198d366dca0fb1fbd"
+  }
+]

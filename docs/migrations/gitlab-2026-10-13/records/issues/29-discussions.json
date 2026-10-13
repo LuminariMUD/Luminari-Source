@@ -1,0 +1,352 @@
+[
+  {
+    "id": "9d9d7a851e2ec549cd35a4b80e211fbe43e16f9e",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957427060,
+        "type": null,
+        "body": "assigned to @max757",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:49:09.990Z",
+        "updated_at": "2026-10-05T17:49:09.991Z",
+        "system": true,
+        "noteable_id": 205515119,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 29,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "4fda273f6b29fd4d4fdc6587b3b1cf69c25541a0",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957427164,
+        "type": null,
+        "body": "marked as related to #19",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:49:11.195Z",
+        "updated_at": "2026-10-05T17:49:11.196Z",
+        "system": true,
+        "noteable_id": 205515119,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 29,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "c61e9bdbf85e2569f1a21efc90b1b9ae26ab3ff6",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957436474,
+        "type": null,
+        "body": "mentioned in commit c62c0112401fd7893efdcacba93f98d284c93040",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:50:53.012Z",
+        "updated_at": "2026-10-05T17:50:53.015Z",
+        "system": true,
+        "noteable_id": 205515119,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 29,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "120fea3c8554f4875886d86082ee76a88b136d97",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957440496,
+        "type": null,
+        "body": "mentioned in merge request !23",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:51:36.545Z",
+        "updated_at": "2026-10-05T17:51:36.547Z",
+        "system": true,
+        "noteable_id": 205515119,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 29,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "0dc3e0328974192219e56ff95fe36fece3255aea",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3958738990,
+        "type": null,
+        "body": "mentioned in commit 584524ec586cc14230596255785e5039a52cfbe7",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T22:17:41.699Z",
+        "updated_at": "2026-10-05T22:17:41.701Z",
+        "system": true,
+        "noteable_id": 205515119,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 29,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "40b23fd7d233187ba7881283d8c460bee95fafd2",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3958745146,
+        "type": null,
+        "body": "mentioned in commit 73eaa93e53fed2bb4bf75c18338b5f70187a436b",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T22:19:28.408Z",
+        "updated_at": "2026-10-05T22:19:28.410Z",
+        "system": true,
+        "noteable_id": 205515119,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 29,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "769d504a4303f13fe8a8d012091e6d7866a3e71f",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3958746800,
+        "type": null,
+        "body": "mentioned in merge request !26",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T22:19:59.916Z",
+        "updated_at": "2026-10-05T22:19:59.917Z",
+        "system": true,
+        "noteable_id": 205515119,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 29,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "6a30fb216b29cb1d92ca56ff0b2eb5fdc40ccd48",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3958746914,
+        "type": null,
+        "body": "mentioned in issue #30",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T22:20:01.917Z",
+        "updated_at": "2026-10-05T22:20:01.919Z",
+        "system": true,
+        "noteable_id": 205515119,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 29,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "d18bb83c2ae292c9132c6aebbd49e84ae32477f3",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3958746980,
+        "type": null,
+        "body": "From work item #30 (MR !26), 2026-10-06. The check this item asks for, of what `copy_object()`\nshares between the preview object and the player's object:\n\n- Before !26 the copy also took the object's list, hash, holder and content links. !26 ends\n  that: a target keeps its own runtime fields (`overwrite_object()` in `src/olc/genobj.c`).\n- After !26 the preview object still points at the player's object's `special_abilities`,\n  `sbinfo`, `script` and `proto_script`. `downgrade_item()` clears the first of them, but not\n  when it returns early.\n- The copy also gives the preview object the player's object's `item_number`, while it stays on\n  the hash chain and in the instance count of the prototype it was read from.\n  `remove_obj_from_rnum_hash()` and the count in `extract_obj()` go by `item_number`, so the\n  preview object cannot simply be extracted as it is.\n\nOne thing waits on this item. An OLC save of a prototype (`add_object()`) still drops the\nspecial abilities, spellbook and script each live object held, without a free. !26 left that\nalone because the preview object, and an open iedit copy of a spellbook, can point at the same\nlists, and freeing them at the save could free one list twice. Once no two objects share a\nlist, `free_all_object_strings()` can free them too.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T22:20:03.160Z",
+        "updated_at": "2026-10-05T22:20:03.160Z",
+        "system": false,
+        "noteable_id": 205515119,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 29,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "d016e0d2db082c71619dd60629e2dbc8dce2048c",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3969817771,
+        "type": null,
+        "body": "Update from MR !26, merged on 2026-10-07 as `632b50242`. It changes two points of the note above.\n\nWhat the preview copy shares with the player's object now:\n\n- Its own `script`: `overwrite_object()` keeps the target's script (`dd9732777`).\n- Its own `item_number`: a live target keeps its rnum, so the preview object stays a consistent\n  instance of `ITEM_PROTOTYPE` on that prototype's hash chain and count, and `extract_obj()` can\n  take it out as it is.\n- Still shared: `special_abilities`, `sbinfo` and `proto_script`. `free_obj()` frees all three\n  with the preview object, so extracting it still frees lists the player's object uses. The\n  read_object() copies of the carrier's own lists that the copy replaced are lost.\n\nWhat an OLC save does now (`follow_prototype()` in `src/olc/genobj.c`; `free_all_object_strings()`\nis gone):\n\n- It no longer touches a live object's script or trigger list. The save loop extracts the script\n  and frees the list.\n- A live object keeps an ability list or spellbook of its own. One that still matched the old\n  prototype is replaced by a copy of the new prototype's and given up, not freed, because this\n  preview copy and an open iedit copy (spellbook) can point at it. That is the one point still\n  waiting on this item: once no two objects share these lists, `follow_prototype()` can free the\n  replaced ones.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-07T11:11:34.741Z",
+        "updated_at": "2026-10-07T11:11:34.741Z",
+        "system": false,
+        "noteable_id": 205515119,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 29,
+        "commands_changes": {}
+      }
+    ]
+  }
+]

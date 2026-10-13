@@ -1,0 +1,130 @@
+{
+  "id": 543386751,
+  "iid": 25,
+  "project_id": 86882182,
+  "title": "Free the arcane mark of an object with no prototype",
+  "description": "Closes #15\n\nPhase 3 of `docs/ongoing-projects/object-save-fixes-and-arm-pricing.md`. Handed to review at\nthe tag `object-save-fixes-p3` (`8556f9ca8`): two code commits, each with its test, and the\nplan's record of the phase. After the tag: the review's one finding, fixed in `ddacf712f`, and\nthe plan's record of the review.\n\n## Cause\n\n`free_obj()` sends an object with no prototype through `free_object_strings()`\n(`src/olc/genobj.c`), which freed every string the object owns except `arcane_mark`.\n`free_object_strings_proto()`, the path of an object with a prototype, has always freed it. So\nan unnumbered object lost its mark's memory when it was extracted: the file and player-row\nloaders give such an object a mark from its `AMrk` line, and the arcane mark spell gives one to\nany object.\n\n## What changes\n\n`79a3c99ed`: `free_object_strings()` frees `arcane_mark`.\n\nIts other callers were checked for a double free. Each frees the object or writes over it\nafterwards, and each of those objects owns its mark or has none:\n\n- `add_object()` copies the edited object over the prototype, and `copy_object_main()`\n  duplicates the mark.\n- The OLC cleanup (`src/olc/oasis.c`) and the iedit commit (`src/olc/oedit.c`) free an edit copy\n  whose mark `copy_object()` duplicated. The iedit commit leaked that copy's mark the same way,\n  and no longer does.\n- The spec test fixture frees a prototype from `parse_object()`, which reads no mark.\n\nThe prototype teardown in `destroy_db()`, which #15 names, frees by hand and does not call the\nfunction.\n\nTests:\n\n- `Test_object_saves_bind_player_house_and_serialized_text` no longer frees its two marks by\n  hand before `extract_obj()`. It needs a database, and the memory-check job has none.\n- `Test_object_without_a_prototype_frees_its_arcane_mark` needs none: it saves and loads a\n  marked object through the file loader, compares the mark and extracts both objects.\n\n`a0757112c`, found while checking those callers: `copy_object()` sent every target through\n`free_object_strings_proto()`, which compares the target's strings with its prototype's. For a\ntarget with no prototype that read `obj_proto[-1]`; the iedit commit reaches it with any live\nobject that has no prototype. It now chooses the free function as `free_obj()` does.\n`Test_gameplay_object_editor_copy_frees_an_object_with_no_prototype` copies over such an object\nwith no prototype table at all.\n\n`8556f9ca8`: the plan's record of the phase.\n\n## Review\n\nOne finding: `copy_object_strings()` duplicated every string `free_object_strings()` frees\nexcept `char_sdesc`, a corpse's description of the fallen, so an `iedit` of a corpse made an edit\ncopy that shared it with the live corpse and the commit freed it twice. `ddacf712f` duplicates it\nand extends `Test_gameplay_object_editor_copy_frees_an_object_with_no_prototype` to a target and\nsource with a `char_sdesc` each; the test fails on the shared pointer before the change. Phase 7\n(MR !26) had met the same double free and carries the same line; its branch has `ddacf712f`\nmerged in, so it merges cleanly after this one.\n\n## Verification\n\nWithout the fix (`free_object_strings()` as on master, both tests in place):\n\n- Under valgrind each test loses its two marks.\n- Of the matrix, `test-memory-check` fails on the new test's two blocks and\n  `test-sanitizers-gcc-address-undefined` reports all four.\n- The `copy_object()` test ends in SIGSEGV before `a0757112c`.\n\nOn `a0757112c`:\n\n- Both arcane-mark tests are clean under valgrind, with the database tests on and off, and so\n  is the `copy_object()` test.\n- `make -j16 test`: 2041 tests pass.\n- `./cutest` with the database tests on, first run on a database freshly built from\n  `sql/master_schema.sql`: 2041 of 2041 pass.\n- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (340 s). The\n  format, hygiene and secrets jobs pass again on `8556f9ca8`, which adds the plan's record only.\n\nOn `ddacf712f`:\n\n- The extended test fails on the shared pointer without the line; with it the two editor-copy\n  tests and `Test_object_without_a_prototype_frees_its_arcane_mark` are clean under valgrind.\n- `make -j16 test`: 2041 tests pass.\n- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (281 s).\n\n## Not in this merge request\n\n- #30, found on the same check: an OLC save of a prototype leaves each live object of it with\n  the prototype's special-ability list, which the first extraction then frees under the\n  prototype. It is not a free path of #15 and its fix changes what every object copy keeps, so\n  it is phase 7 of the plan with a merge request of its own.\n- No deploy: the fixes reach production with the next release.",
+  "state": "merged",
+  "created_at": "2026-10-05T21:33:13.077Z",
+  "updated_at": "2026-10-06T20:44:04.640Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-06T20:44:04.865Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "15-an-object-with-no-prototype-leaks-its-arcane-mark-when-freed",
+  "user_notes_count": 4,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "900ac3fb3a611d322337aa2204d7d3beac510224",
+  "merge_commit_sha": "5fd6303495693c54bd1ea23fb0f5eedbbb52f89e",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-10-05T21:33:14.663Z",
+  "reference": "!25",
+  "references": {
+    "short": "!25",
+    "relative": "!25",
+    "full": "max757/Luminari-Source!25"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/25",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "4",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "ee42019edb252420807c9cb84f7f090fdae9e811",
+    "head_sha": "900ac3fb3a611d322337aa2204d7d3beac510224",
+    "start_sha": "ee42019edb252420807c9cb84f7f090fdae9e811"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "id": 205367652,
+  "iid": 16,
+  "project_id": 86882182,
+  "title": "Bagged objects stay in memory when their owner leaves the game",
+  "description": "**Defect.** When a character leaves the game, what it had sorted into its bags stays in memory with no holder.\n\n`extract_char()` calls `empty_bags_to_inventory()` (`src/core/handler.c`). Despite its name, that function only unlinks each bagged object with `obj_from_bag()`: no `obj_to_char()` follows, and nothing extracts the object. The objects stay in `object_list` for the life of the process.\n\n**Effect.** Memory only. Every quit, idle-out or rent of a character with bagged objects leaks them, and anything that walks `object_list` goes on visiting them. Nothing is lost from the save: the leaving save writes the bags first (`Crash_save_bags()`), and the next login loads them from their rows.\n\n**Also in that function.** It passes bag number 1 to `obj_from_bag()` for all ten bags, so the domain transfer record names the wrong bag for bags 2 to 10.\n\n**Fix.** Extract the bagged objects where the leaving save extracts the worn and carried ones (`objsave_save_and_extract()` in `src/obj/objsave.c`), and decide what `extract_char()` should do with them on the paths that do not save first.\n\nFound while fixing the review of MR !20 (S13); read from the code, not measured. Not changed there.",
+  "state": "closed",
+  "created_at": "2026-10-04T08:02:17.999Z",
+  "updated_at": "2026-10-07T17:15:37.451Z",
+  "closed_at": "2026-10-07T17:14:28.487Z",
+  "closed_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 2,
+  "merge_requests_count": 1,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/16",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/16",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/16/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/16/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#16",
+    "relative": "#16",
+    "full": "max757/Luminari-Source#16"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

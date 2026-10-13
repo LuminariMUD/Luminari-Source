@@ -1,0 +1,130 @@
+{
+  "id": 544563688,
+  "iid": 27,
+  "project_id": 86882182,
+  "title": "Take a leaving character's bagged objects along with the rest",
+  "description": "Closes #16\n\nPhase 4 of `docs/ongoing-projects/object-save-fixes-and-arm-pricing.md`. Handed to review at\nthe tag `object-save-fixes-p4` (`0a662d23a`): three code commits, each with its test, and the\nplan's record of the phase.\n\n## Cause\n\n`extract_char()` called `empty_bags_to_inventory()` (`src/core/handler.c`), which only unlinked\neach bagged object: nothing put it in the inventory and nothing extracted it, so it stayed in\n`object_list`, held by no one, after its owner left the game. It passed bag number 1 to\n`obj_from_bag()` for all ten bags, so the move it reported named bag 1. The leaving save\n(`objsave_save_and_extract()`) wrote the bags but extracted only the worn and carried objects.\n\nThe plan's check before the change failed: nothing kept a carried object from being dropped in\nthe room on a leave without a save and loaded again from the last save. `extract_char_final()`\ncalls `Crash_delete_crashfile()` for that, which deletes a crash save's file, but under\n`OBJSAVE_DB` (always defined in `src/obj/objsave.c`) it returns at once and the rows stay. A\ncrash-saved carried and worn gem, then a purge: both lay in the room and both rows were still\nthere. So the bags could not simply follow the carried objects, and that defect is fixed first.\n\n## What changes\n\n`d989a8517`: once `extract_char_final()` has dropped anything in the room, it writes the\ncharacter's object save again. The character holds nothing by then, so the rows, the header and\nthe file all come out empty, and the next login does not bring back what the room holds. A\ncharacter that left with a rent, idle or cryo save holds nothing at that point, and its save\nstands. The `Crash_delete_crashfile()` call there goes. Making that function work under\n`OBJSAVE_DB` instead would also delete the crash save at every death, its other two callers,\nwhere the character keeps all its objects (`make_pc_corpse()` moves none).\n`Test_leaving_without_a_save_drops_everything_and_keeps_no_object_save` covers it.\n\n`be819da53`, the bags:\n\n- `extract_char_final()` takes each bagged object out of its own bag and puts it in the room, as\n  it does the carried and worn ones. The move names the bag. `empty_bags_to_inventory()` goes:\n  a stop in the inventory would report a move from bag to inventory, which the quest system\n  counts as finding the object, and the bus dispatches it at once, to a character that is\n  leaving.\n- `objsave_save_and_extract()` extracts each bag's objects after the worn ones;\n  `extract_obj()` already takes an object out of its bag.\n- `Test_leaving_saves_keep_the_bags_and_take_them_along` replaces\n  `Test_cryo_and_idle_saves_keep_what_is_in_the_bags`, which took its bagged gem out by hand: a\n  cryo save leaves the bags and `object_list` empty, and a load from the saved rows puts a gem\n  back in bag 1 and one in bag 3. The leave without a save now has a gem in bag 1 and one in bag\n  3: both end in the room, each moved there from the bag it names.\n\n`0980ae2dc`, found while building: `do_sort()` (sortto, sortfrom) and `do_bags()` read the bag\nstorage of whoever runs them, and a mobile has none (`bags` is NULL). `command_interpreter()`\nlets a mobile run any command below immortal level, so either command ended the server in a\nsegmentation fault. Both now answer \"You have no bags.\"\n`Test_gameplay_bag_commands_refuse_a_character_without_bags` covers both.\n\n`docs/systems/SAVE_SYSTEMS_BREAKDOWN.md` says what the leaving saves take along and what a leave\nwithout a save does.\n\n`0a662d23a`: the plan's record of the phase.\n\n## Verification\n\nBefore the changes:\n\n- The leaving-save test failed with the bags still full after the cryo save.\n- The test without a save found one object of three in the room; with the bags fixed it still\n  found every row. On `d989a8517` alone its first form fails without the change, both rows left.\n- The bag-command test ends in SIGSEGV without either of its two checks.\n\nOn `0980ae2dc`:\n\n- `make -j16 test`: 2051 tests pass.\n- `./cutest` with the database tests on, first run on a database freshly built from\n  `sql/master_schema.sql`: 2051 of 2051 pass.\n- The three tests are clean under valgrind, the two leaving tests with the database on.\n- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (1476 s); the unit,\n  sanitizer and memory-check jobs run 2051 tests each, and the persistence changed lines are\n  100% covered.\n- The format, hygiene and secrets jobs pass again on `0a662d23a`, which adds the plan's record\n  only.\n\n## Not in this merge request\n\n- `Crash_delete_crashfile()` and its two calls at death stay: a no-op under `OBJSAVE_DB`, which\n  is right there.\n- The duplicate-login cleanup in `perform_dupe_check()` extracts a second in-game copy of a\n  character; if it held anything, its empty save replaces the save of the copy that stays until\n  that copy is saved again. The code says no such copy should exist.\n- If the empty save cannot be written, the last save stands and the dropped objects come back at\n  the next login, as before; the writer logs it.\n- No deploy: the fixes reach production with the next release.",
+  "state": "merged",
+  "created_at": "2026-10-07T13:18:59.667Z",
+  "updated_at": "2026-10-07T17:15:28.627Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-07T17:14:27.835Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "16-bagged-objects-stay-in-memory-when-their-owner-leaves-the-game",
+  "user_notes_count": 9,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "074fd1e8900029010cc8379c6197042c6fb1de4a",
+  "merge_commit_sha": "f26c9b0eda6ca524a40fa109c482bc6f057f0e62",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-10-07T13:19:01.041Z",
+  "reference": "!27",
+  "references": {
+    "short": "!27",
+    "relative": "!27",
+    "full": "max757/Luminari-Source!27"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/27",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "10",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "529fee05d358114cfd9418c967a661e3aa116270",
+    "head_sha": "074fd1e8900029010cc8379c6197042c6fb1de4a",
+    "start_sha": "529fee05d358114cfd9418c967a661e3aa116270"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

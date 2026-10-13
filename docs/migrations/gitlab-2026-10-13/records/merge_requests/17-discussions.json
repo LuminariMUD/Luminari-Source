@@ -1,0 +1,761 @@
+[
+  {
+    "id": "b8ec4fe8b2a5bc757bda6f57af31b8623c037395",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3947012858,
+        "type": "DiffNote",
+        "body": "### [P2] Recover failed compensation before declaring the trade undone\n\n**Location:** `src/vessels/vessels_trade.c:1605` (head `50ca77f2d4d2e311d8ed394b3abee1e7e2c97648`; the sale path is affected too).\n\nIf the initial trade commits, the player-file save fails (for example, because its filesystem is full or unwritable), and the compensating database write then fails (for example, after a lost database connection), this branch only logs the error and still returns with pre-trade gold/cargo and an unconditional 'trade is undone' message. The sale branch at lines 1767-1773 has the same defect. I reproduced both paths against the unchanged DB-backed test by rejecting only the compensating `START TRANSACTION`: buying 10 salt leaves the durable manifest/supply at 10/90 while memory is restored to 0 cargo and 1,000 gold; canceling a whole-hold sale leaves the durable manifest empty while memory again contains the 10 units and no sale proceeds. Subsequent quotes already use the unreverted supply, and a reload before another successful manifest write can restore unpaid purchases or discard canceled sales. Unlike the base implementation, the new compensation path explicitly restores game state after the corresponding database trade has committed. Persist a recoverable settlement/undo intent with that transaction and keep the affected ship/account pending until a checked gold save or durable compensation succeeds; retry/reconcile it before further trades or reload, and emit 'undone' only after compensation succeeds.\n\n**Validation:** Three focused DB-backed regression tests passed. Two targeted fault-injection runs reproduced this defect, one for buying and one for selling. The injection forced the existing test's save-failure path and rejected only the compensating transaction; it did not simulate an actual simultaneous disk/network outage. Full suite and live in-game validation were not run for this review.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T18:38:34.933Z",
+        "updated_at": "2026-10-02T20:34:09.933Z",
+        "system": false,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+          "start_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+          "head_sha": "50ca77f2d4d2e311d8ed394b3abee1e7e2c97648",
+          "old_path": "src/vessels/vessels_trade.c",
+          "new_path": "src/vessels/vessels_trade.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 1605,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-02T20:34:09.933Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      },
+      {
+        "id": 3947469973,
+        "type": "DiffNote",
+        "body": "changed this line in [version 2 of the diff](/max757/Luminari-Source/-/merge_requests/17/diffs?diff_id=2072963715&start_sha=50ca77f2d4d2e311d8ed394b3abee1e7e2c97648#b7985294034026e413fbc753c94e1a4e09f04319_1605_1639)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:33:57.448Z",
+        "updated_at": "2026-10-02T20:33:57.448Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+          "start_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+          "head_sha": "50ca77f2d4d2e311d8ed394b3abee1e7e2c97648",
+          "old_path": "src/vessels/vessels_trade.c",
+          "new_path": "src/vessels/vessels_trade.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 1605,
+          "line_range": null
+        },
+        "resolvable": false,
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      },
+      {
+        "id": 3947470393,
+        "type": "DiffNote",
+        "body": "Verified and fixed in `a1f08bc7b`; the record is `47a63c340`.\n\n**Reproduced.** I reproduced the double fault on `50ca77f2d` without changing any code. A CHECK\nconstraint, added with `check_constraint_checks` off, refuses only the supply value that the undo\nwrites back. For a whole-hold sale and for a purchase of 10 salt, the old code restored the gold\nand the hold in memory and printed \"the trade is undone\", while the manifest and the port's\nsupply kept the trade.\n\n**Fix.** `trade_settle()` (`src/vessels/vessels_trade.c`) now handles the gold, the save and the\nundo for both commands:\n\n- Save succeeds: the trade is done, as before.\n- Save fails and the undo is recorded: the gold and the hold are restored and the player sees\n  \"the trade is undone\". That message is now printed only after the undo commits.\n- Save fails and the undo fails too: the trade stands as recorded. Memory keeps the traded hold\n  and the moved gold, so memory, the manifest and the port's supply agree, and quotes, later\n  manifest writes and a ship reload all see the same trade. The player sees \"Your gold could not\n  be saved yet; the trade stands and will be saved shortly.\" The account stays pending on the\n  existing persistence service, which needs no new state: `persistence_run_player_task()`\n  (`src/core/comm.c`) runs `save_char_checked()` for every connected player each minute and\n  retries a failed save after one second until it succeeds.\n\n**Why no persisted undo intent in this MR.** An intent row kept only in the database cannot tell\nrecovery whether a later save carried the gold. If the save succeeds but the row's delete fails,\nrecovery would undo a paid trade or put sold cargo back aboard. That moves the crash window to\nits mirror case without closing it. Closing it needs a settlement table, a marker in the player\nfile, and a reconcile at login and before the ship trades. At the owner's request that is now work\nitem #12 (https://gitlab.com/max757/Luminari-Source/-/work_items/12). It also covers freight\nacceptance and dock-fee payment, which share this shape. The window this MR leaves open needs\nthree faults in a row: the player-file save fails, the undo fails, and the server crashes before\na later save succeeds.\n\n**Tests.** `Test_vessel_cargo_trades_record_the_gold_with_the_goods` now covers both double\nfaults, a sale and a purchase. It checks the message, that \"undone\" does not appear, and that\nthe gold, hold, manifest and supply all match the standing trade. It failed on `50ca77f2d` and\npasses now.\n\n**Verification on `a1f08bc7b`:** `make test-all` with the database cases (1,995 CuTest cases OK,\nthe protocol harness's 32, Python 542 with 37 skipped); `check_sql_interpolation.py` within\nbaseline; the local CI matrix (`scripts/ci/local/run.py --base gitlab/master`): all 33 jobs passed; on the record commit, the format and hygiene jobs passed.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:34:07.802Z",
+        "updated_at": "2026-10-02T20:34:09.933Z",
+        "system": false,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+          "start_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+          "head_sha": "50ca77f2d4d2e311d8ed394b3abee1e7e2c97648",
+          "old_path": "src/vessels/vessels_trade.c",
+          "new_path": "src/vessels/vessels_trade.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 1605,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-02T20:34:09.933Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "50712d380f9c074ef710c6e60aacb2cd7c92d56f",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947444579,
+        "type": null,
+        "body": "mentioned in issue #12",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:26:13.484Z",
+        "updated_at": "2026-10-02T20:26:13.486Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "c89e9605f830cafb4e8bb9764cd9b5a9b144f999",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947469934,
+        "type": null,
+        "body": "mentioned in commit 47a63c340b597b96abe20b0923b0f49ac8862403",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:33:56.928Z",
+        "updated_at": "2026-10-02T20:33:56.929Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "e1decc565b33fbe73b36288bb29fd2b1f46ce986",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947469937,
+        "type": null,
+        "body": "mentioned in commit a1f08bc7bfd9d98003c6c834cb328bc512915232",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:33:56.954Z",
+        "updated_at": "2026-10-02T20:33:56.956Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "affa401dabfc8aaf51eaa5dac9f55a57a3ef8e16",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947469987,
+        "type": null,
+        "body": "added 2 commits\n\n<ul><li>a1f08bc7 - Let a trade whose undo fails stand, instead of reporting it undone</li><li>47a63c34 - Record S11&#39;s review round 1: failed undo, work item #12</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/17/diffs?diff_id=2072963715&start_sha=50ca77f2d4d2e311d8ed394b3abee1e7e2c97648)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:33:57.754Z",
+        "updated_at": "2026-10-02T20:33:57.757Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "6f5e08bbe7bd36cd6a7675cc6172be838d591cf9",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947470496,
+        "type": null,
+        "body": "resolved all threads",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:34:09.958Z",
+        "updated_at": "2026-10-02T20:34:09.963Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "66f616ad95ce32f472efdb787960708d20beb3df",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947470625,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:34:11.679Z",
+        "updated_at": "2026-10-02T20:34:11.681Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "09ee52aea4daa8a71225941fcc5d6d5fe272c854",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947490973,
+        "type": null,
+        "body": "mentioned in commit f18208549af4a14a57c578022d639b3442930028",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:39:55.570Z",
+        "updated_at": "2026-10-02T20:39:55.572Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "e22f6e7656a5db31eefad3f0cbbe88c873f2cf2e",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947495893,
+        "type": null,
+        "body": "mentioned in commit a16fe7a64fdd92c3acaa2d0701f4448253d8b710",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:41:16.793Z",
+        "updated_at": "2026-10-02T20:41:16.795Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "8322d836cf933c04798549cb9d57f1d10e66b1be",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3948667501,
+        "type": null,
+        "body": "requested review from @max757",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T05:47:41.901Z",
+        "updated_at": "2026-10-03T05:47:41.902Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "430693f5e4b97515111574418b133ef970f61ccc",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3948667530,
+        "type": null,
+        "body": "assigned to @max757",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T05:47:43.415Z",
+        "updated_at": "2026-10-03T05:47:43.416Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "7cde5117ea73fbc7c2d0b63c36eb8b873397c60e",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3948681704,
+        "type": "DiffNote",
+        "body": "### [P2] Resolve an unknown COMMIT outcome before restoring trade state\n\n**Location:** `src/vessels/vessels_trade.c:1074`, reviewed head `47a63c340b597b96abe20b0923b0f49ac8862403`.\n\nA connection failure while receiving COMMIT's response does not establish that the transaction was rolled back. This branch nevertheless returns FALSE, so the initial-trade callers restore the old hold without moving gold; on an undo, `trade_settle()` instead restores the traded hold and keeps the moved gold. I reproduced both cases with the unchanged pinned commands and test: an independent database connection first verified the committed rows, then closing the trade connection before reading its acknowledgement produced MariaDB client error 2013 (`Lost connection to server during query`). For the initial purchase, the database held 10 units/supply 90 while the command returned with 0 units/1,000 gold; for its committed undo, the database held 0 units/supply 100 while the command reported the trade stood with 10 units/860 gold. The subsequent ROLLBACK cannot undo an already committed transaction. This creates immediate disagreement between the hold/balance and the market/manifest, so later quotes and manifest writes operate on different outcomes; it does not require the process crash tracked in work item #12. At the merge base, successfully recorded writes left the post-trade gold and hold in memory rather than reverting them on this newly checked result. Treat a lost connection during COMMIT as an unknown outcome and resolve a durable trade/undo identifier after reconnecting before selecting either state or allowing further settlement.\n\n**Validation:** The exact-head build and three focused DB-backed regression tests passed. Two completed fault runs reproduced the initial-purchase and purchase-undo cases with actual MariaDB error 2013, independent reads of committed rows, and debugger reads of memory. The test hook induced acknowledgement loss locally and used persistent equivalents of the fixture tables in a disposable database; source and test functions were unchanged. Sale uses the same helpers but was not separately fault-injected. No full-suite, live-game, real external outage, or process-crash validation was performed.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T06:00:18.071Z",
+        "updated_at": "2026-10-03T07:13:57.994Z",
+        "system": false,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+          "start_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+          "head_sha": "47a63c340b597b96abe20b0923b0f49ac8862403",
+          "old_path": "src/vessels/vessels_trade.c",
+          "new_path": "src/vessels/vessels_trade.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 1074,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-03T07:13:57.994Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      },
+      {
+        "id": 3948779712,
+        "type": "DiffNote",
+        "body": "Verified and fixed in `2ba35d6b1`; the record is `f5079b1d5`. Both are on `feat/vessels-s12`\n(MR !18): this MR is merged, and that branch carries S11's close-out, so the fix lands with it.\n\n**Reproduced.** I reproduced it on S11's logic with a real lost connection. The trade's COMMIT was\nsent, and the client socket was shut down before the reply arrived (MariaDB client error 2013).\nThe trade tables were persistent copies in the test database. The purchase printed \"The harbor\noffice cannot record that trade\" and left 0 units and 1,000 gold in memory, while the manifest\nheld 10 and the supply 90. Those are your numbers.\n\n**Fix.**\n\n- `trade_commit()` now tells an unanswered COMMIT (any client error, 2000-2999) from one the\n  server refused.\n- After an unanswered COMMIT, `trade_record()` reconnects (`MYSQL_PING_CONN()`) and writes the\n  same trade again. Both writes set absolute values: the port's supply, and the ship's whole\n  manifest from memory. Once that second write commits, the trade (or its undo) stands whichever\n  way the first COMMIT went, and memory, the manifest and the supply agree. That second commit\n  resolves the outcome by itself, so no durable identifier is needed. Only this game process writes\n  a ship's manifest and a port's supply, so nothing can change them between the two writes.\n- Found on the way: `vessel_db_save_cargo()` kept writing after a failed write. After a lost\n  connection inside a transaction, libmariadb refuses one reconnect (error 2006); the next\n  statement reconnects and commits on its own. A later lot's row could therefore land outside the\n  transaction. The function now stops at its first failure.\n\n**Left for #12.** The second write can also fail, for example when the database is unreachable\njust after the lost reply. The command then keeps S11's behaviour and logs that the database may\nnot match the hold. The next manifest write and the minute save bring the database back in line;\nonly a reload before then (#12's crash window) lets the database's version win. Freight acceptance\nhas the same COMMIT shape, but its conditional `status = OPEN` write cannot simply be repeated. I\nadded both cases to #12, which already covers freight and dock fees.\n\n**Tests.** The new DB-backed `Test_vessel_cargo_trades_settle_a_commit_without_a_reply` loses\nthe reply for a committed purchase and for a rolled-back sale, then for the undo of each after a\nfailed save (one committed, one rolled back). It failed on S11's logic with only the test seam\nadded, and it passes now. I also ran a throwaway build with real lost connections: error 2013\nafter the COMMIT was sent (a purchase and an undo), and error 2006 with the connection already\ngone (a sale). Memory and the database agreed in all three cases, and the second write ran on a\nnew session.\n\n**Verification on `2ba35d6b1`:** `make test-all` with the database cases passed: 1,998 CuTest\ncases, the protocol harness's 32, and the Python suites (542, 37 skipped).\n`check_sql_interpolation.py` is within its baseline. The local CI matrix\n(`scripts/ci/local/run.py --base gitlab/master`) passed all 33 jobs.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T07:13:56.923Z",
+        "updated_at": "2026-10-03T07:13:57.994Z",
+        "system": false,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+          "start_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+          "head_sha": "47a63c340b597b96abe20b0923b0f49ac8862403",
+          "old_path": "src/vessels/vessels_trade.c",
+          "new_path": "src/vessels/vessels_trade.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 1074,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-03T07:13:57.994Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "c65e2f59a0c134527304a5155251e079730e5232",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3948778687,
+        "type": null,
+        "body": "mentioned in commit 2ba35d6b1592aed26dae5db2334e47c8f3af2da3",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T07:13:36.219Z",
+        "updated_at": "2026-10-03T07:13:36.221Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "194cca9940ddf36188b98efe9e67db6576ca681e",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3948779729,
+        "type": null,
+        "body": "resolved all threads",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T07:13:58.012Z",
+        "updated_at": "2026-10-03T07:13:58.015Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "e5cc286f63ede32e1a553c61a8bcea0a7b637abc",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3948780448,
+        "type": null,
+        "body": "mentioned in merge request !18",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T07:14:13.991Z",
+        "updated_at": "2026-10-03T07:14:13.993Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "bc3528d47b95493d03ed878c969a0a6db03c17af",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3948917365,
+        "type": null,
+        "body": "mentioned in issue #13",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T08:59:42.361Z",
+        "updated_at": "2026-10-03T08:59:42.363Z",
+        "system": true,
+        "noteable_id": 542319781,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 17,
+        "commands_changes": {}
+      }
+    ]
+  }
+]

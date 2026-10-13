@@ -1,0 +1,141 @@
+{
+  "id": 542250162,
+  "iid": 16,
+  "project_id": 86882182,
+  "title": "Vessels S10: the illustrated player guide and the fixes its fact check found",
+  "description": "S10 of the vessel study (`docs/ongoing-projects/vessels-ships.md`, Phase 10, the last step of\nPart 5): the illustrated player guide, written from S9's play notes and screenshots, and the\ndefects found while checking every fact in it against the code.\n\nReview range: `git log vessels-s10-base..vessels-s10`.\n\n## The guide\n\n`docs/guides/VESSEL_PLAYER_GUIDE.md` follows a new captain through the whole system in the order\na player meets it: passage on public ships, finding and buying a hull, crew and refits, sailing,\nroutes and autopilot, trade and freight, gunnery, damage and repair, boarding and prizes, two\ncaptains (permits, PvP, renown, bounties), contraband and customs, loss and recovery, other hulls\nand vehicles, the living world (events, the derelict, hunters) and client data, with a command\nsummary and a staff appendix.\n\nThe screenshots moved from `docs/ongoing-projects/guide-screenshots/` to\n`docs/guides/vessel-guide/`: ten are cropped to the lines that matter, five have staff staging\nlines or old interior minimaps blanked, and three (two duplicates and one that shows a refused\nshot rather than its note) are removed. The master index and `VESSEL_SYSTEM.md` link to the guide.\n\nTwo passes checked the facts: four parallel audits of the screenshots and the notes against the\ncode before writing, and a fresh review of the finished guide after. Every number and rule the\nguide states is the code's.\n\n## Defects found and fixed\n\n| Finding | Fix | Commit |\n| -- | -- | -- |\n| `unassignpilot` on a hull sailing a route freed the route while the autopilot still held it (use after free, double free: a crash) | The route stays set, as with `autopilot off`; DB-backed test | `3ad7f52f3` |\n| A ship steered at the shore, in shoal water she may sail, was told she \"requires deep water\" | \"She keeps to the water's surface, clear of beach and land.\" | `73bae886a` |\n| `tenter [target]` ignored its target | Finds the named vehicle as `vmount` does | `7d26fb597` |\n| `tgo` hinted at `go` and `enter` | Names `tgo` and `tenter` | `6cae7a8c9` |\n| `vevent` showed players fleet slots | Contact IDs; DB-backed test | `32e11bbfb` |\n| Every hull's room line read \"is moored here\", at sea and sinking too | Built as she lies when someone looks | `4d4607aec` |\n| `shiplist` truncated \"Magical Vessel\" and long names | Wider columns | `01c79ad70` |\n| Customs could seize at 0-4% though help promised at least 5 | Never under 5 | `aa03131db` |\n| Seven help entries said otherwise than the code | Corrected in both places | `fe8d054b8` |\n| `VESSEL_SYSTEM.md`'s vehicle facts were wrong | Corrected to the code | `2f1adf001` |\n| A schedule set late in the day departed again at once, and an interval of 24 every hour | Next departure is an absolute MUD hour | `f51c34b55` |\n| `autopilot off` under an NPC pilot was undone by the pilot half a second later | Refused, pointing to `autopilot pause` and `unassignpilot` | `44bf37eaa` |\n| Any captain could delete the public ferry's route or its waypoints | Waypoints and routes in use are kept; ownership is work item #11 | `523417bbd` |\n| `board_hostile` and `dock` could pick a namesake out of sight | Resolve contacts as `shiplock` does; dead `find_ship_by_name()` removed | `2d2ac9b8b` |\n\n## Verification\n\n- `make test-all` with the database cases on the final code: 1,994 CuTest cases and the protocol\n  harness's 32 pass.\n- Help verifier on a fresh dump reload: all seven checks pass.\n- All 20 live gates in the namespace harness pass on the guide commit and again on the final code.\n- Local CI matrix (`scripts/ci/local/run.py --base gitlab/master`): all 33 jobs pass on the final\n  code (581 s); clang-tidy's one finding on the first run was fixed in `48e0a141b`.\n\nDetails, durations and the decisions made are in the Phase 10 record in\n`docs/ongoing-projects/vessels-ships.md`.\n\n## After merge\n\n- Sync the help to production: eleven entries changed (ANCHOR, ASSIGNPILOT, AUTOPILOT,\n  BATTLE-STATIONS, DELROUTE, DELWAYPOINT, LOADVEH, SEA-STATE, SETSCHEDULE, SHIP-ADMIN,\n  UNASSIGNPILOT by first keyword).\n- The code fixes ship with the next production deploy; a schedule row saved as an hour of the day\n  departs once after it.\n- Work item #11: give shared waypoints and routes an owner.",
+  "state": "merged",
+  "created_at": "2026-10-02T15:22:54.684Z",
+  "updated_at": "2026-10-02T16:16:06.425Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-02T16:16:06.096Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "feat/vessels-s10",
+  "user_notes_count": 1,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "472f1ca0054a8e7858282d11711d61c978e223b3",
+  "merge_commit_sha": "60ef66ad1635c716c1fffb1537939d0c9e2ed5e8",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": false,
+  "force_remove_source_branch": false,
+  "prepared_at": "2026-10-02T15:22:57.278Z",
+  "reference": "!16",
+  "references": {
+    "short": "!16",
+    "relative": "!16",
+    "full": "max757/Luminari-Source!16"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/16",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "122",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "a6adb46a8b3f980d0d6e25b4d668efd019b0f294",
+    "head_sha": "472f1ca0054a8e7858282d11711d61c978e223b3",
+    "start_sha": "a6adb46a8b3f980d0d6e25b4d668efd019b0f294"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

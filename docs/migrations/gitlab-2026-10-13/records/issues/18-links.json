@@ -1,0 +1,302 @@
+[
+  {
+    "id": 205345632,
+    "iid": 15,
+    "project_id": 86882182,
+    "title": "An object with no prototype leaks its arcane mark when freed",
+    "description": "## Problem\n\n`free_obj()` (`src/core/db.c`) frees an object's strings in one of two ways. An object with a\nprototype goes through `free_object_strings_proto()`, which frees `arcane_mark`. An object with\nno prototype (`GET_OBJ_RNUM(obj) == NOWHERE`) goes through `free_object_strings()`\n(`src/olc/genobj.c`), which frees `name`, `description`, `short_description`,\n`action_description`, the extra descriptions, `char_sdesc` and `restring_identifier`, but not\n`arcane_mark`.\n\nSo an object with no prototype that carries an arcane mark leaks the mark when it is extracted.\nThe mark is set with `strdup()` when a saved record with an `AMrk` line loads\n(`src/obj/objsave.c`, both parsers) and in `copy_object()` (`src/olc/genobj.c`).\n\n## Evidence\n\nRead from the code, not measured. The existing test\n`Test_object_saves_bind_player_house_and_serialized_text` frees the mark by hand before\n`extract_obj()` for this reason.\n\n## Proposed fix\n\nFree `arcane_mark` in `free_object_strings()`, after checking its other callers (the OLC cleanup\nand the prototype teardown in `destroy_db()`) so that no path frees it twice.\n\nFound on 2026-10-04 while writing the S13 tests (work item #13); it is not part of that work.",
+    "state": "closed",
+    "created_at": "2026-10-03T22:13:34.338Z",
+    "updated_at": "2026-10-06T20:44:04.845Z",
+    "closed_at": "2026-10-06T20:44:04.811Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/15",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/15",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/15/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/15/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#15",
+      "relative": "#15",
+      "full": "max757/Luminari-Source#15"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9739667,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-05T10:32:17.317Z",
+    "link_updated_at": "2026-10-05T10:32:17.317Z"
+  },
+  {
+    "id": 205367652,
+    "iid": 16,
+    "project_id": 86882182,
+    "title": "Bagged objects stay in memory when their owner leaves the game",
+    "description": "**Defect.** When a character leaves the game, what it had sorted into its bags stays in memory with no holder.\n\n`extract_char()` calls `empty_bags_to_inventory()` (`src/core/handler.c`). Despite its name, that function only unlinks each bagged object with `obj_from_bag()`: no `obj_to_char()` follows, and nothing extracts the object. The objects stay in `object_list` for the life of the process.\n\n**Effect.** Memory only. Every quit, idle-out or rent of a character with bagged objects leaks them, and anything that walks `object_list` goes on visiting them. Nothing is lost from the save: the leaving save writes the bags first (`Crash_save_bags()`), and the next login loads them from their rows.\n\n**Also in that function.** It passes bag number 1 to `obj_from_bag()` for all ten bags, so the domain transfer record names the wrong bag for bags 2 to 10.\n\n**Fix.** Extract the bagged objects where the leaving save extracts the worn and carried ones (`objsave_save_and_extract()` in `src/obj/objsave.c`), and decide what `extract_char()` should do with them on the paths that do not save first.\n\nFound while fixing the review of MR !20 (S13); read from the code, not measured. Not changed there.",
+    "state": "closed",
+    "created_at": "2026-10-04T08:02:17.999Z",
+    "updated_at": "2026-10-07T17:15:37.451Z",
+    "closed_at": "2026-10-07T17:14:28.487Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/16",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/16",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/16/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/16/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#16",
+      "relative": "#16",
+      "full": "max757/Luminari-Source#16"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9739668,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-05T10:32:18.386Z",
+    "link_updated_at": "2026-10-05T10:32:18.386Z"
+  },
+  {
+    "id": 205367658,
+    "iid": 17,
+    "project_id": 86882182,
+    "title": "A loaded sheath loses its weapons on a pet and leaks them when extracted",
+    "description": "**Defect.** A sheath's weapons hang off the sheath object (`sheath_primary`, `sheath_secondary`) and are handled only by the player save and by `sheath` / `unsheath`. Two paths lose track of them.\n\n1. **Pet saves.** `objsave_save_obj_record_db_pet()` writes no sheath rows. A loaded sheath given to a pet comes back empty when the pet is restored, and its weapons are in no row.\n2. **Extraction.** `extract_obj()` does not look at a sheath's weapons. Extracting a loaded sheath (junk, a shop sale, the extraction after a rent save) frees the sheath and leaves the weapons in `object_list` with no holder. After a rent save that is a memory leak only, since the rows were written. After a junk or a sale the weapons are gone from play without having been destroyed.\n\n**Not part of this.** A loaded sheath lying in a house: MR !20 (review P1) made the house save store its weapons as the house's own objects.\n\n**Fix.** Give the pet writer the sheath rows the player writer has (or refuse a loaded sheath on a pet), and make `extract_obj()` extract what a sheath holds.\n\nFound while fixing the review of MR !20 (S13); read from the code, not played. Not changed there.",
+    "state": "closed",
+    "created_at": "2026-10-04T08:02:19.310Z",
+    "updated_at": "2026-10-08T06:39:19.712Z",
+    "closed_at": "2026-10-08T06:38:02.316Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 3,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/17",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/17",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/17/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/17/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#17",
+      "relative": "#17",
+      "full": "max757/Luminari-Source#17"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9739669,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-05T10:32:19.528Z",
+    "link_updated_at": "2026-10-05T10:32:19.528Z"
+  }
+]

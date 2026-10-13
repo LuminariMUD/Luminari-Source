@@ -1,0 +1,193 @@
+[
+  {
+    "id": 205345632,
+    "iid": 15,
+    "project_id": 86882182,
+    "title": "An object with no prototype leaks its arcane mark when freed",
+    "description": "## Problem\n\n`free_obj()` (`src/core/db.c`) frees an object's strings in one of two ways. An object with a\nprototype goes through `free_object_strings_proto()`, which frees `arcane_mark`. An object with\nno prototype (`GET_OBJ_RNUM(obj) == NOWHERE`) goes through `free_object_strings()`\n(`src/olc/genobj.c`), which frees `name`, `description`, `short_description`,\n`action_description`, the extra descriptions, `char_sdesc` and `restring_identifier`, but not\n`arcane_mark`.\n\nSo an object with no prototype that carries an arcane mark leaks the mark when it is extracted.\nThe mark is set with `strdup()` when a saved record with an `AMrk` line loads\n(`src/obj/objsave.c`, both parsers) and in `copy_object()` (`src/olc/genobj.c`).\n\n## Evidence\n\nRead from the code, not measured. The existing test\n`Test_object_saves_bind_player_house_and_serialized_text` frees the mark by hand before\n`extract_obj()` for this reason.\n\n## Proposed fix\n\nFree `arcane_mark` in `free_object_strings()`, after checking its other callers (the OLC cleanup\nand the prototype teardown in `destroy_db()`) so that no path frees it twice.\n\nFound on 2026-10-04 while writing the S13 tests (work item #13); it is not part of that work.",
+    "state": "closed",
+    "created_at": "2026-10-03T22:13:34.338Z",
+    "updated_at": "2026-10-06T20:44:04.845Z",
+    "closed_at": "2026-10-06T20:44:04.811Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/15",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/15",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/15/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/15/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#15",
+      "relative": "#15",
+      "full": "max757/Luminari-Source#15"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9749972,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-05T21:27:11.044Z",
+    "link_updated_at": "2026-10-05T21:27:11.044Z"
+  },
+  {
+    "id": 205673875,
+    "iid": 31,
+    "project_id": 86882182,
+    "title": "Mail letters and forged notes take rnum 1 without being objects of that prototype",
+    "description": "The postmaster's mail delivery (`src/comms/mail.c:380`) and the two forged-note paths in\n`src/character/backgrounds.c` (lines 1119 and 1382) make a letter with `create_obj()` and then\nset `item_number = 1`. The letter is not an object of the prototype at rnum 1, yet the game\ntreats it as one:\n\n- `create_obj()` does not add it to `obj_index[1].number`, but `extract_obj()` takes it off that\n  count. Each letter thrown away lowers the count of rnum 1's real objects, so zone resets that\n  cap that prototype load more of it.\n- It is not on the `obj_rnum_hash` chain of rnum 1. Before MR !26, removing it from the hash\n  emptied that chain's bucket, and `get_obj_num()` stopped finding the prototype's objects. MR !26\n  makes `remove_obj_from_rnum_hash()` leave alone a chain the object does not head.\n- An OLC save of the prototype at rnum 1 takes the letters for its live objects, and a new\n  prototype below it renumbers them with it.\n\nFound while addressing the review of MR !26.",
+    "state": "opened",
+    "created_at": "2026-10-07T00:33:54.317Z",
+    "updated_at": "2026-10-07T11:11:37.070Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/31",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/31",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/31/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/31/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#31",
+      "relative": "#31",
+      "full": "max757/Luminari-Source#31"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9768400,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-07T00:34:03.228Z",
+    "link_updated_at": "2026-10-07T00:34:03.228Z"
+  }
+]

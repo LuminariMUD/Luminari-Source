@@ -1,0 +1,102 @@
+[
+  {
+    "id": 205408807,
+    "iid": 20,
+    "project_id": 86882182,
+    "title": "Close the vessel release gates: player-data balance, human beta, staged rollout",
+    "description": "## Problem\n\nThe engineering work on the vessel system is finished: the DurisMUD naval model (steps S1-S15,\nmerge requests !6 through !22) is merged, and `docs/adr/0003-durismud-naval-model.md` records its\ndecisions. Three release gates remain in the \"Release Gate State\" table of\n`docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md`, and no work item tracked them:\n\n| Gate | State | Exit condition in the table |\n| -- | -- | -- |\n| Player-data balance | Open | Collect real beta data, then tune combat time-to-kill, crew hire prices, freight margins, refit costs, insurance, and dock fees |\n| Structured human beta | Open | Validate first-hour discovery, multiplayer roles, builder independence, a supervised NPC-shipping sample within one hour, and at least 70% \"fun\" combat feedback |\n| Staged production rollout | Blocked | After balance and beta sign-off: staff, then a beta cohort, then all players, with rollback authority, monitoring, the announcement, and a postmortem |\n\n## Current evidence\n\n- Every balance number is a DurisMUD value translated into LuminariMUD's units (2 gold per\n  platinum, speed times 0.3, hull level times 30/56). None has been measured on LuminariMUD\n  players. ADR 0003 lists the anchors the numbers were derived from (\"Balance anchors\").\n- `vesseldebug balance` (`src/vessels/vessels_balance.c`) checks the equal-warship duel against\n  decision D2 (3-8 minute median, 12 minute p95, nothing under 90 seconds) and the 1,000-trade\n  simulation. It is mechanical evidence only, and its last line reads \"Human beta and player fun\n  sign-off: REQUIRED\".\n- The one full play-through so far (step S9, 2026-10-02) was a single operator playing two mortal\n  captains through the web client, with a staff character staging each scenario. Two paths could\n  not be played and have unit-test coverage only:\n  - renown and prize money shared among allied hulls in sight (needs a third captain);\n  - an ordinary creature encounter at sea (the development sandbox's only encounter row is the\n    Admiralty hunter patrol).\n- The vessel MSDP variables were exercised in the Luminari Web client and over a raw MSDP\n  connection (`scripts/vessels/test_vessel_client_in_game.sh`). Mudlet and LuminariGUI were left\n  out of the play test.\n- Hull wear and weather damage kept their absolute points when the damage model enlarged armor\n  and sails (`vessel_upkeep_tick()` in `src/vessels/vessels_upgrades.c`, storm damage in\n  `src/vessels/vessels_hazards.c`), so they now matter proportionally less. They were left as\n  an input to this gate, not tuned.\n- The gate table says general production release is not approved while a row is Open or Blocked.\n  The deploy record of 2026-10-04 has production running the current vessel code, schema, and\n  content (harbor sandbox, public ferry, Vailand merchant, Blackwake derelict, raider and\n  contraband content). The table does not say what is live or under what limits, so the rollout\n  row and the deployed state need reconciling.\n- `docs/development/CONSIDERATIONS.md` (\"Vessel System\", Active Concerns) and the \"Release\n  Status\" header of `docs/systems/VESSEL_SYSTEM.md` repeat the open gates.\n\n## Completion criteria\n\n- A beta with real players is run and its results recorded: first-hour discovery, multiplayer\n  crew roles (including a fight with at least three captains, so the allied renown split is\n  played), builder independence, a supervised NPC-shipping sample inside one hour, a creature\n  encounter at sea, and a combat \"fun\" rating from the respondents.\n- Combat time to kill, crew hire prices, freight margins, refit costs, insurance, and dock fees\n  are tuned from that data, or confirmed unchanged, with the evidence recorded in\n  `docs/testing/VESSEL_BENCHMARKS.md`. Weapon reload time is the agreed tuning lever for time to\n  kill (ADR 0003).\n- The rollout row states what production runs and the stages still to come, or is closed after\n  the staged rollout.\n- Each of the three rows in the gate table is Complete with its evidence, or re-scoped by the\n  product owner, and `CONSIDERATIONS.md` and the `VESSEL_SYSTEM.md` header say the same.\n\n## References\n\n- `docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md`, sections 8 and \"Release Gate State\"\n- `docs/adr/0003-durismud-naval-model.md`\n- `docs/systems/VESSEL_SYSTEM.md` (`vesseldebug balance`)\n- `docs/guides/VESSEL_PLAYER_GUIDE.md` (the played system, chapter by chapter)",
+    "state": "closed",
+    "created_at": "2026-10-04T20:37:06.234Z",
+    "updated_at": "2026-10-04T21:15:45.814Z",
+    "closed_at": "2026-10-04T21:15:45.801Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/20",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/20",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/20/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/20/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#20",
+      "relative": "#20",
+      "full": "max757/Luminari-Source#20"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9732723,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-04T20:38:23.406Z",
+    "link_updated_at": "2026-10-04T20:38:23.406Z"
+  }
+]

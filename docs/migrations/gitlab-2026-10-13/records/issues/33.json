@@ -1,0 +1,88 @@
+{
+  "id": 205759877,
+  "iid": 33,
+  "project_id": 86882182,
+  "title": "The player sheath loader logs a debug trace and its query at every load",
+  "description": "**Defect.** The player object loader logs a debug trace at every load of a sheath. `crash_restore_records()` logs `SHEATH1` for each loaded object that can be worn as a sheath, `load_sheath_contents()` logs `SHEATH2` to `SHEATH6`, and `objsave_parse_objects_db_sheath()` logs `SHEATH2a` to `SHEATH2g` and the text of its `SELECT` (`log(\"%s\", buf)`), twice per sheath, once per slot. Every login of a character with a sheath adds a dozen lines to the system log that say nothing.\n\n**Fix.** Remove the `log(\"SHEATH...\")` lines and the query echo in `src/obj/objsave.c`. The `SYSERR` lines on a failed query stay.\n\n**Aside.** `objs_from_sheath()` in the same file has no caller.\n\nSeen while building phase 5 of [Object save fixes and arm pricing](https://gitlab.com/max757/Luminari-Source/-/blob/master/docs/ongoing-projects/object-save-fixes-and-arm-pricing.md) (#17); read from the code, not changed there.",
+  "state": "opened",
+  "created_at": "2026-10-07T17:36:05.454Z",
+  "updated_at": "2026-10-07T21:57:09.188Z",
+  "closed_at": null,
+  "closed_by": null,
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 1,
+  "merge_requests_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/33",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/33",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/33/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/33/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#33",
+    "relative": "#33",
+    "full": "max757/Luminari-Source#33"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

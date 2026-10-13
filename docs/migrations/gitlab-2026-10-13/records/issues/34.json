@@ -1,0 +1,88 @@
+{
+  "id": 205786958,
+  "iid": 34,
+  "project_id": 86882182,
+  "title": "otransform leaves the object on its old rnum hash chain and miscounts both prototypes",
+  "description": "**Defect.** `do_otransform()` (`src/dgscript/dg_objcmd.c`) turns an object into another prototype by reading a fresh copy of the new prototype, copying that object over the live one with `memcpy()`, keeping eleven of the live object's fields, and extracting the fresh copy. The live object comes out of it with the fresh copy's `next_in_hash` and `prev_in_hash`, while the objects on its own rnum hash chain still link to it: after the fresh copy is unlinked and freed, the old chain runs through the live object into the other chain, and the live object's later removal from the hash edits the other chain and leaves its old neighbours pointing at freed memory, which the next walk of that chain reads. The prototype counts go the same way: the live object keeps the old rnum's count and later decrements the new rnum's (`SYSERR: Attempt to decrement object count below 0`). The live object also takes the fresh copy's event list, which the fresh copy's extraction frees.\n\n**Fix.** Move the live object to the chain of its new rnum (`remove_obj_from_rnum_hash()`, then `add_obj_to_rnum_hash()` after the copy) and carry the count from the old rnum to the new one, as `delete_object()` and `adjust_objects()` do since `8e7b0b073`; keep the live object's events, hash links and registry state with the other kept fields, as `overwrite_object()` in `src/olc/genobj.c` does. Four world triggers use `otransform` (`lib/world/trg/`).\n\nSeen while fixing the review findings of [MR !28](https://gitlab.com/max757/Luminari-Source/-/merge_requests/28) (#17), where `otransform` gained the sheath links in its kept list; read from the code, not changed there.",
+  "state": "opened",
+  "created_at": "2026-10-07T21:56:14.659Z",
+  "updated_at": "2026-10-07T21:57:05.319Z",
+  "closed_at": null,
+  "closed_by": null,
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 0,
+  "merge_requests_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/34",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/34",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/34/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/34/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#34",
+    "relative": "#34",
+    "full": "max757/Luminari-Source#34"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

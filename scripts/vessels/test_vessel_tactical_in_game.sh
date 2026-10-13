@@ -772,7 +772,7 @@ elif [[ "$acceptance_mode" == lookout ]]; then
   lookout_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
-     WHERE BINARY tag = 'VESSELS'
+     WHERE tag = 'VESSELS'
        AND entry LIKE '%scan canonical wilderness%'
        AND entry LIKE '%relative altitude%';")
   [[ "$lookout_help_state" == 1 ]] ||
@@ -811,7 +811,7 @@ elif [[ "$acceptance_mode" == boarding ]]; then
   boarding_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
-     WHERE BINARY tag = 'VESSELS'
+     WHERE tag = 'VESSELS'
        AND entry LIKE '%opposed Boarding check secures grappling lines%'
        AND entry LIKE '%opposed Boarding check resolves the crossing%'
        AND entry LIKE '%natural 1 throws the%'
@@ -850,7 +850,7 @@ elif [[ "$acceptance_mode" == movement ]]; then
   movement_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
-     WHERE BINARY tag = 'VESSELS'
+     WHERE tag = 'VESSELS'
        AND entry LIKE '%needs speed 6 or less%'
        AND entry LIKE '%weigh anchor in 13%';")
   [[ "$movement_help_state" == 1 ]] ||
@@ -889,9 +889,9 @@ elif [[ "$acceptance_mode" == damage ]]; then
   damage_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
-     WHERE (BINARY tag = 'VESSELS'
+     WHERE (tag = 'VESSELS'
             AND entry LIKE '%before a%sinking hull goes down%')
-        OR (BINARY tag = 'SHIPFIRE'
+        OR (tag = 'SHIPFIRE'
             AND entry LIKE '%SHIPSALVAGE%'
             AND entry LIKE '%STRIKECOLORS%');")
   [[ "$damage_help_state" == 2 ]] ||
@@ -937,10 +937,10 @@ elif [[ "$acceptance_mode" == gunnery ]]; then
   gunnery_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
-     WHERE (BINARY tag = 'SHIPFIRE'
+     WHERE (tag = 'SHIPFIRE'
             AND entry LIKE '%SHIPLOCK%'
             AND entry LIKE '%no harbor admits her%')
-        OR (BINARY tag = 'SHIPHIRE'
+        OR (tag = 'SHIPHIRE'
             AND entry LIKE '%SHIPWEAPON buy%'
             AND entry LIKE '%SHIPREARM%');")
   [[ "$gunnery_help_state" == 2 ]] ||
@@ -980,10 +980,10 @@ elif [[ "$acceptance_mode" == loss ]]; then
   loss_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
-     WHERE (BINARY tag = 'SHIPBROWSE'
+     WHERE (tag = 'SHIPBROWSE'
             AND entry LIKE '%SHIPSUMMON%'
             AND entry LIKE '%wreck registry%')
-        OR (BINARY tag = 'SHIPFIRE'
+        OR (tag = 'SHIPFIRE'
             AND entry LIKE '%Craft (woodworking) check, DC 15%');")
   [[ "$loss_help_state" == 2 ]] ||
     fail "the authoritative vessel loss help is stale"
@@ -1036,8 +1036,8 @@ elif [[ "$acceptance_mode" == economy ]]; then
   economy_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
-     WHERE (BINARY tag = 'SHIPRENOWN' AND entry LIKE '%2.5 gold for each point%')
-        OR (BINARY tag = 'MARKET' AND entry LIKE '%contraband it does not stock%');")
+     WHERE (tag = 'SHIPRENOWN' AND entry LIKE '%2.5 gold for each point%')
+        OR (tag = 'MARKET' AND entry LIKE '%contraband it does not stock%');")
   [[ "$economy_help_state" == 2 ]] ||
     fail "the authoritative vessel economy help is stale"
 
@@ -1130,7 +1130,7 @@ elif [[ "$acceptance_mode" == raider ]]; then
   raider_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
-     WHERE BINARY tag = 'SHIPFIRE'
+     WHERE tag = 'SHIPFIRE'
        AND entry LIKE '%she needs speed 6 or more%'
        AND entry LIKE '%about once in 17 minutes of sailing%';")
   [[ "$raider_help_state" == 1 ]] ||
@@ -1174,10 +1174,10 @@ elif [[ "$acceptance_mode" == rules ]]; then
   rules_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
-     WHERE (BINARY tag = 'SHIPFIRE' AND entry LIKE '%Harbors are neutral ground%')
-        OR (BINARY tag = 'PLUNDER' AND entry LIKE '%BOUNTY PAY%')
-        OR (BINARY tag = 'SHIPBROWSE' AND entry LIKE '%at most three%')
-        OR (BINARY tag = 'DELROUTE' AND entry LIKE '%may sail, schedule, change, or delete it%');")
+     WHERE (tag = 'SHIPFIRE' AND entry LIKE '%Harbors are neutral ground%')
+        OR (tag = 'PLUNDER' AND entry LIKE '%BOUNTY PAY%')
+        OR (tag = 'SHIPBROWSE' AND entry LIKE '%at most three%')
+        OR (tag = 'DELROUTE' AND entry LIKE '%may sail, schedule, change, or delete it%');")
   [[ "$rules_help_state" == 4 ]] ||
     fail "the authoritative vessel rules help is stale"
 
@@ -1218,7 +1218,7 @@ else
   narrative_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
-     WHERE BINARY tag = 'VESSELDEBUG'
+     WHERE tag = 'VESSELDEBUG'
        AND entry LIKE '%vesseldebug ambient%'
        AND entry LIKE '%class-, speed-, weather-, and depth-aware%';")
   [[ "$narrative_help_state" == 1 ]] ||

@@ -1,0 +1,67 @@
+[
+  {
+    "diff": "@@ -292,43 +292,25 @@ Binding notes:\n \n ### Schema Versioning\n \n-```sql\n-CREATE TABLE schema_version (\n-    version INT PRIMARY KEY,\n-    applied_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n-    description VARCHAR(255)\n-);\n-\n-INSERT INTO schema_version (version, description)\n-VALUES (1, 'Initial schema creation');\n-```\n-\n-### Migration System\n-\n-```c\n-void check_database_version() {\n-    MYSQL_RES *result;\n-    MYSQL_ROW row;\n-    int current_version = 0;\n-\n-    if (mysql_query(conn, \"SELECT MAX(version) FROM schema_version\")) {\n-        log(\"SYSERR: Cannot check database version: %s\", mysql_error(conn));\n-        return;\n-    }\n-\n-    result = mysql_store_result(conn);\n-    if ((row = mysql_fetch_row(result))) {\n-        current_version = row[0] ? atoi(row[0]) : 0;\n-    }\n-    mysql_free_result(result);\n-\n-    if (current_version < REQUIRED_DB_VERSION) {\n-        log(\"SYSERR: Database version %d is outdated. Required: %d\",\n-            current_version, REQUIRED_DB_VERSION);\n-        exit(1);\n-    }\n-}\n-```\n+`schema_migrations` records every applied migration by a date-based version\n+(`YYYYMMDDNN`). `startup_database_init()` in `src/database/db_startup_init.c`\n+first creates any missing table system, then runs the migration groups in\n+`src/database/db_init.c` on every boot. `apply_migration()` skips a version\n+that is already recorded, runs its single statement, and records it:\n+\n+| Group | Versions | On failure |\n+| -- | -- | -- |\n+| `run_database_migrations()` | help content contract, 2026082401-08 | boot stops |\n+| `run_pet_persistence_migrations()` | pet tables, 2026080501-2026091007 | boot stops |\n+| `run_account_migrations()` | account password width, 2026091101 | boot stops |\n+| `run_legacy_table_migrations()` | `weather_cache`, `player_save_objs`, `hint_usage_log`, 2026092701-03 | logged, retried next boot |\n+\n+`CREATE TABLE IF NOT EXISTS` never changes a table that already exists, so a\n+column or index added to a create statement reaches existing databases only\n+through a new versioned migration. Write each statement so it is idempotent\n+(`ADD COLUMN IF NOT EXISTS`, `ADD INDEX IF NOT EXISTS`) and correct for both\n+the old and the current table shape. Statements that need a `DELIMITER` block\n+belong in `create_database_procedures()`, not in a migration or a `.sql` file.\n \n ### Recent Schema Changes (2025)\n \n",
+    "collapsed": false,
+    "too_large": false,
+    "new_path": "docs/systems/DATABASE_INTEGRATION.md",
+    "old_path": "docs/systems/DATABASE_INTEGRATION.md",
+    "a_mode": "100755",
+    "b_mode": "100755",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false,
+    "generated_file": false
+  },
+  {
+    "diff": "@@ -645,13 +645,6 @@ void init_wilderness_resource_tables(void)\n     return;\n   }\n \n-  if (mysql_query_safe(\n-          conn, \"ALTER TABLE weather_cache ADD COLUMN IF NOT EXISTS wind_speed INT DEFAULT 5\"))\n-  {\n-    log(\"SYSERR: Failed to add weather_cache.wind_speed: %s\", mysql_error(conn));\n-    return;\n-  }\n-\n   /* room_description_settings - Per-room customization options */\n   const char *create_room_description_settings =\n       \"CREATE TABLE IF NOT EXISTS room_description_settings (\"\n@@ -1691,6 +1684,41 @@ int run_account_migrations(void)\n   return TRUE;\n }\n \n+/* Bring tables created by older schemas up to what the code reads and writes.\n+ * Their create statements already carry these columns, but CREATE TABLE IF NOT\n+ * EXISTS never touches a table that is already there. */\n+int run_legacy_table_migrations(void)\n+{\n+  if (!init_database_migrations())\n+    return FALSE;\n+\n+  if (!apply_migration(2026092701, \"Add weather cache wind speed\",\n+                       \"ALTER TABLE weather_cache \"\n+                       \"ADD COLUMN IF NOT EXISTS wind_speed INT DEFAULT 5\"))\n+    return FALSE;\n+\n+  if (!apply_migration(2026092702, \"Index player object saves by owner name\",\n+                       \"ALTER TABLE player_save_objs \"\n+                       \"ADD INDEX IF NOT EXISTS idx_name (name)\"))\n+    return FALSE;\n+\n+  /* The older table keyed usage by region and has no room or context columns,\n+   * so every log_hint_usage() insert failed; its region column is left in place\n+   * but no longer required. */\n+  if (!apply_migration(2026092703, \"Align hint usage log with its writer\",\n+                       \"ALTER TABLE hint_usage_log \"\n+                       \"MODIFY COLUMN IF EXISTS region_vnum INT DEFAULT NULL, \"\n+                       \"ADD COLUMN IF NOT EXISTS room_vnum INT NOT NULL, \"\n+                       \"ADD COLUMN IF NOT EXISTS player_id INT DEFAULT NULL, \"\n+                       \"ADD COLUMN IF NOT EXISTS weather_condition VARCHAR(20), \"\n+                       \"ADD COLUMN IF NOT EXISTS season VARCHAR(10), \"\n+                       \"ADD COLUMN IF NOT EXISTS time_of_day VARCHAR(10), \"\n+                       \"ADD COLUMN IF NOT EXISTS resource_state JSON DEFAULT NULL\"))\n+    return FALSE;\n+\n+  return TRUE;\n+}\n+\n int run_pet_persistence_migrations(void)\n {\n   if (!init_database_migrations())\n",
+    "collapsed": false,
+    "too_large": false,
+    "new_path": "src/database/db_init.c",
+    "old_path": "src/database/db_init.c",
+    "a_mode": "100755",
+    "b_mode": "100755",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false,
+    "generated_file": false
+  },
+  {
+    "diff": "@@ -93,6 +93,9 @@ int verify_pet_persistence_schema(void);\n /* Widen account_data.password for self-describing adaptive hashes. */\n int run_account_migrations(void);\n \n+/* Add columns and indexes that older installs never received. */\n+int run_legacy_table_migrations(void);\n+\n /* Apply the required lossless help synchronization schema contract. */\n int run_database_migrations(void);\n \n",
+    "collapsed": false,
+    "too_large": false,
+    "new_path": "src/database/db_init.h",
+    "old_path": "src/database/db_init.h",
+    "a_mode": "100755",
+    "b_mode": "100755",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false,
+    "generated_file": false
+  },
+  {
+    "diff": "@@ -53,6 +53,10 @@ int startup_database_init(void)\n     return FALSE;\n   }\n \n+  /* These repair analytics and lookup tables; the server still runs without them. */\n+  if (!run_legacy_table_migrations())\n+    log(\"SYSERR: Legacy table migrations did not complete; retrying at next startup\");\n+\n   /* Verify critical systems are functional */\n   if (!verify_core_player_tables())\n   {\n",
+    "collapsed": false,
+    "too_large": false,
+    "new_path": "src/database/db_startup_init.c",
+    "old_path": "src/database/db_startup_init.c",
+    "a_mode": "100755",
+    "b_mode": "100755",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false,
+    "generated_file": false
+  },
+  {
+    "diff": "@@ -1012,6 +1012,126 @@ void Test_pet_persistence_schema_rejects_incompatible_contract(CuTest *tc)\n   CuAssertTrue(tc, !verified);\n }\n \n+/* The shapes these tables still have on long-running installs: no wind speed,\n+ * no owner-name index, and a region-keyed usage log that rejects the rows\n+ * log_hint_usage() writes. */\n+static bool create_legacy_table_temporary_schema(MYSQL *connection)\n+{\n+  const char *queries[] = {\n+      \"CREATE TEMPORARY TABLE schema_migrations (\"\n+      \"version INT NOT NULL PRIMARY KEY, description VARCHAR(255) NOT NULL, \"\n+      \"applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB\",\n+      \"CREATE TEMPORARY TABLE weather_cache (\"\n+      \"id INT AUTO_INCREMENT PRIMARY KEY, zone_vnum INT NOT NULL, \"\n+      \"x_coord INT NOT NULL, y_coord INT NOT NULL, weather_type INT NOT NULL, \"\n+      \"weather_value INT NOT NULL, \"\n+      \"cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, \"\n+      \"expires_at TIMESTAMP NULL) ENGINE=InnoDB\",\n+      \"CREATE TEMPORARY TABLE player_save_objs (\"\n+      \"name VARCHAR(30) NOT NULL, serialized_obj BLOB NOT NULL, \"\n+      \"creation_date TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), \"\n+      \"idnum INT UNSIGNED DEFAULT 0, INDEX idx_idnum (idnum)) ENGINE=InnoDB\",\n+      \"CREATE TEMPORARY TABLE hint_usage_log (\"\n+      \"id INT AUTO_INCREMENT PRIMARY KEY, region_vnum INT NOT NULL, \"\n+      \"hint_id INT NOT NULL, used_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP, \"\n+      \"context VARCHAR(255) DEFAULT NULL) ENGINE=InnoDB\",\n+      \"INSERT INTO weather_cache \"\n+      \"(zone_vnum, x_coord, y_coord, weather_type, weather_value) \"\n+      \"VALUES (30, 1, 2, 1, 40)\",\n+      \"INSERT INTO hint_usage_log (region_vnum, hint_id) VALUES (7, 3)\",\n+      NULL};\n+  int index;\n+\n+  for (index = 0; queries[index] != NULL; index++)\n+    if (mysql_query(connection, queries[index]))\n+      return false;\n+\n+  return true;\n+}\n+\n+void Test_legacy_table_migrations_repair_old_shapes_idempotently(CuTest *tc)\n+{\n+  const char *enabled;\n+  MYSQL *connection;\n+  MYSQL *saved_conn;\n+  bool saved_available;\n+  bool fixture_created;\n+  bool first_migration;\n+  bool second_migration;\n+  bool hint_rejected_before;\n+  bool hint_inserted;\n+  int wind_speed;\n+  int name_index_columns;\n+  int hint_rows;\n+  int migration_count;\n+\n+  enabled = getenv(\"LUMINARI_TEST_MYSQL_ENABLE\");\n+  if (enabled == NULL || strcmp(enabled, \"1\") != 0)\n+  {\n+    CuAssertTrue(tc, 1);\n+    return;\n+  }\n+\n+  connection = open_test_database();\n+  if (connection == NULL)\n+  {\n+    CuFail(tc, \"could not connect to the explicitly configured test database\");\n+    return;\n+  }\n+\n+  saved_conn = conn;\n+  saved_available = mysql_available;\n+  conn = connection;\n+  mysql_available = true;\n+  fixture_created = create_legacy_table_temporary_schema(connection);\n+  hint_rejected_before =\n+      fixture_created && mysql_query(connection, \"INSERT INTO hint_usage_log (hint_id, room_vnum, \"\n+                                                 \"player_id, weather_condition, season, \"\n+                                                 \"time_of_day) VALUES (3, 1000, 0, 'clear', \"\n+                                                 \"'spring', 'day')\") != 0;\n+  first_migration = fixture_created && run_legacy_table_migrations();\n+  /* The same statement log_hint_usage() issues now lands. */\n+  hint_inserted =\n+      first_migration && mysql_query(connection, \"INSERT INTO hint_usage_log (hint_id, room_vnum, \"\n+                                                 \"player_id, weather_condition, season, \"\n+                                                 \"time_of_day) VALUES (3, 1000, 0, 'clear', \"\n+                                                 \"'spring', 'day')\") == 0;\n+  second_migration = first_migration && run_legacy_table_migrations();\n+  wind_speed =\n+      query_single_int(connection, \"SELECT wind_speed FROM weather_cache WHERE zone_vnum = 30\", -1);\n+  name_index_columns = -1;\n+  if (mysql_query(connection, \"SHOW INDEX FROM player_save_objs WHERE Key_name = 'idx_name' \"\n+                              \"AND Column_name = 'name'\") == 0)\n+  {\n+    MYSQL_RES *result = mysql_store_result(connection);\n+\n+    if (result != NULL)\n+    {\n+      name_index_columns = (int)mysql_num_rows(result);\n+      mysql_free_result(result);\n+    }\n+  }\n+  hint_rows = query_single_int(connection, \"SELECT COUNT(*) FROM hint_usage_log\", -1);\n+  migration_count =\n+      query_single_int(connection,\n+                       \"SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026092701 \"\n+                       \"AND 2026092703\",\n+                       -1);\n+  conn = saved_conn;\n+  mysql_available = saved_available;\n+  mysql_close(connection);\n+\n+  CuAssertTrue(tc, fixture_created);\n+  CuAssertTrue(tc, hint_rejected_before);\n+  CuAssertTrue(tc, first_migration);\n+  CuAssertTrue(tc, hint_inserted);\n+  CuAssertTrue(tc, second_migration);\n+  CuAssertIntEquals(tc, 5, wind_speed);\n+  CuAssertIntEquals(tc, 1, name_index_columns);\n+  CuAssertIntEquals(tc, 2, hint_rows);\n+  CuAssertIntEquals(tc, 3, migration_count);\n+}\n+\n void Test_pet_restore_failure_blocks_snapshot_replacement(CuTest *tc)\n {\n   struct pet_save_fixture fixture;\n",
+    "collapsed": false,
+    "too_large": false,
+    "new_path": "unittests/CuTest/test_database_persistence.c",
+    "old_path": "unittests/CuTest/test_database_persistence.c",
+    "a_mode": "100644",
+    "b_mode": "100644",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false,
+    "generated_file": false
+  }
+]

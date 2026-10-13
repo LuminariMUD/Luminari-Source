@@ -1,0 +1,130 @@
+{
+  "id": 543057471,
+  "iid": 23,
+  "project_id": 86882182,
+  "title": "Load a saved special ability that has no command word",
+  "description": "Closes #19\n\nPhase 1 of `docs/ongoing-projects/object-save-fixes-and-arm-pricing.md`. Handed to review at\nthe tag `object-save-fixes-p1` (`ab7a35b84`): two code commits and the plan's record of the\nphase. The review had one finding; its fix and the plan's record of the review are the two\ncommits after the tag (`1d904677a`, `c62c01124`).\n\n## What changes\n\n- **A saved ability with no command word loads again** (`ea33ddd29`). The object writers store\n  an ability as seven numbers and its command word, and the word is empty for an ability that\n  fires on hit or on a critical hit. `objsave_replace_special_ability()` required eight fields,\n  so the file, player and sheath loaders logged `Invalid SpAb record` and left the object with\n  what its prototype gives it (nothing, for an object with no prototype), and the pet loader\n  rejected the pet's whole object set. The parser now accepts seven numbers and leaves the\n  command word NULL, as `parse_object()` does for a prototype's seven-field record. Fewer than\n  seven numbers is still rejected.\n- **The record replaces one ability, not the list** (`1d904677a`, the review finding). The\n  writers store an object's first ability only, and the loader freed the whole list before it\n  installed that record. While the seven-number record was rejected, a prototype-backed object\n  kept its prototype's list; accepting it cut the three prototypes with two real abilities\n  (#1213, #1244, #20621) to their first one at every load. The record now replaces the ability\n  of its kind, or else the first one, and the rest of the list stays. A first ability that has\n  a command word keeps the rest too, which it did not on master.\n- **`utter` passes over an ability with no command word** (`1340e6957`, found while building).\n  `process_weapon_abilities()` and `process_armor_abilities()` passed a NULL command word to\n  `strcmp()`, so any uttered word crashed the server while such an object was wielded or worn.\n  A prototype's seven-field record or a builder's edit could already produce that ability; the\n  loader fix adds saved objects, so the guard comes first.\n\n## Tests\n\n- `Test_object_special_ability_without_a_command_word_survives_save_and_load`: the production\n  record's ability (vampiric, level 30, on hit and on critical hit) is saved and loaded through\n  the file loader always, and through the player-row and pet-row loaders when the database tests\n  are on, and compared field by field. It fails before the fix with the record logged by each of\n  the three loaders.\n- `Test_object_special_ability_record_keeps_the_rest_of_the_prototype_list`: the two abilities\n  of #1213 (Bane, Flaming Burst on `ignitus`) through the file loader always and the player-row\n  loader when the database tests are on; then with the prototype's list the other way round, as\n  after an OLC save of the zone; with a first ability that has a command word; and with an\n  ability of a kind the prototype does not have. It fails on the loader of `ab7a35b84`, and on\n  the fix when that matches by position only or puts an unmatched ability in front of the list.\n- `Test_pet_object_decoder_validates_fields_and_preserves_text`: a six-number record is one more\n  rejected payload.\n- `Test_gameplay_utter_passes_over_an_ability_with_no_command_word`: `utter` with such an\n  ability on a wielded weapon and on worn armor. It ends in SIGSEGV before the guard.\n\n## Verification\n\nOn `1d904677a`, the last code commit:\n\n- `make -j16 test`: 2039 tests pass.\n- `./cutest` with the database tests on, against a freshly loaded disposable `mariadb:10.11`\n  built from `sql/master_schema.sql`: 2038 of 2039 pass. The one failure is\n  `Test_pet_persistence_legacy_schema_migration_is_idempotent`, the test of #18 (phase 2), on\n  the kind of database #18 describes; this branch does not touch it.\n- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (357 s), the\n  memory-check, sanitizer and coverage jobs among them. The format, hygiene and secrets jobs\n  pass again on `c62c01124`, which adds the plan's record only.\n\n## Not in this merge request\n\n- The writers still save an object's first ability only, so a change to another ability, an\n  emptied list, and the later abilities of an object with no prototype do not survive a load.\n  That is older than this merge request and needs a new row format: #28.\n- `downgrade` and `applyoil` drop ability lists without freeing them, and `downgrade` leaves its\n  preview object behind. Seen while tracing the review finding: #29.\n- An ability already lost from a saved row is not restored: a row that lost its line cannot be\n  told from a row that never had one.\n- No deploy. After the next release the `Invalid SpAb record ... 61 30 48 0 0 0 0` line should\n  no longer appear in the production log.",
+  "state": "merged",
+  "created_at": "2026-10-05T11:19:29.465Z",
+  "updated_at": "2026-10-05T18:30:05.380Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-05T18:30:05.720Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "19-a-saved-special-ability-without-a-command-word-is-rejected-at-load",
+  "user_notes_count": 3,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "c62c0112401fd7893efdcacba93f98d284c93040",
+  "merge_commit_sha": "5523e04a0733b943facd2bec8e1d15fce0a3a123",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-10-05T11:19:31.655Z",
+  "reference": "!23",
+  "references": {
+    "short": "!23",
+    "relative": "!23",
+    "full": "max757/Luminari-Source!23"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/23",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "5",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "c8a28d892250bac6cac5a5a744670f0ba4ee08b3",
+    "head_sha": "c62c0112401fd7893efdcacba93f98d284c93040",
+    "start_sha": "c8a28d892250bac6cac5a5a744670f0ba4ee08b3"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

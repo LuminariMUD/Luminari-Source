@@ -1,0 +1,3106 @@
+[
+  {
+    "id": 205786958,
+    "iid": 34,
+    "project_id": 86882182,
+    "title": "otransform leaves the object on its old rnum hash chain and miscounts both prototypes",
+    "description": "**Defect.** `do_otransform()` (`src/dgscript/dg_objcmd.c`) turns an object into another prototype by reading a fresh copy of the new prototype, copying that object over the live one with `memcpy()`, keeping eleven of the live object's fields, and extracting the fresh copy. The live object comes out of it with the fresh copy's `next_in_hash` and `prev_in_hash`, while the objects on its own rnum hash chain still link to it: after the fresh copy is unlinked and freed, the old chain runs through the live object into the other chain, and the live object's later removal from the hash edits the other chain and leaves its old neighbours pointing at freed memory, which the next walk of that chain reads. The prototype counts go the same way: the live object keeps the old rnum's count and later decrements the new rnum's (`SYSERR: Attempt to decrement object count below 0`). The live object also takes the fresh copy's event list, which the fresh copy's extraction frees.\n\n**Fix.** Move the live object to the chain of its new rnum (`remove_obj_from_rnum_hash()`, then `add_obj_to_rnum_hash()` after the copy) and carry the count from the old rnum to the new one, as `delete_object()` and `adjust_objects()` do since `8e7b0b073`; keep the live object's events, hash links and registry state with the other kept fields, as `overwrite_object()` in `src/olc/genobj.c` does. Four world triggers use `otransform` (`lib/world/trg/`).\n\nSeen while fixing the review findings of [MR !28](https://gitlab.com/max757/Luminari-Source/-/merge_requests/28) (#17), where `otransform` gained the sheath links in its kept list; read from the code, not changed there.",
+    "state": "opened",
+    "created_at": "2026-10-07T21:56:14.659Z",
+    "updated_at": "2026-10-07T21:57:05.319Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/34",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/34",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/34/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/34/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#34",
+      "relative": "#34",
+      "full": "max757/Luminari-Source#34"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205759877,
+    "iid": 33,
+    "project_id": 86882182,
+    "title": "The player sheath loader logs a debug trace and its query at every load",
+    "description": "**Defect.** The player object loader logs a debug trace at every load of a sheath. `crash_restore_records()` logs `SHEATH1` for each loaded object that can be worn as a sheath, `load_sheath_contents()` logs `SHEATH2` to `SHEATH6`, and `objsave_parse_objects_db_sheath()` logs `SHEATH2a` to `SHEATH2g` and the text of its `SELECT` (`log(\"%s\", buf)`), twice per sheath, once per slot. Every login of a character with a sheath adds a dozen lines to the system log that say nothing.\n\n**Fix.** Remove the `log(\"SHEATH...\")` lines and the query echo in `src/obj/objsave.c`. The `SYSERR` lines on a failed query stay.\n\n**Aside.** `objs_from_sheath()` in the same file has no caller.\n\nSeen while building phase 5 of [Object save fixes and arm pricing](https://gitlab.com/max757/Luminari-Source/-/blob/master/docs/ongoing-projects/object-save-fixes-and-arm-pricing.md) (#17); read from the code, not changed there.",
+    "state": "opened",
+    "created_at": "2026-10-07T17:36:05.454Z",
+    "updated_at": "2026-10-07T21:57:09.188Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/33",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/33",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/33/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/33/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#33",
+      "relative": "#33",
+      "full": "max757/Luminari-Source#33"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205754222,
+    "iid": 32,
+    "project_id": 86882182,
+    "title": "stat file on a player who is not online leaves the loaded body in room 0",
+    "description": "`do_stat()` (`src/act/act.wizard.c`, the `stat file` branch) builds a body for a player who is not\nonline with `CREATE`, `clear_char()`, `player_specials` and `load_char()`, puts it in room rnum 0\nwith `char_to_room_cause()`, shows it, and then calls `extract_char(victim)`.\n\n`extract_char()` only flags the character and counts a pending extraction. `extract_pending_chars()`\nwalks `character_list` for the flagged ones, and the body was never put on `character_list`\n(only `create_char()`, `read_mobile()` and the login path add to it). So at the end of the pulse the\ncount is still one, `extract_pending_chars()` logs\n`SYSERR: extract_pending_chars() - 1 extraction(s) still pending after processing character_list.`\nand resets it, and the body stays where it was put: in the people list of room 0, with no\ndescriptor, until the next reboot. Its `char_data`, `player_specials` and action queues are never\nfreed.\n\nFound while answering the review of MR !27 (finding 2 of the `object-save-fixes-p4` review, which\nassumed the body reached `extract_char_final()`; with `get_char_bag()` answering NULL for a body\nwithout bag storage, it would survive that too). The other `load_char()` callers that build a body\n(`do_last`, `do_set`, the clan commands) free it with `free_char()` without a room.\n\nFix: take the body out of the room and free it in place, `char_from_room(victim); free_char(victim);`,\nin place of the `extract_char(victim)` call, and a test that runs `stat file` for a player who is\nnot online and checks that room 0 holds nobody afterwards.",
+    "state": "opened",
+    "created_at": "2026-10-07T16:23:54.391Z",
+    "updated_at": "2026-10-07T16:24:09.724Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/32",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/32",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/32/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/32/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#32",
+      "relative": "#32",
+      "full": "max757/Luminari-Source#32"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205673875,
+    "iid": 31,
+    "project_id": 86882182,
+    "title": "Mail letters and forged notes take rnum 1 without being objects of that prototype",
+    "description": "The postmaster's mail delivery (`src/comms/mail.c:380`) and the two forged-note paths in\n`src/character/backgrounds.c` (lines 1119 and 1382) make a letter with `create_obj()` and then\nset `item_number = 1`. The letter is not an object of the prototype at rnum 1, yet the game\ntreats it as one:\n\n- `create_obj()` does not add it to `obj_index[1].number`, but `extract_obj()` takes it off that\n  count. Each letter thrown away lowers the count of rnum 1's real objects, so zone resets that\n  cap that prototype load more of it.\n- It is not on the `obj_rnum_hash` chain of rnum 1. Before MR !26, removing it from the hash\n  emptied that chain's bucket, and `get_obj_num()` stopped finding the prototype's objects. MR !26\n  makes `remove_obj_from_rnum_hash()` leave alone a chain the object does not head.\n- An OLC save of the prototype at rnum 1 takes the letters for its live objects, and a new\n  prototype below it renumbers them with it.\n\nFound while addressing the review of MR !26.",
+    "state": "opened",
+    "created_at": "2026-10-07T00:33:54.317Z",
+    "updated_at": "2026-10-07T11:11:37.070Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/31",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/31",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/31/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/31/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#31",
+      "relative": "#31",
+      "full": "max757/Luminari-Source#31"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205533883,
+    "iid": 30,
+    "project_id": 86882182,
+    "title": "An OLC save of an object prototype leaves its live objects sharing the prototype's lists",
+    "description": "## Problem\n\n`add_object()` (`src/olc/genobj.c`) replaces an existing prototype and then calls\n`update_all_objects()`, which writes the whole new prototype over every live object of that\nprototype (`*obj = *refobj`) and puts back a list of runtime fields. The list is older than\nseveral fields of `struct obj_data`. After the save, each live object of the prototype:\n\n- shares the prototype's `special_abilities` list and `sbinfo` array. `read_object()` gives\n  every object a copy of its own and `free_obj()` frees both with the object, so extracting one\n  live object frees the prototype's list. The prototype, the other live objects and the next\n  `read_object()` of that prototype then use freed memory, and a second extraction frees it\n  again.\n- has dropped its own `special_abilities`, `sbinfo`, `arcane_mark`, `restring_identifier`,\n  restrung strings, script and `trap` without freeing them.\n- has `next_in_hash` and `prev_in_hash` set to the prototype's NULL while it is still on its\n  `obj_rnum_hash` chain. The chain is cut at that object, so `get_obj_num()` no longer finds\n  the objects behind it, and `remove_obj_from_rnum_hash()` later empties the bucket or leaves a\n  freed object on it.\n- has lost `sheath_primary` and `sheath_secondary` (the sheathed weapons stay in `object_list`\n  with nothing pointing to them), `next_gitem`, `limb_restore_slot` and the `rol_*` runtime\n  state.\n\n## Evidence\n\nRun under valgrind on master `ee42019ed` on 2026-10-06, with a probe test: a prototype with\none special ability, one live object from `read_object()` that carries an arcane mark, then\n`oedit_save_internally()`. After the save the live object's list pointer is the prototype's and\nits mark is NULL. `extract_obj()` of the live object frees the block the prototype still points\nto (an invalid read of the prototype's ability follows), and the object's own list and mark are\nreported lost.\n\nThe spellbook array, the hash links, the sheath pointers and the other fields are read from the\ncode, not run.\n\n## Proposed fix\n\nBefore the prototype is replaced, each live object releases what it owns, as `free_obj()` does.\nAfter the copy it gets copies of its own of what `read_object()` copies, and every runtime-only\nfield is put back.\n\nFound on 2026-10-06 while checking the callers of `free_object_strings()` for work item #15;\nit is not part of that work.",
+    "state": "closed",
+    "created_at": "2026-10-05T21:27:03.025Z",
+    "updated_at": "2026-10-07T11:10:37.125Z",
+    "closed_at": "2026-10-07T11:10:36.896Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/30",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/30",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/30/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/30/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#30",
+      "relative": "#30",
+      "full": "max757/Luminari-Source#30"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205515119,
+    "iid": 29,
+    "project_id": 86882182,
+    "title": "downgrade and applyoil drop an object's special abilities without freeing them, and downgrade leaves its preview object behind",
+    "description": "## Problem\n\nThree places in `src/obj/act.item.c` drop memory that belongs to an object's special abilities,\nor an object itself. Read from the code, not measured.\n\n- `downgrade_item()` sets `obj->special_abilities = NULL` without freeing the list.\n- `do_applyoil()` creates the new ability with `CREATE(weapon->special_abilities, ...)`. The code\n  reaches that line when the weapon has no ability other than `SPECAB_NONE`, so a weapon whose\n  list holds only `SPECAB_NONE` placeholder records, as some prototypes in the dev world files\n  do, loses those nodes without a free.\n- The preview branch of `do_downgrade()` (no confirmation code yet) makes an object with\n  `read_object(ITEM_PROTOTYPE, VIRTUAL)`, copies the player's object over it with `copy_object()`,\n  shows its stats and returns. The preview object is never extracted, so each preview leaves one\n  object in `object_list`.\n\n## Proposed fix\n\nFree the list with `free_obj_special_abilities()` in the first two places, and extract the preview\nobject before the preview branch returns. Check first what `copy_object()` shares between the\npreview object and the player's object, so that the extraction frees nothing the player's object\nstill uses.\n\nTests: `downgrade` (preview, then confirm) and `applyoil` on a weapon with placeholder records,\nunder the memory-check and sanitizer jobs, and a count of `object_list` before and after a\npreview.\n\nFound on 2026-10-05 while tracing the review finding of MR !23 (work item #19); it is not part of\nthat work.",
+    "state": "opened",
+    "created_at": "2026-10-05T17:49:00.526Z",
+    "updated_at": "2026-10-07T11:11:34.796Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/29",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/29",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/29/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/29/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#29",
+      "relative": "#29",
+      "full": "max757/Luminari-Source#29"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205515082,
+    "iid": 28,
+    "project_id": 86882182,
+    "title": "Only the first special ability of an object is saved",
+    "description": "## What happens\n\nThe three object writers in `src/obj/objsave.c` store one `SpAb:` line, for the first ability of\nthe object's list: `objsave_save_obj_record_internal()` (rent files, player rows, house rows),\n`objsave_save_obj_record_db_pet()` and `objsave_save_obj_record_db_sheath()`.\n\n```c\nspecab = obj->special_abilities; /* no loop */\n\"SpAb: %d %d %d %d %d %d %d %s\\n\", ...\n```\n\nThe loaders build an object's list from its prototype and put that one record on it\n(`objsave_replace_special_ability()`, as of MR !23). Nothing else of the saved object's list is in\nthe row, so after a load:\n\n- An object with no prototype has its first ability only.\n- A change to an ability that is not the first is undone, and the prototype's version is back.\n  The weapon-oil loop in `do_applyoil()` (`src/obj/act.item.c`) upgrades the first ability that\n  can be upgraded, which need not be the first of the list, and a staff `iedit` can change any.\n- An object whose list was emptied has its prototype's abilities again: no line is written for an\n  empty list, and one path in `src/obj/act.item.c` empties the list of an object in play.\n\n## Evidence\n\nRun on `1d904677a` (the head of MR !23) with a prototype that has two abilities, through\n`test_objsave_save_obj_record()` and `objsave_parse_objects()`:\n\n```\nemptied list:                 0 saved -> 2 loaded\nsecond ability, level 12->20: 20 saved -> 12 loaded\n```\n\nThe first case is read from the code: `create_obj()` gives no list and the row has one line.\n\n## Fix\n\nStore the whole list: one line per ability, and a mark that tells such a row from today's rows (a\ncount line before them, or a new tag). For today's rows one line means \"the first ability, the\nrest from the prototype\"; for a new row the lines must be the whole list, an empty one included.\nThe loaders replace the list for a new row and keep today's handling for an old one. The pet\ndecoder validates the new lines; the pet save fingerprint already covers the whole list.\n\nTests: round trips of a two-ability object with no prototype, of a prototype-backed object with\nits second ability changed, and of one with its list emptied, through the file, player, sheath and\npet paths, and an old one-line row that still loads as it does today.\n\nFound in the review of MR !23 (work item #19). It is older than that merge request and not part\nof it.",
+    "state": "opened",
+    "created_at": "2026-10-05T17:48:38.579Z",
+    "updated_at": "2026-10-05T17:49:03.062Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/28",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/28",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/28/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/28/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#28",
+      "relative": "#28",
+      "full": "max757/Luminari-Source#28"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205409806,
+    "iid": 27,
+    "project_id": 86882182,
+    "title": "Two hulls at the same position can fire only with the arc that faces north",
+    "description": "## Problem\n\nTwo hulls at exactly the same position can fire at each other only with the weapons on whichever\narc happens to face north, and a hit lands on the target's north-facing arc.\n\n`vessel_bearing_between()` (`src/vessels/vessels.c`) computes the bearing with\n`atan2(dx, dy)`. For coincident positions that is `atan2(0, 0)`, which is 0: due north.\n`vessel_arc_toward()` (`src/vessels/vessels_combat.c`) turns that bearing into an arc relative\nto the heading, and `shipfire`/`shipsight` (`src/vessels/vessels_gunnery.c`) refuse any weapon\nwhose arc is not that one: \"The port Large Ballista cannot bear - <target> lies off your fore\narc.\" The contact list's arc column, the MSDP `SHIP_CONTACTS` arc, the raider AI's facing, and\nthe ram's impact arcs read the same bearing.\n\nCoincident positions are not rare. A `setsail` maneuver and a hull coming to rest in a berth both\nput the hull at the centre of its room (`dx = dy = 0` in `src/vessels/vessels_movement.c`), so\ntwo hulls that maneuver into the same room are at range 0.0.\n\n## Current evidence\n\n- Found in the S9 play test (2026-10-02): two captains at range 0.0 could not fire unless a\n  weapon faced north.\n- Not fixed; the player guide documents the workaround instead\n  (`docs/guides/VESSEL_PLAYER_GUIDE.md`, \"Fighting another captain\": \"Two hulls on the same spot\n  (range 0.0) cannot fire at each other unless a weapon faces north, since at range 0 the bearing\n  is taken as north. Keep a room or two apart.\").\n- The code is unchanged on master `d5cd6a735`.\n\n## Completion criteria\n\n- A defined rule for coincident hulls (for example: every arc bears and the struck arc is chosen\n  from the hulls' relative headings), applied wherever the bearing picks an arc: gunnery sight\n  and fire, the arc a hit lands on, the contact list's arc column, raider facing, and ramming.\n- A production-linked test at range 0.0 in `unittests/CuTest/test_vessel_gunnery.c`.\n- The guide's workaround tip, and help if it changes, updated in both `lib/text/help/help.hlp`\n  and the database.",
+    "state": "opened",
+    "created_at": "2026-10-04T20:54:43.714Z",
+    "updated_at": "2026-10-04T20:54:43.714Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/27",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/27",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/27/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/27/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#27",
+      "relative": "#27",
+      "full": "max757/Luminari-Source#27"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205408845,
+    "iid": 26,
+    "project_id": 86882182,
+    "title": "Vessel cleanups: dead code, stale comments, and stale document figures",
+    "description": "## Problem\n\nSmall stale or dead items noted while the vessel steps were built and reviewed. None changes\nbehavior; each misleads a reader.\n\nCode:\n\n1. `route_save()` in `src/vessels/vessels_autopilot.c` (declared in `src/vessels/vessels.h`)\n   has no callers.\n2. The comment on `save_all_vessels()` in `src/vessels/vessels_db.c` says \"Should be called at\n   shutdown and periodically during auto-save\". It is called at shutdown and at copyover only,\n   and the checked-purchase design relies on that (`docs/systems/VESSEL_SYSTEM.md`: \"nothing\n   saves the fleet periodically\").\n3. `vesseldebug balance` prints \"holding the healthier beam at 6-9 rooms\"\n   (`src/vessels/vessels_balance.c`). The harness captain holds 7.5 rooms\n   (`VESSEL_BALANCE_DUEL_HOLD`); the 6-9 band was replaced.\n4. `GET_VESSEL_INSURANCE_CLAIM()` and `GET_VESSEL_MERCHANT_CONSEQUENCE()` in\n   `src/core/utils.h` do not parenthesize their argument; `GET_VESSEL_SETTLEMENT()` beside\n   them does.\n5. Two `INSERT` statements in `src/vessels/vessels_autopilot.c` (`ship_waypoints`,\n   `ship_routes`) are still formatted SQL, not prepared statements.\n\nSQL comments:\n\n6. `sql/components/vessels_phase25_schema.sql` describes `player_id`, and\n   `vessels_phase24_schema.sql` describes `creator_id`, as `player_data.player_idnum`. The code\n   stores the player-file ID (`GET_IDNUM()`), and `VESSEL_SYSTEM.md` calls\n   `player_data.player_idnum` an unrelated key. Confirm and correct the comments.\n\nDocuments:\n\n7. The size of `struct greyhawk_ship_data` is stated as 2,672 bytes in `VESSEL_SYSTEM.md`\n   (three places), 5,120 in the same document's tier table and in\n   `docs/testing/VESSEL_BENCHMARKS.md`, and 5,104 in `docs/development/CONSIDERATIONS.md` and\n   `docs/adr/0001-unified-vessel-system.md`. The built object reports 2,712\n   (`gdb -batch -ex 'print sizeof(struct greyhawk_ship_data)' src/vessels/vessels_movement.o`\n   on master `d5cd6a735`).\n8. `docs/testing/VESSEL_SYSTEM_TESTING.md` (\"Mechanical Balance Diagnostic\") says the balance\n   report \"lists crew payroll\" (crew wages were removed) and records only the 2026-08-02 run\n   as the latest balance result.\n\n## Completion criteria\n\n- Items 1-5 corrected or removed, with the build, `make test-all`, and the SQL interpolation\n  baseline passing.\n- Item 6 confirmed against the code and the comments corrected in the SQL and, if it carries\n  the same text, the boot DDL.\n- Items 7-8: one measured structure size in every document that states it, and the balance\n  section describing the current report.",
+    "state": "opened",
+    "created_at": "2026-10-04T20:37:25.633Z",
+    "updated_at": "2026-10-04T20:37:27.454Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/26",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/26",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/26/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/26/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#26",
+      "relative": "#26",
+      "full": "max757/Luminari-Source#26"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205408839,
+    "iid": 25,
+    "project_id": 86882182,
+    "title": "A command that waits in the action queue is followed by a second, empty prompt",
+    "description": "## Problem\n\nWhen a command waits a pulse in the action queue, the server sends a second prompt that is\nempty except for the telnet go-ahead (IAC GA), so the command's reply follows two prompts.\nA client that ignores GA shows both prompts on one line.\n\n## Current evidence\n\n- Observed on 2026-10-02 during the vessel play test in the Luminari Web client, and in the\n  transcripts of the scripted login helper (`scripts/development/dev_kohdee_login_smoke.sh`)\n  from the vessel gates. It happens with any queued command, not only vessel commands.\n- `make_prompt()` in `src/core/comm.c` appends IAC GA to the prompt even when the prompt text\n  is empty (the branch that sets `*prompt = '\\0'`), so an otherwise empty prompt is still sent.\n  `src/core/comm.c` has not changed since the observation. The exact path that asks for the\n  extra prompt was not traced.\n\n## Completion criteria\n\n- The path that produces the second prompt is identified.\n- A command that waits in the action queue is followed by one prompt, or the bare go-ahead is\n  shown to be intended and is documented in `docs/systems/PROTOCOL_SYSTEMS.md`.\n- A test in the prompt tests (`comm_make_prompt_for_test()` exists for them) or a transcript\n  check covers it.",
+    "state": "opened",
+    "created_at": "2026-10-04T20:37:22.303Z",
+    "updated_at": "2026-10-04T20:37:24.237Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/25",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/25",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/25/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/25/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#25",
+      "relative": "#25",
+      "full": "max757/Luminari-Source#25"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205408833,
+    "iid": 24,
+    "project_id": 86882182,
+    "title": "Harbor provisioner stops when the merchant's schedule is disabled",
+    "description": "## Problem\n\n`scripts/vessels/provision_vessel_harbor.sh` stops at its NPC merchant check whenever the\nHarbor Sandbox Merchant's schedule is disabled, and nothing in the script or the game enables\nit again.\n\n- The server disables a schedule by itself: a scheduled departure whose route fails the\n  traversal check clears `SCHEDULE_FLAG_ENABLED` and saves it\n  (`schedule_trigger_departure()` in `src/vessels/vessels_autopilot.c`, log line \"Disabled\n  untraversable scheduled route\"). A hull stalled off her route gets there too.\n- The harbor provisioner's merchant check requires `schedule.enabled = 1` and only reads it.\n  `scripts/vessels/provision_vessel_campaign.sh` has the same situation for the Vailand\n  merchant and repairs it: it re-applies the route and sets `ship_schedules.enabled = 1`.\n- In the development database the harbor merchant's schedule has been disabled since\n  2026-09-29, and she is battered (armor 0, rudder 1 of 20). Every gate batch since then\n  enabled the schedule by hand in its disposable copy of the database before running the\n  provisioner or the merchant gate.\n\n## Completion criteria\n\n- `provision_vessel_harbor.sh` restores the harbor merchant to service on a database where her\n  schedule was disabled (as the campaign provisioner does for the Vailand merchant), or fails\n  with a message that names the cause and the fix.\n- The Shared Harbor merchant gate (`scripts/vessels/test_vessel_merchant_in_game.sh`) passes on\n  a fresh copy of the development database with no manual SQL first.\n- `docs/testing/VESSEL_SYSTEM_TESTING.md` (\"Shared Harbor Fast Check\") says what the\n  provisioner does about a disabled schedule.\n\n## References\n\n- `docs/systems/VESSEL_SYSTEM.md`, \"Cargo & Trade Commands\" (schedules) and \"Shared\n  Development Harbor\"",
+    "state": "opened",
+    "created_at": "2026-10-04T20:37:19.088Z",
+    "updated_at": "2026-10-04T20:37:21.098Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/24",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/24",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/24/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/24/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#24",
+      "relative": "#24",
+      "full": "max757/Luminari-Source#24"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205408827,
+    "iid": 23,
+    "project_id": 86882182,
+    "title": "Test gaps left by the vessel steps S9-S15",
+    "description": "## Problem\n\nThe vessel steps S9 through S15 recorded these verification gaps and left them open. Each path\nwas checked once by hand or by a live gate, and none has a test that runs in `make test-all`.\n\n1. **`shipbuy` and its trade-in when the ship-side write is refused.** Work item #14 asked for a\n   database-backed test per command family for a refused ship-side write. The shipyard jobs,\n   the summons, and the payouts have one (`unittests/CuTest/test_vessel_payment.c`,\n   `test_vessel_loss.c`). `shipbuy` and the trade-in undo (`vessel_trade_in_undo()` in\n   `src/vessels/vessels_edit.c`) do not: no unit-test world generates ship interiors, so only\n   the loss gate (`scripts/vessels/test_vessel_loss_in_game.sh`) plays them.\n   `unittests/CuTest/test_vessel_shipyard.c` covers only the charge that cannot be saved and\n   the hull that cannot be delivered.\n2. **A write and its undo both refused.** The hire and the summons that stand have unit tests.\n   The trade-in whose records cannot be put right and the bought hull that stays in play\n   (`src/vessels/vessels_edit.c`) have neither a test nor a gate. They were verified once by\n   hand on 2026-10-04; the method is in `docs/testing/VESSEL_SYSTEM_TESTING.md` (\"Vessel Loss\n   Check\").\n3. **Smaller untested paths in `src/vessels/vessels_payment.c`:** a trade-in payout that cannot\n   be saved, a refund whose own save fails, a lost reply on the prepared bounty statement, and a\n   sale whose first write is refused and whose write-back also fails.\n4. **No live gate accepts freight.** No gate script types `contractaccept`; the economy gate\n   plants a freight settlement with SQL. The command is covered by\n   `unittests/CuTest/test_vessel_rewards.c` only.\n5. **The help import and the help delete** check the help-sync lock inside their transaction\n   (`src/olc/hedit.c`), as the help save does, but only the save and the lock function have a\n   test (`unittests/CuTest/test_database_transactions.c`).\n\n## Completion criteria\n\n- A unit-test fixture that can generate a ship interior, and with it tests for `shipbuy` and\n  the trade-in: a refused write undone and refunded, and a refused undo that keeps the charge\n  and tells the staff.\n- Tests for the four paths in item 3.\n- A `contractaccept` step in a live gate (the economy or the rules gate).\n- Tests that drive the help import and the help delete with the lock lost.\n- Or, for any item judged not worth a test, a line in `VESSEL_SYSTEM_TESTING.md` that says so.",
+    "state": "opened",
+    "created_at": "2026-10-04T20:37:15.223Z",
+    "updated_at": "2026-10-04T20:38:24.495Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/23",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/23",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/23/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/23/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#23",
+      "relative": "#23",
+      "full": "max757/Luminari-Source#23"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205408818,
+    "iid": 22,
+    "project_id": 86882182,
+    "title": "Staff recovery for vessel records the game could not put right",
+    "description": "## Problem\n\nRelease acceptance item 6 in `docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md` asks\nthat \"every documented operational failure mode has a tested staff or command-line recovery\nprocedure\". Four vessel cases hand the problem to the staff with no command and no written\nprocedure:\n\n1. **A plunder bounty that could not be recorded.** `plunder` logs to the staff: \"...'s bounty\n   of N gold for plundering ship ... could not be recorded; it has to be applied by hand.\"\n   (`src/vessels/vessels_piracy.c`, `do_plunder`). No staff command sets or adds a bounty:\n   `bounty` has only `pay`, so \"by hand\" means SQL on `vessel_bounties` against a running\n   server.\n2. **A trade-in that failed and could not be undone.** `shipbuy <id> trade` tells the captain\n   \"Your N gold stays paid until the staff settle it\" and logs \"the database may hold the new\n   hull: the N gold charged is kept and has to be settled by hand.\" (`src/vessels/vessels_edit.c`).\n   Nothing says how to tell which hull the rows hold or how to return the gold.\n3. **A freight delivery whose outcome is unknown.** When neither the delivery nor its undo can\n   be confirmed, `contractdeliver` logs \"Freight contract N of <player> may be recorded as\n   delivered without its N gold payout\" (`src/vessels/vessels_contracts.c`). There is no\n   procedure for checking `freight_contracts` and paying or reopening the contract.\n4. **Another player's waypoint or route of the same name.** Waypoints and routes are looked up\n   by name: the caller's own row, then a harbor row (creator 0), then the newest\n   (`src/vessels/vessels_autopilot.c`). An immortal who must delete or inspect one player's\n   `x` cannot choose it when the immortal or the harbor also has an `x`: `delroute` and\n   `delwaypoint` take only a name.\n\n`docs/systems/VESSEL_SYSTEM.md` describes each message but no recovery, and the\ntroubleshooting section has no entry for them.\n\n## Completion criteria\n\n- A staff command, or a documented and tested command-line procedure, for each of the four\n  cases: apply a bounty, settle a trade-in the rows may hold, settle a delivery of unknown\n  outcome, and address a waypoint or route by ID or by creator.\n- The procedures are in `VESSEL_SYSTEM.md` (\"Troubleshooting\" or \"Operations\") and, for\n  commands, in help (`lib/text/help/help.hlp` and the database).\n- Each is exercised once: a test for a new command, a recorded run for a written procedure.\n\n## References\n\n- `docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md`, section 8\n- `docs/systems/VESSEL_SYSTEM.md`, \"Cargo & Trade Commands\" (checked purchases and payouts)",
+    "state": "opened",
+    "created_at": "2026-10-04T20:37:12.290Z",
+    "updated_at": "2026-10-04T20:38:23.459Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/22",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/22",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/22/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/22/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#22",
+      "relative": "#22",
+      "full": "max757/Luminari-Source#22"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205408813,
+    "iid": 21,
+    "project_id": 86882182,
+    "title": "Vessel scale gate has no current threshold or measurement",
+    "description": "## Problem\n\nThe vessel release requirements ask for the complete vessel subsystem to stay within 25 ms per\ngame tick at 500 vessels (`docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md`, section 6\n\"Performance\" and release acceptance item 5). That gate has no current measurement and no\ncurrent threshold:\n\n- `scripts/vessels/run_vessel_scale_benchmark.sh start` refuses to run: \"The fleet-heartbeat\n  benchmark is retired. Measure native vessel owner events before defining new scale\n  thresholds.\"\n- `docs/testing/VESSEL_BENCHMARKS.md` (\"Current Verdict\") says the native 500-hull measurement\n  taken on the S2 momentum model is the new scale baseline, and that \"a native per-tick\n  threshold replacing the retired runner's 25 ms p95 gate is not yet defined\".\n- That measurement (section \"S2 Momentum Re-baseline\": 500 hulls, mean 1.34 ms per 500-hull\n  tick) was taken on 2026-09-29, before the damage model, gunnery, crew stamina, crew repairs,\n  and raider AI were added to the per-tick work. Nothing was measured afterwards, and the ferry\n  soak was not rerun either.\n- `docs/systems/VESSEL_SYSTEM.md` (\"Performance Characteristics\") says the final preflight must\n  repeat the full scale gate on the release candidate.\n- The gate table's \"Development mechanics and final preflight\" row is marked Complete on the\n  strength of the older 500-vessel run.\n\n## Completion criteria\n\n- A native per-tick threshold is defined from the vessel owner-event profiler (the measurement\n  procedure is in `VESSEL_BENCHMARKS.md`, \"S2 Momentum Re-baseline\").\n- The 500-hull measurement is repeated on current master and recorded in\n  `VESSEL_BENCHMARKS.md` against that threshold.\n- `run_vessel_scale_benchmark.sh` either runs the native measurement or is removed, with its\n  parser test.\n- The gate table row and the `VESSEL_SYSTEM.md` performance section state the current evidence.\n\n## References\n\n- `docs/testing/VESSEL_BENCHMARKS.md`\n- `docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md`, \"Release Gate State\"\n- `src/vessels/vessel_periodic.c`",
+    "state": "closed",
+    "created_at": "2026-10-04T20:37:09.307Z",
+    "updated_at": "2026-10-04T21:15:59.098Z",
+    "closed_at": "2026-10-04T21:15:59.086Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/21",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/21",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/21/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/21/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#21",
+      "relative": "#21",
+      "full": "max757/Luminari-Source#21"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205408807,
+    "iid": 20,
+    "project_id": 86882182,
+    "title": "Close the vessel release gates: player-data balance, human beta, staged rollout",
+    "description": "## Problem\n\nThe engineering work on the vessel system is finished: the DurisMUD naval model (steps S1-S15,\nmerge requests !6 through !22) is merged, and `docs/adr/0003-durismud-naval-model.md` records its\ndecisions. Three release gates remain in the \"Release Gate State\" table of\n`docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md`, and no work item tracked them:\n\n| Gate | State | Exit condition in the table |\n| -- | -- | -- |\n| Player-data balance | Open | Collect real beta data, then tune combat time-to-kill, crew hire prices, freight margins, refit costs, insurance, and dock fees |\n| Structured human beta | Open | Validate first-hour discovery, multiplayer roles, builder independence, a supervised NPC-shipping sample within one hour, and at least 70% \"fun\" combat feedback |\n| Staged production rollout | Blocked | After balance and beta sign-off: staff, then a beta cohort, then all players, with rollback authority, monitoring, the announcement, and a postmortem |\n\n## Current evidence\n\n- Every balance number is a DurisMUD value translated into LuminariMUD's units (2 gold per\n  platinum, speed times 0.3, hull level times 30/56). None has been measured on LuminariMUD\n  players. ADR 0003 lists the anchors the numbers were derived from (\"Balance anchors\").\n- `vesseldebug balance` (`src/vessels/vessels_balance.c`) checks the equal-warship duel against\n  decision D2 (3-8 minute median, 12 minute p95, nothing under 90 seconds) and the 1,000-trade\n  simulation. It is mechanical evidence only, and its last line reads \"Human beta and player fun\n  sign-off: REQUIRED\".\n- The one full play-through so far (step S9, 2026-10-02) was a single operator playing two mortal\n  captains through the web client, with a staff character staging each scenario. Two paths could\n  not be played and have unit-test coverage only:\n  - renown and prize money shared among allied hulls in sight (needs a third captain);\n  - an ordinary creature encounter at sea (the development sandbox's only encounter row is the\n    Admiralty hunter patrol).\n- The vessel MSDP variables were exercised in the Luminari Web client and over a raw MSDP\n  connection (`scripts/vessels/test_vessel_client_in_game.sh`). Mudlet and LuminariGUI were left\n  out of the play test.\n- Hull wear and weather damage kept their absolute points when the damage model enlarged armor\n  and sails (`vessel_upkeep_tick()` in `src/vessels/vessels_upgrades.c`, storm damage in\n  `src/vessels/vessels_hazards.c`), so they now matter proportionally less. They were left as\n  an input to this gate, not tuned.\n- The gate table says general production release is not approved while a row is Open or Blocked.\n  The deploy record of 2026-10-04 has production running the current vessel code, schema, and\n  content (harbor sandbox, public ferry, Vailand merchant, Blackwake derelict, raider and\n  contraband content). The table does not say what is live or under what limits, so the rollout\n  row and the deployed state need reconciling.\n- `docs/development/CONSIDERATIONS.md` (\"Vessel System\", Active Concerns) and the \"Release\n  Status\" header of `docs/systems/VESSEL_SYSTEM.md` repeat the open gates.\n\n## Completion criteria\n\n- A beta with real players is run and its results recorded: first-hour discovery, multiplayer\n  crew roles (including a fight with at least three captains, so the allied renown split is\n  played), builder independence, a supervised NPC-shipping sample inside one hour, a creature\n  encounter at sea, and a combat \"fun\" rating from the respondents.\n- Combat time to kill, crew hire prices, freight margins, refit costs, insurance, and dock fees\n  are tuned from that data, or confirmed unchanged, with the evidence recorded in\n  `docs/testing/VESSEL_BENCHMARKS.md`. Weapon reload time is the agreed tuning lever for time to\n  kill (ADR 0003).\n- The rollout row states what production runs and the stages still to come, or is closed after\n  the staged rollout.\n- Each of the three rows in the gate table is Complete with its evidence, or re-scoped by the\n  product owner, and `CONSIDERATIONS.md` and the `VESSEL_SYSTEM.md` header say the same.\n\n## References\n\n- `docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md`, sections 8 and \"Release Gate State\"\n- `docs/adr/0003-durismud-naval-model.md`\n- `docs/systems/VESSEL_SYSTEM.md` (`vesseldebug balance`)\n- `docs/guides/VESSEL_PLAYER_GUIDE.md` (the played system, chapter by chapter)",
+    "state": "closed",
+    "created_at": "2026-10-04T20:37:06.234Z",
+    "updated_at": "2026-10-04T21:15:45.814Z",
+    "closed_at": "2026-10-04T21:15:45.801Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/20",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/20",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/20/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/20/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#20",
+      "relative": "#20",
+      "full": "max757/Luminari-Source#20"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205404138,
+    "iid": 19,
+    "project_id": 86882182,
+    "title": "A saved special ability without a command word is rejected at load",
+    "description": "## What happens\n\nAn object's saved special ability is rejected at load when it has no command word, which is the\nnormal case for an ability that fires on hit or on a critical hit.\n\n`objsave_replace_special_ability()` (`src/obj/objsave.c`) requires eight fields:\n\n```c\nstrict_sscanf(line, \"%d %d %d %d %d %d %d %127s\", ...) != 8\n```\n\nThe writers in the same file store an empty string when the ability has no command word:\n\n```c\n\"SpAb: %d %d %d %d %d %d %d %s\\n\", ..., (specab->command_word && *specab->command_word) ? specab->command_word : \"\"\n```\n\nSo a record such as `SpAb: 61 30 48 0 0 0 0 ` (vampiric, level 30, on hit and on crit) has seven\nfields, the load logs `SYSERR: Invalid SpAb record in object save data: 61 30 48 0 0 0 0` and the\nobject keeps only what its prototype gives it. An ability added to that one object (staff edit,\ncrafting, generated treasure) is dropped, and the next save stores the object without it.\n\n## Since when\n\nCommit `853a3f226` (2026-07-29, \"fix residual CodeQL findings\") added the field-count check. The\nloader before it accepted the seven-number record and left the command word empty.\n\n## Seen\n\nProduction log, 2026-10-04: the line above at every login of the staff character Kohdee (nine\ntimes, same record). No other character logged it between 2026-10-02 and 2026-10-04.\n\n## Fix\n\nAccept seven numbers with no command word (store an empty or NULL command word, as the old loader\ndid), keep rejecting a record with fewer than seven numbers, and add a round-trip test in\n`unittests/CuTest/test_database_persistence.c` next to the existing `SpAb: 0 0 0 0 0 0 0 cccc`\ncase: save an object whose ability has no command word, load it, and compare the ability.",
+    "state": "closed",
+    "created_at": "2026-10-04T20:00:23.471Z",
+    "updated_at": "2026-10-05T18:30:06.275Z",
+    "closed_at": "2026-10-05T18:30:06.227Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/19",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/19",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/19/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/19/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#19",
+      "relative": "#19",
+      "full": "max757/Luminari-Source#19"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205379580,
+    "iid": 18,
+    "project_id": 86882182,
+    "title": "Pet legacy-migration test fails on a database built from master_schema.sql alone",
+    "description": "`Test_pet_persistence_legacy_schema_migration_is_idempotent` (`unittests/CuTest/test_database_persistence.c:792`) fails on a database that was built from `sql/master_schema.sql` alone, when the syntax-check boot has not run against that database first. It passes in the local CI matrix and in `make test-all`, where the boot runs before it.\n\nSeen twice: in S5's verification (2026-09-30, \"passes on rerun\") and by the reviewer of MR !21 (2026-10-04). Reproduced on 2026-10-04 at `b485062c8`.\n\n## Repro\n\n```bash\ndocker run -d --rm --name petprobe -e MARIADB_ROOT_PASSWORD=probe -e MARIADB_DATABASE=luminari_probe \\\n  -p 127.0.0.4:3306:3306 mariadb:10.11\ndocker exec -i petprobe mariadb -uroot -pprobe luminari_probe < sql/master_schema.sql\nLUMINARI_TEST_MYSQL_ENABLE=1 LUMINARI_TEST_MYSQL_HOST=127.0.0.4 LUMINARI_TEST_MYSQL_PORT=3306 \\\n  LUMINARI_TEST_MYSQL_USER=root LUMINARI_TEST_MYSQL_PASSWORD=probe \\\n  LUMINARI_TEST_MYSQL_DATABASE=luminari_probe LUMINARI_TEST_SKIP_SYNTAX_BOOT=1 \\\n  CUTEST_FILTER=Test_pet_persistence_legacy_schema_migration_is_idempotent ./cutest\n```\n\n```text\nSYSERR: Required cascading foreign key pet_save_objs.pet_idnum -> pet_data.pet_data_id is missing\n1) Test_pet_persistence_legacy_schema_migration_is_idempotent: unittests/CuTest/test_database_persistence.c:872: assert failed\n```\n\nLine 872 is `CuAssertTrue(tc, first_verification)`: `verify_pet_persistence_schema()` fails right after `run_pet_persistence_migrations()` succeeded. A second run on the same database fails the same way.\n\n## What is not known yet\n\nWhether this is only the test's fixture (it relies on something a boot leaves in the database, such as rows of `schema_migrations` or the tables' boot-time shape), or the migrations themselves leave the foreign key out when they start from the `master_schema.sql` shape. The second would matter on a fresh install whose first boot goes through the same functions, so that is the first thing to check.\n\n## Done when\n\nThe test passes alone on a database made from `master_schema.sql`, with and without the syntax-check boot before it, and the cause is named (fixture or migration).",
+    "state": "closed",
+    "created_at": "2026-10-04T12:10:57.266Z",
+    "updated_at": "2026-10-05T20:41:16.791Z",
+    "closed_at": "2026-10-05T20:41:16.755Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/18",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/18",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/18/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/18/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#18",
+      "relative": "#18",
+      "full": "max757/Luminari-Source#18"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205367658,
+    "iid": 17,
+    "project_id": 86882182,
+    "title": "A loaded sheath loses its weapons on a pet and leaks them when extracted",
+    "description": "**Defect.** A sheath's weapons hang off the sheath object (`sheath_primary`, `sheath_secondary`) and are handled only by the player save and by `sheath` / `unsheath`. Two paths lose track of them.\n\n1. **Pet saves.** `objsave_save_obj_record_db_pet()` writes no sheath rows. A loaded sheath given to a pet comes back empty when the pet is restored, and its weapons are in no row.\n2. **Extraction.** `extract_obj()` does not look at a sheath's weapons. Extracting a loaded sheath (junk, a shop sale, the extraction after a rent save) frees the sheath and leaves the weapons in `object_list` with no holder. After a rent save that is a memory leak only, since the rows were written. After a junk or a sale the weapons are gone from play without having been destroyed.\n\n**Not part of this.** A loaded sheath lying in a house: MR !20 (review P1) made the house save store its weapons as the house's own objects.\n\n**Fix.** Give the pet writer the sheath rows the player writer has (or refuse a loaded sheath on a pet), and make `extract_obj()` extract what a sheath holds.\n\nFound while fixing the review of MR !20 (S13); read from the code, not played. Not changed there.",
+    "state": "closed",
+    "created_at": "2026-10-04T08:02:19.310Z",
+    "updated_at": "2026-10-08T06:39:19.712Z",
+    "closed_at": "2026-10-08T06:38:02.316Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 3,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/17",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/17",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/17/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/17/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#17",
+      "relative": "#17",
+      "full": "max757/Luminari-Source#17"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205367652,
+    "iid": 16,
+    "project_id": 86882182,
+    "title": "Bagged objects stay in memory when their owner leaves the game",
+    "description": "**Defect.** When a character leaves the game, what it had sorted into its bags stays in memory with no holder.\n\n`extract_char()` calls `empty_bags_to_inventory()` (`src/core/handler.c`). Despite its name, that function only unlinks each bagged object with `obj_from_bag()`: no `obj_to_char()` follows, and nothing extracts the object. The objects stay in `object_list` for the life of the process.\n\n**Effect.** Memory only. Every quit, idle-out or rent of a character with bagged objects leaks them, and anything that walks `object_list` goes on visiting them. Nothing is lost from the save: the leaving save writes the bags first (`Crash_save_bags()`), and the next login loads them from their rows.\n\n**Also in that function.** It passes bag number 1 to `obj_from_bag()` for all ten bags, so the domain transfer record names the wrong bag for bags 2 to 10.\n\n**Fix.** Extract the bagged objects where the leaving save extracts the worn and carried ones (`objsave_save_and_extract()` in `src/obj/objsave.c`), and decide what `extract_char()` should do with them on the paths that do not save first.\n\nFound while fixing the review of MR !20 (S13); read from the code, not measured. Not changed there.",
+    "state": "closed",
+    "created_at": "2026-10-04T08:02:17.999Z",
+    "updated_at": "2026-10-07T17:15:37.451Z",
+    "closed_at": "2026-10-07T17:14:28.487Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/16",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/16",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/16/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/16/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#16",
+      "relative": "#16",
+      "full": "max757/Luminari-Source#16"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205345632,
+    "iid": 15,
+    "project_id": 86882182,
+    "title": "An object with no prototype leaks its arcane mark when freed",
+    "description": "## Problem\n\n`free_obj()` (`src/core/db.c`) frees an object's strings in one of two ways. An object with a\nprototype goes through `free_object_strings_proto()`, which frees `arcane_mark`. An object with\nno prototype (`GET_OBJ_RNUM(obj) == NOWHERE`) goes through `free_object_strings()`\n(`src/olc/genobj.c`), which frees `name`, `description`, `short_description`,\n`action_description`, the extra descriptions, `char_sdesc` and `restring_identifier`, but not\n`arcane_mark`.\n\nSo an object with no prototype that carries an arcane mark leaks the mark when it is extracted.\nThe mark is set with `strdup()` when a saved record with an `AMrk` line loads\n(`src/obj/objsave.c`, both parsers) and in `copy_object()` (`src/olc/genobj.c`).\n\n## Evidence\n\nRead from the code, not measured. The existing test\n`Test_object_saves_bind_player_house_and_serialized_text` frees the mark by hand before\n`extract_obj()` for this reason.\n\n## Proposed fix\n\nFree `arcane_mark` in `free_object_strings()`, after checking its other callers (the OLC cleanup\nand the prototype teardown in `destroy_db()`) so that no path frees it twice.\n\nFound on 2026-10-04 while writing the S13 tests (work item #13); it is not part of that work.",
+    "state": "closed",
+    "created_at": "2026-10-03T22:13:34.338Z",
+    "updated_at": "2026-10-06T20:44:04.845Z",
+    "closed_at": "2026-10-06T20:44:04.811Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/15",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/15",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/15/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/15/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#15",
+      "relative": "#15",
+      "full": "max757/Luminari-Source#15"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205336312,
+    "iid": 14,
+    "project_id": 86882182,
+    "title": "Vessel purchases and payouts move gold without a checked save",
+    "description": "## Problem\n\nS11 (#10) made `cargobuy` and `cargosell` save the captain's gold with `save_char_checked()` and undo the trade when that save fails. The other vessel commands that take or pay gold still write the ship's side to MariaDB at once and move the gold in memory only (`award_gold()`). The gold reaches the player file with the next per-minute save (the persistence step in `src/core/comm.c`). A crash before that save splits the two stores:\n\n- A purchase keeps what was bought and gives the gold back.\n- A payout takes the item or the freight and never pays.\n\nMost of these commands also do not check the ship-side save: `vessel_db_save_weapons()`, `vessel_db_save_runtime()` and `vessel_db_save_cargo()` return a result that is dropped, and `vessel_db_save_crew()` and `vessel_db_save_extras()` return none. A refused write goes unreported.\n\n## Sites (master `ec8f55b26`, all under `src/vessels/`)\n\nPurchases:\n\n| Command | Gold moves in | Ship side written |\n| -- | -- | -- |\n| `shipbuy` | `do_shipbuy()`, `vessels_edit.c:1115` | the new hull, before the gold |\n| `shipbuy` trade-in | `vessel_trade_in()`, `vessels_edit.c:1012` | the rebuilt hull (a failed save is only logged); the net can be a charge or a credit |\n| `shipchristen` | `do_shipchristen()`, `vessels_edit.c:1200` | the new name |\n| `shiphire` | `do_shiphire()`, `vessels_crew.c:595` | the crew |\n| `shipweapon` (buying) | `vessel_buy_weapon()`, `vessels_weapons.c:600` | weapons and runtime |\n| `shipequip` (buying) | `do_shipequip()`, `vessels_weapons.c:885` | weapons and runtime |\n| `shiprearm` | `do_shiprearm()`, `vessels_weapons.c:953` | weapons and runtime |\n| `shiprepair` | `do_shiprepair()`, `vessels_repair.c:484` | runtime and weapons |\n| `shipupgrade` | `do_shipupgrade()`, `vessels_upgrades.c:597` | the refit |\n| `shipsummon` | `do_shipsummon()`, `vessels_loss.c:541` | the summons |\n| bounty pay-off | `vessel_bounty_pay()`, `vessels_piracy.c:1061` | the bounty cleared (checked), before the gold |\n| `marque` | `do_marque()`, `vessels_piracy.c:1174` | the letter issued (checked), before the gold |\n\nPayouts:\n\n| Command | Gold moves in | Ship side written |\n| -- | -- | -- |\n| `shipweapon sell` | `do_shipweapon()`, `vessels_weapons.c:662` | the emptied slot |\n| `shipequip` (selling) | `do_shipequip()`, `vessels_weapons.c:848` | the emptied slot |\n| `contractdeliver` | `do_contractdeliver()`, `vessels_contracts.c:716` | the unloaded hold (unchecked) and the contract marked done (a failure is only logged), before the gold |\n\nNot part of this: the passenger fare, the insurance and merchant-consequence deliveries, and cargo trades already save the gold checked; freight acceptance and dock fees do too and become two-phase with #12. The land and sea transport fare (`enter_transport_paid()`, `transport.c:522`) keeps the fare and the journey in the same player file, so nothing splits.\n\n## Proposed fix\n\nS11's level, in the shape the passenger fare already has (`vessel_collect_passenger_fare()`: debit, `save_char_checked()`, restore on failure), through one shared helper:\n\n- Both stores are written and checked inside the command, and a failure of either is undone and reported, so only a crash between the two writes of one command can split them.\n- A purchase whose gold cannot be saved is refused; a purchase whose ship-side write fails is refunded.\n- A payout whose gold cannot be saved puts the item or the freight back.\n- DB-backed CuTest cases per command family for a failed gold save and a refused ship-side write.\n\nNot #12's two-phase settlement record: each of these commands would need its own stored undo (delete a hull, strip a weapon, dismiss a crew), and the window left after a checked save (a failed save, a failed undo, then a crash) is the one #12 closes for cargo, freight and dock fees.\n\nFound on 2026-10-03 while planning S13 and S14 of the vessel study (#13, #12); the sites were read, not fault-injected.",
+    "state": "closed",
+    "created_at": "2026-10-03T18:54:01.291Z",
+    "updated_at": "2026-10-04T20:38:24.558Z",
+    "closed_at": "2026-10-04T17:42:02.421Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/14",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/14",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/14/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/14/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#14",
+      "relative": "#14",
+      "full": "max757/Luminari-Source#14"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205305439,
+    "iid": 13,
+    "project_id": 86882182,
+    "title": "Database writes can land outside their transaction after an auto-reconnect",
+    "description": "## Problem\n\nEvery MariaDB connection is created with `MYSQL_OPT_RECONNECT` on (`src/database/mysql.c:174`,\n`322`, `466`, `554`). A probe against MariaDB (2026-10-03, while fixing MR !17's second review\nfinding) showed what this does to an open transaction when the connection drops:\n\n1. The next statement fails with client error 2006. The library refuses one reconnect because the\n   session was \"in transaction\", and clears that flag.\n2. The statement after that reconnects silently and runs in **autocommit on a new session**. The\n   server has already rolled back the original transaction, so earlier writes are gone while later\n   ones land on their own. Even a `COMMIT` then reports success with nothing saved.\n3. A `COMMIT` that fails with client error 2013 was sent, but its reply was lost, so the outcome\n   is unknown. Code nearly everywhere treats that as \"rolled back\".\n\nCode is safe only if it issues nothing but `ROLLBACK` after the first failed statement in a\ntransaction, and if it treats an unanswered `COMMIT` as unknown. Cargo trades were fixed on\n`feat/vessels-s12` (`2ba35d6b1`, MR !18): `vessel_db_save_cargo()` stops at its first failure, and\n`trade_record()` writes again after an unanswered COMMIT. A read-only audit of the other 25\ntransaction sites found these.\n\n## Writes that continue after a failure (partial writes land outside the transaction)\n\n- **Player object saves can duplicate items** (`src/obj/objsave.c`). The object writer returns 1\n  even when its INSERT failed (561-567), and `Crash_save` ignores results from its recursive calls\n  (1095-1096). The bag saves ignore their results too (1340-1349, 1477-1486, 1565-1574), as does\n  the sheath writer (576, 580). So `Crash_crashsave` and `Crash_rentsave` always reach COMMIT.\n  After a drop, the server rolls back the DELETE, the later INSERTs autocommit, the COMMIT\n  \"succeeds\", and `PLR_CRASH` is cleared (1376). The next login loads the old rows plus the new\n  partial ones. Periodic crash saves are a hot path (`limits.c:1405`).\n- **`Crash_idlesave` never commits** (`objsave.c:1379-1502`). It opens the transaction through\n  `objsave_begin_player_save()` and has only ROLLBACKs, so every later autocommit statement on\n  `conn` joins that open transaction. It runs only when `free_rent` is NO; the default is YES.\n- **House contents** (`src/obj/house.c:125-129`, `166`): the same always-1 writer.\n- **Pet gear** (`objsave.c:1121-1126`, used by `save_char_pets` and `pet_store_pet` in\n  `src/player/players.c`): the contents branch keeps writing after a sibling write failed.\n- **Help import** (`src/olc/hedit.c:3599-3606`, `3364`, `3370`, `3499`): the loop counts errors and\n  carries on. The final ROLLBACK reports that everything was rolled back, while a partial import\n  stays in the database.\n- **Help save** (`hedit.c:633-653`, `764-796`): the version-history and keyword-DELETE statements\n  are unchecked, so a drop there leaves the save non-atomic, and the COMMIT can report success.\n- **Bounty overwrite** (`src/vessels/vessels_merchants.c:783` \u2192 `vessels_piracy.c:617-626`,\n  `657`): a failed bounty read inside the transaction returns 0. Then `0 + amount` is written as\n  the absolute bounty on the reconnected session, overwriting a larger bounty downward.\n\n## COMMITs whose outcome is unknown, treated as rolled back\n\n- `pet_retrieve_stored` (`players.c:8112-8117`): if the commit landed, the pet row is ACTIVE with\n  no live pet, and the next pet save deletes it with its gear.\n- `pet_store_pet` (`players.c:7892-7897`): a STORED row plus the live pet, which means a duplicate\n  pet or a key clash on later saves.\n- `vessel_transfer_owner` (`src/vessels/vessels_ownership.c:219-233`): memory reverts to the old\n  owner but the database keeps the new one, so ownership flips at the next reboot.\n- `vessel_event_finish` (`src/vessels/vessels_events.c:712-729`): a staff retry applies the\n  leaderboard increments a second time.\n- `do_contractaccept` (`src/vessels/vessels_contracts.c:598`): the contract stays TAKEN with\n  nothing in the hold (also noted on #12).\n\n## Also seen in the audit (not reproduced)\n\n- When a pooled connection fails its ping, `mysql_pool_acquire` closes and replaces it\n  (`mysql.c:309-318`). That would leave the global `conn` pointing at freed memory, and the ping\n  fails in exactly this in-transaction case.\n- The help-sync lock (`help.c:140`, `GET_LOCK`) belongs to the session, so a silent reconnect\n  drops it without the holder knowing.\n- Not a transaction issue: `hedit.c:743-745` calls `mysql_store_result(conn)` after a prepared\n  SELECT, so it returns NULL and removed help keywords are never deleted.\n\n## Proposed fix\n\n- **One rule for every transaction:** after the first failed statement, issue nothing but\n  ROLLBACK. Writers inside transactions (the objsave and house writers, `Crash_save`, the bag and\n  sheath saves, the pet gear branch, the help import helpers) return failure and stop. The\n  bounty read propagates its failure. `Crash_idlesave` commits.\n- **An unanswered COMMIT (client error 2000-2999) is unknown, not rolled back.** Where the writes\n  are absolute and idempotent, write again on a reconnected session, as `trade_record()` now does.\n  Where they are conditional or incremental (pet store/retrieve, owner transfer, event finish,\n  freight), read back a durable marker after reconnecting before choosing a state. #12's\n  settlement record covers the vessel cases.\n- **Consider a shared helper** (for example `db_commit_checked()` returning\n  committed/refused/unknown) so each site does not reinvent the classification.\n- **Tests:** DB-backed CuTest cases per fixed site. Inject an unanswered COMMIT at the test level,\n  and for a real drop use `mysql_send_query(conn, \"COMMIT\", 6)`, `shutdown()` of\n  `mysql_get_socket(conn)`, then `mysql_read_query_result()`, which gives a real 2013 after a real\n  commit. Real drops need persistent tables, because TEMPORARY fixtures vanish on reconnect.\n- **The pool's stale-`conn` replacement and the help-lock loss** need their own check.\n\nFound and spot-checked on 2026-10-03 (objsave writer, `Crash_idlesave`, bounty read confirmed in\nthe code); the audit is read-only and only the trade path was fault-injected.",
+    "state": "closed",
+    "created_at": "2026-10-03T08:59:41.671Z",
+    "updated_at": "2026-10-04T08:32:56.054Z",
+    "closed_at": "2026-10-04T08:32:55.869Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 4,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/13",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/13",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/13/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/13/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#13",
+      "relative": "#13",
+      "full": "max757/Luminari-Source#13"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205253873,
+    "iid": 12,
+    "project_id": 86882182,
+    "title": "Vessel settlements: two-phase gold and cargo records across a crash",
+    "description": "## Problem\n\nA vessel settlement writes two stores that share no transaction: the ship's side (cargo\nmanifest, port supply, contract, dock-fee balance) goes to MariaDB, and the captain's gold goes\nto the player file. Since S11 (work item #10, MR !17), `cargobuy` and `cargosell` record the\ntrade first, then save the gold with `save_char_checked()`. If that save fails, they record the\npre-trade state again. If that undo cannot be recorded either, the trade stands, in memory as in\nthe database, and the persistence service's per-minute checked save stores the gold once the\ndisk recovers.\n\nOne window stays open: a failed player-file save, a failed undo, and then a crash before any\nlater save succeeds. The database then keeps the trade and the player file keeps the old gold,\nso a buyer keeps both the gold and the cargo, and a seller loses the cargo without being paid.\n\nA settlement record kept only in the database cannot close this window. At recovery it cannot\ntell whether a later save carried the gold, so a record left behind by a failed delete would\nundo a paid trade or put sold cargo back aboard (a dupe). It only moves the window to the mirror\ncase: the save succeeded, but the delete failed before the crash.\n\n## Full fix\n\nTreat each vessel settlement as two-phase, with a marker in the player file:\n\n- A settlement table (schema phase with rollback and verifier SQL, `master_schema.sql`, the boot\n  ensure function). Its row is written in the same transaction as the trade and carries the\n  undo: signed deltas for the supply and the lot, not absolute values.\n- A player-file field: the newest settlement id whose gold this file holds, saved with the gold.\n- Reconcile at login, and before the ship's next trade or cargo save: a row the player file\n  covers is settled (delete it), and a row it does not cover is undone (apply the deltas). The\n  ship's trading is held while a row is open.\n- \"Undone\" is reported only after the undo commits.\n\n## Same shape elsewhere\n\nFreight acceptance (`do_contractaccept`, `vessels_contracts.c`) and dock-fee payment\n(`do_dockfees`, `vessels_trade.c`) also compensate after a failed save, and on a failed\ncompensation they only log a `SYSERR` and report that no gold was taken. They should use the same\nsettlement path.\n\nContext: the MR !17 review thread\nhttps://gitlab.com/max757/Luminari-Source/-/merge_requests/17#note_3947012858",
+    "state": "closed",
+    "created_at": "2026-10-02T20:26:12.932Z",
+    "updated_at": "2026-10-04T12:58:28.339Z",
+    "closed_at": "2026-10-04T12:58:28.318Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/12",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/12",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/12/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/12/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#12",
+      "relative": "#12",
+      "full": "max757/Luminari-Source#12"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205219712,
+    "iid": 11,
+    "project_id": 86882182,
+    "title": "Vessel waypoints and routes have no owner: any captain can delete another's idle routes",
+    "description": "## Problem\n\nVessel waypoints (`ship_waypoints`) and routes (`ship_routes`, `ship_route_waypoints`) are one\npool shared by every player, and the schema does not record who created a row. Any captain at a\nhelm, or the owner anywhere aboard, can `delwaypoint` or `delroute` any of them.\n\nS10 (branch `feat/vessels-s10`, commit `523417bbd`) closed the harmful case only: `delwaypoint`\nrefuses a waypoint that any route sails through, and `delroute` refuses a route that a hull runs on\na schedule or is sailing (under way, waiting or paused). The public ferries and merchants run on\nschedules, so their routes and waypoints are safe.\n\nStill open: a route a player has saved but is not sailing, and a waypoint on no route, can be\ndeleted by anyone. A rival can wipe another captain's saved routes between voyages.\n\n## Proposed fix\n\n- Add a creator column to `ship_waypoints` and `ship_routes` (player name or ID, empty for staff\n  and content rows), in a new vessel schema phase with rollback and verifier SQL, `master_schema.sql`\n  and the boot ensure functions.\n- `setwaypoint` and `createroute` record the creator; `delwaypoint` and `delroute` allow the\n  creator and immortals only, and keep the S10 in-use refusals.\n- Existing rows: leave the creator empty (staff-only deletion) or backfill where it can be\n  inferred; decide in the plan.\n- Production-linked CuTest coverage, DELWAYPOINT and DELROUTE help in both places,\n  `VESSEL_SYSTEM.md`.\n\n## Why not in S10\n\nS10 is the player guide; the guard it added needs no schema change. Ownership needs a migration\nand a decision on legacy rows.",
+    "state": "closed",
+    "created_at": "2026-10-02T14:19:28.889Z",
+    "updated_at": "2026-10-03T10:23:41.012Z",
+    "closed_at": "2026-10-03T10:23:40.986Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/11",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/11",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/11/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/11/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#11",
+      "relative": "#11",
+      "full": "max757/Luminari-Source#11"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 205185498,
+    "iid": 10,
+    "project_id": 86882182,
+    "title": "Cargo buy and sell move gold without a checked save",
+    "description": "## Problem\n\n`cargobuy` and `cargosell` (`src/vessels/vessels_trade.c`) move gold only in memory, then write the cargo manifest and the port's supply to the database. Neither saves the player file, and `vessel_db_save_cargo()`'s result is not checked.\n\n- **Buying:** `award_gold(ch, -cost)`, then `port_adjust_supply()` and `vessel_db_save_cargo()`. If the server crashes before the captain's next routine save, the cargo is in the database but the gold comes back on reload: free cargo.\n- **Selling:** `award_gold(ch, revenue)`, then the supply and manifest writes. A crash before the next save loses the sale's gold while the cargo is already gone. If the manifest write fails, a later save keeps the gold with the cargo still recorded aboard: sold cargo that can be sold again.\n\n## Background\n\nThis is the same gap MR !15's review found in freight contract acceptance ([P2], note 3943254722). That was fixed there in `a703572e3`:\n\n- the contract claim and the manifest commit in one transaction;\n- the bond is debited only after that commits, then saved with `save_char_checked()`;\n- a failed save restores the gold, reopens the contract and unloads the freight;\n- `vessel_db_save_cargo()` now returns whether its writes succeeded.\n\n`cargobuy` and `cargosell` predate S9 and were left out of that fix to keep it to the finding.\n\n## Fix\n\nGive both commands the same shape:\n\n- write the manifest and port supply in one transaction;\n- move the gold only after it commits, and save it with `save_char_checked()`;\n- on a failed save, restore the gold and undo the manifest and supply changes.\n\nAdd DB-backed tests for a refused manifest write and a failed character save, like `Test_vessel_freight_bond_pays_for_the_goods`. New SQL that carries values must use `PREPARED_STMT`, since `check_sql_interpolation.py` gates the file's count.",
+    "state": "closed",
+    "created_at": "2026-10-02T07:52:29.882Z",
+    "updated_at": "2026-10-03T18:54:11.063Z",
+    "closed_at": "2026-10-02T20:39:55.516Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/10",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/10",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/10/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/10/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#10",
+      "relative": "#10",
+      "full": "max757/Luminari-Source#10"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 204672217,
+    "iid": 9,
+    "project_id": 86882182,
+    "title": "Artificer device feat text describes temporary devices",
+    "description": "Found in the live check of #4 (its item 29); still true on master `962463fa6`.\n\nThe artificer feat `FEAT_WEIRD_SCIENCE` (`src/character/feats.c:5862-5867`) says its devices are\ntemporary with a limited number of uses per day. In the code, devices are permanent (the saved\n`duration` field is never read) and regain one use per tick out of combat (`check_device_one()`,\n`src/core/limits.c`). The device help entry already states the real rules.\n\n## Done when\n\n- [ ] The `FEAT_WEIRD_SCIENCE` description matches the device mechanic and the device help entry.\n- [ ] `make -j$(nproc)` passes.",
+    "state": "opened",
+    "created_at": "2026-09-28T10:24:28.829Z",
+    "updated_at": "2026-09-28T10:24:28.829Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/9",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 2,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/9",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/9/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/9/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#9",
+      "relative": "#9",
+      "full": "max757/Luminari-Source#9"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 204672203,
+    "iid": 8,
+    "project_id": 86882182,
+    "title": "Devices accept entries that need an object or a typed argument",
+    "description": "Found in the live check of #4 (its item 30); still true on master `962463fa6`.\n\n`device_spell_level()` (`src/act/act.other.c:11876`) admits any wizard or cleric list entry\nregardless of its targets, so `device spells` lists and `device create` accepts entries such as\n`SPELL_ENCHANT_ITEM` (`TAR_OBJ_INV`) and `SPELL_PRESERVE` (`TAR_OBJ_ROOM`). `device use` always\ncalls `call_magic(ch, target, NULL, ...)` (`src/act/act.other.c:12847`), so those get no object\nand have no effect.\n\nEntries that read the global `cast_arg3` misbehave too: only `do_gen_cast` sets it\n(`src/magic/spell_parser.c:3402`), so `spell_minor_creation` (`src/magic/spells.c:5016`, wizard\nlevel 1) run from a device reads the argument of whoever last used `cast`. The other readers in\n`src/magic/spells.c` are `spell_control_summoned_creature`, `spell_siphon_might`,\n`spell_human_potential`, `spell_mass_human_potential`, `spell_overland_flight` and\n`spell_ventriloquate`; check which are reachable at device circles 1-4.\n\nFor each family, either refuse it in `device add`/`device create` and leave it out of\n`device spells`, or pass the object and argument through `device use`.\n\n## Done when\n\n- [ ] No device can hold an entry that does nothing from a device.\n- [ ] No device use reads a `cast_arg3` left by another player's cast.\n- [ ] Production-linked tests in `unittests/CuTest/test_artificer_devices.c` that fail on the old\n  code.\n- [ ] If player-visible device behavior changes, the device help entry is updated in the dev help\n  DB and `lib/text/help/help.hlp`.\n- [ ] `make -j$(nproc)`, `make test` and `make install` pass.",
+    "state": "opened",
+    "created_at": "2026-09-28T10:24:19.701Z",
+    "updated_at": "2026-09-28T10:24:19.701Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/8",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 5,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/8",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/8/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/8/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#8",
+      "relative": "#8",
+      "full": "max757/Luminari-Source#8"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 204672185,
+    "iid": 7,
+    "project_id": 86882182,
+    "title": "Read-only device subcommands should not need a standard action",
+    "description": "Found in the live check of #4 (its item 28); still true on master `962463fa6`.\n\n`device` is registered with `ACTION_STANDARD` (`src/core/interpreter.c:1494`), and the\ninterpreter refuses a command whose actions are unavailable with \"You must wait for the required\naction before trying that command.\" (`src/core/interpreter.c:6963`). `device use` spends the\nstandard action (`USE_STANDARD_ACTION(ch)` in `ACMDU(do_device)`, `src/act/act.other.c`), so\nright after a use the read-only subcommands `device list`, `info`, `spells`, `usage` and\n`cooldown` are refused too.\n\nOnly the acting subcommands (`use`, `create`, `add`, `repair`, `destroy`, ...) should need the\naction. `is_device_cancel_command()` (`src/core/interpreter.c:6585`) already reads the subcommand\nbefore the busy check and is a model.\n\n## Done when\n\n- [ ] `device list`, `info`, `spells`, `usage` and `cooldown` work without an available standard\n  action; `device use` and the other acting subcommands still need it.\n- [ ] A production-linked test in `unittests/CuTest/test_artificer_devices.c` that fails on the\n  old code (`CUTEST_FILTER=artificer ./cutest`).\n- [ ] `make -j$(nproc)`, `make test` and `make install` pass.",
+    "state": "opened",
+    "created_at": "2026-09-28T10:24:07.743Z",
+    "updated_at": "2026-09-28T10:24:07.743Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/7",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 3,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/7",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/7/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/7/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#7",
+      "relative": "#7",
+      "full": "max757/Luminari-Source#7"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 204672085,
+    "iid": 6,
+    "project_id": 86882182,
+    "title": "Publish the artificer help from #4 to production",
+    "description": "#4 changed player help in the development help DB and `lib/text/help/help.hlp` (commits\n`a6d9eda29` and `a814d7cdc`), written through the help-sync delta writer (plan id\n`work-item-4-artificer-help`). Production help was deliberately left unsynced when #4 merged.\n\nPending changes from #4:\n\n- new artificer class entry (`ARTIFICER ARTIFICER-CLASS CLASS-ARTIFICER`);\n- the device entry (`ARTIFICER-DEVICES DEVICE DEVICE-CREATE DEVICES TOTAL-DEVICE`) rewritten to the real `device` subcommands, charges, penalties and repair;\n- `GNOMES RACE-GNOME RACE-GNOMES` lists Gnomish Tinkering and Brilliance and Blunder;\n- the class roster entry no longer carries the two artificer keywords.\n\nHelp is published even when production does not yet run the code it documents.\n\n## Done when\n\n- [ ] A full help-sync run (`sync --authorize-production`, per\n  `.agents/skills/help-sync/SKILL.md`) publishes these entries to the production help DB and\n  production `help.hlp`.\n- [ ] The run's verification shows development and production matching for these entries.",
+    "state": "opened",
+    "created_at": "2026-09-28T10:22:43.198Z",
+    "updated_at": "2026-09-28T10:24:39.913Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/6",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 2,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/6",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/6/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/6/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#6",
+      "relative": "#6",
+      "full": "max757/Luminari-Source#6"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 204672081,
+    "iid": 5,
+    "project_id": 86882182,
+    "title": "Grant saved characters the single-rank racial feats their race gained later",
+    "description": "## Problem\n\nA character receives racial feats only from `process_race_level_feats()`\n(`src/character/class.c:3086`), which `advance_level()` runs for the level just reached. A feat\nadded to an existing race therefore reaches only characters created or respecced afterwards (a\nrespec reruns `do_start()`). Saved characters silently lack mechanics their race now provides.\n\nEvidence on master `962463fa6`, counted from the development player files (`lib/plrfiles/*/*.plr`,\ncharacters whose `Feat:` block records any feats):\n\n| Race | Feat (assigned at level 1 in `src/character/race.c`) | Added by | Characters missing it |\n| -- | -- | -- | -- |\n| Half-Troll | Bodyslam (`FEAT_BODYSLAM`) | `0831ef644` (2026-09-12), which turned the race check into a feat check | 85 of 85 |\n| Crystal Dwarf | Stability (`FEAT_STABILITY`) | `0831ef644` | 31 of 33 |\n| Trelux | Psionic Resistance (`FEAT_PSIONIC_RESISTANCE`) | the Duris races work (#2) | 20 of 20 |\n| Gnome | Brilliance and Blunder (`FEAT_BRILLIANCE_AND_BLUNDER`) | #4 (`e4946d92e`) | 215 of 215 |\n\nSo old Half-Trolls lost the bodyslam skill, old Crystal Dwarves their knockdown resistance, and no\nexisting gnome can build a four-spell artificer device. `racefix` cannot help: it reads the\ndeprecated `level_feats[][]` array in `src/character/class.c:2072`, which has none of these rows.\n\nBecause of this gap, two damage checks in `src/combat/fight.c` keep a race test beside the feat:\n`GET_RACE(ch) == RACE_TRELUX || HAS_FEAT(ch, FEAT_PSIONIC_RESISTANCE)` (line 3915) and\n`IS_LICH(ch) || HAS_FEAT(ch, FEAT_COLD_IMMUNITY)` (line 3429). `docs/systems/GAME_MECHANICS_SYSTEMS.md`\n(\"Racial Innate Feats and Spell-Like Abilities\") documents that workaround.\n\n## Fix\n\nWhen a character enters the game, grant each single-rank racial feat that its real race assigns\nat or below its level and that it does not hold, through the same code the level-up path uses.\n\n1. Shared grant: move the per-assignment body of `process_race_level_feats()` (special handling\n   via `special_handling_level_feats()` or the \"[race] You have gained/improved\" message, then\n   the rank increment and the `FEAT_DAMAGE_REDUCTION` update) into one static helper, so a\n   repaired feat behaves exactly like a level-up grant.\n2. Repair: add `grant_missing_race_feats()` beside it, declared in `src/character/class.h`. Skip\n   NPCs and invalid races. Walk `race_list[GET_REAL_RACE(ch)].featassign_list` (the real race,\n   as the level-up path does, so a disguise or wild shape changes nothing) and grant each\n   assignment whose `level_received` is at most `GET_LEVEL(ch)`, whose feat has `can_stack`\n   false in `feat_list[]`, and whose `HAS_REAL_FEAT()` is zero (gear granting the feat must not\n   hide the gap). Log character, race and feat for each grant; return the number granted.\n3. Hook: call it in `enter_player_game()` (`src/core/interpreter.c:7695`) right after the\n   class-spell top-up (\"make sure we assign any new spells\"). Menu login, copyover recovery\n   (`src/core/comm.c`) and description-completion entry (`src/character/char_descs.c`) all pass\n   through there. A new character enters at level 0 and gets nothing until `do_start()` runs.\n   The next save persists the feat; a login before that save repeats the same grant.\n\nStackable (multi-rank) racial feats stay out: a saved rank does not show which ranks came from\nthe race and which from class or study, so a top-up could over- or under-grant. Current racial\ngrants of stackable feats: Armor Skin, Damage Reduction, Enhanced Spell Damage, Fast Casting,\nFast Healing, Fast Movement, Slow Casting. No migration script, `racefix` change or new command\nis needed.\n\nOnce the repair lands, drop the Trelux race test from the psionic resistance check. All 14\ndevelopment Liches already hold Cold Immunity; drop `IS_LICH()` from the cold check too unless\nproduction data shows otherwise (Lich electric immunity stays a race check).\n\n## Done when\n\n- [ ] `grant_missing_race_feats()` exists and is called from `enter_player_game()`.\n- [ ] Tests in `unittests/CuTest/test_racial_innate_feats.c`: a saved Half-Troll without\n  Bodyslam and a Crystal Dwarf without Stability each gain it once and a second call grants\n  nothing; a held feat keeps its rank; an assignment above the character's level is skipped; a\n  stackable racial feat (Armor Skin on a Half-Ogre) is not topped up; the real race is read\n  while a disguise race is set; an NPC is untouched.\n- [ ] Live check on port 4100 (`MUD_PORT=4100 ./scripts/autorun/autorun.sh`): remove a racial\n  feat with `featset <name> '<feat>' -1` (for example Bodyslam on a Half-Troll), reconnect, see\n  the \"[race] You have gained\" line, use the feat, find it in the player file after the next\n  save; repeat through a copyover.\n- [ ] The two race tests in `compute_damtype_reduction()` are removed or their retention is\n  justified in the code.\n- [ ] `docs/systems/GAME_MECHANICS_SYSTEMS.md` (racial innate section) and\n  `docs/guides/ADDING_NEW_RACE_GUIDE.md` (racial feats) say that a single-rank feat added to an\n  existing race reaches saved characters at their next login, while a stackable grant still\n  reaches only new or respecced characters.\n- [ ] `make -j$(nproc)`, `make test` and `make install` pass.\n\nRollout note: production picks the repair up at the next restart, which needs its own approval;\nthe log lines count the repaired characters. A rollback leaves granted feats in place, which is\nwhat those characters should hold.",
+    "state": "closed",
+    "created_at": "2026-09-28T10:22:38.654Z",
+    "updated_at": "2026-10-02T17:50:29.685Z",
+    "closed_at": "2026-10-02T17:50:29.676Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/5",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 6,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/5",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/5/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/5/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#5",
+      "relative": "#5",
+      "full": "max757/Luminari-Source#5"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 204599592,
+    "iid": 4,
+    "project_id": 86882182,
+    "title": "Artificer device add rejects 3rd and 4th circle spells",
+    "description": "Player report (Voduk, level 22, room 103056, 2026-09-27): `device spells` lists 4th-level\nspells for a level 20 artificer, but adding anything above 2nd level to a device fails with\n\"That spell is not available to artificers of your level.\"\n\n## Cause\n\n`device add` in `ACMDU(do_device)` (`src/act/act.other.c`, around line 12819) compares a class\nlevel against a spell circle:\n\n```c\nif (spell_assignment_level >= LVL_IMMORT || spell_assignment_level > max_spell_level)\n```\n\n- `spell_assignment_level` is `MIN(min_level[CLASS_WIZARD], min_level[CLASS_CLERIC])`, a class\n  level (for example lightning bolt is wizard level 5).\n- `max_spell_level` is a circle cap: 4 at artificer 11+, 3 at 5+, 2 at 3+, else 1.\n\nAt artificer 11+ the cap of 4 admits class levels 1-4, which are circles 1-2. Every 3rd-circle\n(class level 5) and 4th-circle (class level 7) spell is rejected, exactly as reported. Lower\nartificer levels are affected the same way (at 5-10, cap 3 admits only circles 1-2).\n\n`device create` and `device spells` are correct: both convert to a circle with\n`(min_level + 1) / 2` / `compute_spells_circle()` before comparing to `max_spell_level`.\n\n## Fix\n\nConvert to a circle in `device add` the same way `device create` does before the cap\ncomparison.\n\nThe same block also skips work `device create` does: it does not store\n`inv->spell_levels[]` for the added spell and does not check the per-circle budget from\n`weird_science_table`. Once circles 3-4 become reachable through `add`, that lets `add`\nexceed the circle limits `device create` enforces; decide in the fix whether `add` should\napply the same budget check.\n\n## Test\n\nProduction-linked CuTest: a level 20 artificer with an existing device can `device add` a\n3rd- and 4th-circle wizard spell, and a level 3 artificer cannot add a 3rd-circle spell.\n\n## Other artificer defects (class pass, 2026-09-27)\n\nFound in a read-through of the whole class; each was confirmed by tracing the code, not\nreproduced in game. Lines are in `src/act/act.other.c` unless a file is named.\n\n### High\n\n1. **Stack overflow from `device create`.** `find_skill_num()` (`src/magic/spell_parser.c:509`)\n   copies each word with the unbounded `any_one_arg()` into the 256-byte `first2`, and the\n   device parser accepts a single word of up to 511 characters (12117-12133). A 300-character\n   word skips the exact match and overruns the buffer, crashing the server.\n2. **Broken state is not saved.** `broken` and `dc_penalty` are never written or read\n   (`src/player/players.c` 3370-3400 save, 5273-5381 load). Breaking also sets `uses = 0`,\n   so after relog a broken device comes back working, fully charged and with no penalty.\n   The rename scanner's line counts (`src/player/player_rename.c` 573/597/619) must match.\n3. **`device use` keeps casting after the target dies** (13064-13071). It ignores\n   `call_magic()` returning -1; the potion path breaks on `<= 0`\n   (`src/magic/spell_parser.c:1736`). A PvP victim moved to the start room gets hit by the\n   remaining spells there.\n4. **Metamagic Science on wands and staves costs 1 charge** (`src/magic/spell_parser.c`\n   1585, 1670). `calculate_metamagic_charge_cost()` is only used for stored wands/staves\n   (`src/obj/act.item.c` 7331, 7431), so `use wand maximized <target>` on a 1-charge wand\n   works when it should need 4.\n5. **Improved Metamagic Science UMD check can never fail.** It tests `umd_check < 0`, but\n   `skill_check()` returns 0 on failure (`src/magic/spell_parser.c:1541`,\n   `src/obj/act.item.c` 7071, 7203). Stored quaff/recite also build the DC from\n   `spell_level` still at its initial 99 (7026), giving DC 317+, so fixing only the\n   comparison makes it always fail.\n\n### Medium\n\n6. **`device create cancel` and `device repair cancel` are unreachable.** The busy\n   allow-list (`src/core/interpreter.c:6866`) blocks every `device` command during creation\n   or repair, and `device` has no `CMD_FEATURE_ACTIVITY_CONTROL`. The progress message\n   (13960) still tells the player to type the cancel. `quit` is blocked too, for the whole build (up to 630 s).\n7. **Skills pass as 1st-circle device spells.** `init_spell_levels()` gives every skill\n   `min_level` 1 for all classes (`src/character/class.c:3726-3731`). `device create kick`\n   uses a 1st-circle slot, and `device use` skips spell numbers `>= NUM_SPELLS`, so the\n   device does nothing.\n8. **Elbow Grease and Jack of All Trades never reach craft rolls.** The bonuses are added\n   only in `compute_ability()` (`src/character/abilities.c:130-172`); every craft check reads\n   raw ranks via `get_craft_skill_value()` -> `GET_ABILITY()`\n   (`src/craft/crafting_new.c:6191`, used by `craft.c`, `crafts.c`).\n9. **No starting gear for artificers.** `newbieEquipment()` has no `CLASS_ARTIFICER` case\n   (`src/character/class.c:2568-2650`) and logs \"Invalid class sent to newbieEquipment class!\".\n10. **Construct Iron Golem is unreachable.** Assigned at level 30 (`src/character/class.c:9257`)\n    but the class caps at 20, so `craft create golem type iron` is always refused for\n    artificers.\n11. **Brilliance and Blunder cannot be obtained.** `feato(..., can_learn FALSE)`\n    (`src/character/feats.c:5943`) and no race or class assigns it. The 4-spell devices and\n    the explosion code below are unreachable until it is granted.\n\n### Low\n\n12. **Explosion skips death handling** (12990-13020). It lowers HP with\n    `combat_apply_raw_damage()` and only prints \"proves fatal\"; the artificer or groupmate\n    stays standing below 0 HP. Latent until item 11 is fixed.\n13. **Explosion damage is 11d6 per non-wizard spell** (12976-12978).\n    `compute_spells_circle(CLASS_WIZARD)` returns `NUM_CIRCLES + 1` for cleric-only spells.\n    Latent until item 11 is fixed.\n14. **Circle slots are assigned greedily in typed order** (12359-12375). With one 1st-circle\n    slot left, `device create strength \"mage armor\"` fails but `\"mage armor\" strength`\n    succeeds.\n15. **Per-device cooldown is dead.** `cooldown_expires` is never set to a future time (only\n    zeroed at 13740, 14110), so the destroy lock (12578), `device cooldown`, and the\n    COOLDOWN tag in `device list` never trigger.\n16. **`device info` never shows BROKEN.** It infers status from `cooldown_expires` and\n    `uses` (13306) instead of reading `inv->broken`.\n17. **Failed uses cost no action.** A broken-device attempt (12877) and a failed UMD\n    (12950-13028) return before `USE_STANDARD_ACTION` (13074); the interpreter only checks\n    availability, so the player can retry at once.\n18. **Build time uses the wrong spell level** (12457-12459). It prefers the wizard level\n    even when the lower cleric level was assigned: `strength` takes 90 s instead of 30 s.\n19. **\"Available device slots\" is inflated** (12057-12064). It adds every existing device\n    that is off cooldown, so a level 1 artificer with a full slot is told 1 is available.\n20. **Extra spells are silently dropped** (12101). `device create a b c d` without\n    Brilliance and Blunder builds a 3-spell device with no warning.\n21. **Destroy warning says 30 minutes** (12611) but the code sets 20 (12653).\n22. **Premade artificer wastes feat picks** (`src/character/premadebuilds.c:2295-2303`). It\n    buys Craft Magical Arms and Armor at 1 and Craft Wonderous Item at 1 (human) and 3,\n    which the class grants free at 5 and 4.\n23. **Artificer Item Creation does nothing.** Granted at level 2\n    (`src/character/class.c:9249`) but never checked anywhere in `src/`.\n24. **No artificer class help.** `class-artificer` and `artificer-class` point to the\n    CLASS-ROSTER entry in both `help.hlp` (6415) and the help DB.\n25. **Device table read past its end at artificer level 21+** (12047,\n    `weird_science_table[artificer_level - 1]`). Only staff `advance` can push the class\n    level past 20.\n\n## Practical check: device creation at level 1 (live, dev server, 2026-09-27)\n\nCreated a fresh human premade artificer (Gizmotest) on the dev server and ran the device loop.\n\n**Is it essential?** Yes. The artificer has no spell progression (`classo` spell progression\n\"none\"; score shows MgcLvl 0). Weird Science devices are the class's only access to spells,\nand the feat is granted at level 1.\n\n**Can they build one early?** Yes. At level 1, `device create \"mage armor\"` built a device in\n30 s with no materials or gold. `device use 1` applied mage armor, and the single charge\nrecharged about 30 s later out of combat (`check_device_one()`, `src/core/limits.c:2236`).\nLevel 1 allows one 1st-circle device (`weird_science_table`); 2nd circle opens at 3, 3rd at\n5, 4th at 11. Items 6, 9, 22 and 24 above were reproduced live.\n\nNew findings from this check:\n\n26. **The device help describes a different mechanic.** The `DEVICES` entry (`device`,\n    `device-create`, `artificer-devices`; `help.hlp` 9807 and the help DB) gives\n    `device create <device-type>` and talks about components, blueprints, infusions and\n    automations. The real syntax is `device create <spell> [spell2] [spell3]` with quoted\n    multi-word names, and none of the other subcommands are documented. Its \"See also:\n    ARTIFICER\" leads to the class roster (item 24). A player guessing `create device` gets\n    \"Sorry, but you cannot do that here!\".\n27. **No starting weapon or armor (item 9, seen live).** After creation the artificer wears\n    nothing and carries only a quiver and a backpack, so at level 1 its only attack is one\n    device charge per fight.\n28. **Information subcommands need a free standard action.** The whole `device` command is\n    `ACTION_STANDARD` (`src/core/interpreter.c:1494`), so right after `device use`,\n    `device list`, `device usage` and `device cooldown` were refused with \"You must wait\n    for the required action before trying that command.\"\n29. **Weird Science text contradicts the mechanic.** The feat says devices \"are temporary\n    and can be used a limited number of times per day\" (`src/character/feats.c:5864`).\n    Devices are permanent (`duration = 24` is stored but never read) and recharge one use\n    per tick out of combat.\n30. **Spells that need an object or argument do nothing from a device.** `device spells`\n    lists and `device create` accepts spells such as enchant item (`TAR_OBJ_INV`) and\n    preserve (`TAR_OBJ_ROOM`), but `device use` always passes a NULL object, so they have no\n    effect. Minor creation reads the global `cast_arg3`, which only `do_gen_cast` sets\n    (`src/magic/spell_parser.c:3390`), so a device uses whatever argument the last player\n    to type `cast` supplied.",
+    "state": "closed",
+    "created_at": "2026-09-27T17:27:13.924Z",
+    "updated_at": "2026-09-28T10:24:38.858Z",
+    "closed_at": "2026-09-28T02:09:13.570Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 3,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/4",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/4",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/4/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/4/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#4",
+      "relative": "#4",
+      "full": "max757/Luminari-Source#4"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 204557763,
+    "iid": 3,
+    "project_id": 86882182,
+    "title": "Add the quests that grant the five Duris descend forms",
+    "description": "Follow-up from !2 (merged as 2d7923cac, work item #2). The five Duris descend forms are registered, hard-locked, and convertible through a standard quest race reward. No quest awards one yet, so nobody can become a form.\n\n## What to build\n\nEach form needs a quest line whose final quest sets the race reward to the form's ID. Model it on the Vampire line in zone 347 (`lib/world/qst/347.qst`): quests 34700-34721 from questmaster mobile 29906 (Erich) are chained through previous/next, and the final quest, 34721, carries race reward 46.\n\n`descend_form_conversions[]` in `src/quest/quest.c` owns the conversion. When the final quest completes, it requires:\n\n- level 30;\n- levels in one of the form's classes;\n- no group, leader, or followers;\n- a real race that is not already a Lich, Vampire, or descend form.\n\nIt then respecs the character to the form's class, sets experience to 0 and alignment to -1000, and saves.\n\n| Form | ID | Class levels required | Respec to | Duris lore |\n| -- | -- | -- | -- | -- |\n| Death Knight | 55 | Blackguard or Warrior | Blackguard | Fallen paladins raised to undeath; the anti-paladin form |\n| Wight | 56 | Warrior | Warrior | Duris's old descend made level 35+ necromancers into Wights (as Warriors) |\n| Revenant | 57 | Warrior or Rogue | Warrior | Corpses driven by revenge; Duris's old descend (as Mercenaries) |\n| Shadow Beast | 58 | Rogue or Assassin | Rogue | Duris let level 50 Revenants become Shadow Beasts (Assassin) |\n| Phantom | 59 | Wizard, Summoner, or Psionicist | Wizard | Duris let level 50 Vampires become Phantoms (Conjurer); here a Vampire is refused |\n\nQEDIT and `wtool` already accept race rewards 55-59 (`docs/world_game-data/QUEST_FILE_FORMAT.md`). Each form's stats, feats, and lore are in the \"Descend forms\" rows of `docs/guides/PLAYER_RACES_REFERENCE.md` and its `RACE-<FORM>` help topic.\n\n## Done when\n\n- [ ] Each of the five forms has a reachable quest line (giver, stages, rooms, and mobs), ending in a quest whose race reward is the form's ID.\n- [ ] `python3 scripts/world/wtool.py validate` is clean for the new quests.\n- [ ] Live check on port 4100, for each form: a level 30 character with a qualifying class completes the line and becomes the form, with its class, XP 0, alignment -1000, registry size, level-one feats, and DR 9/-. It keeps all of that after reconnecting, and a second conversion is refused. This is the one item of the race guide's final checklist that !2 left open.\n- [ ] The `RACE-<FORM>` help topics (`sql/components/help_duris_races_entries.sql` and `lib/text/help/help.hlp`) and the acquisition section of `PLAYER_RACES_REFERENCE.md` name where each quest starts.",
+    "state": "opened",
+    "created_at": "2026-09-27T08:30:06.005Z",
+    "updated_at": "2026-09-27T08:30:14.350Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/3",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 4,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/3",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/3/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/3/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#3",
+      "relative": "#3",
+      "full": "max757/Luminari-Source#3"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 204488717,
+    "iid": 2,
+    "project_id": 86882182,
+    "title": "Add the 17 Duris player races",
+    "description": "Implement [`docs/ongoing-projects/DURIS_PLAYER_RACES_PLAN.md`](https://gitlab.com/max757/Luminari-Source/-/blob/master/docs/ongoing-projects/DURIS_PLAYER_RACES_PLAN.md). It holds each race's registry data, stats, feats and race point score, the code the race guide does not cover, and the order of work. Every design decision in it is settled.\n\n- 12 creation races, IDs 152-163: Centaur, Githzerai, Firbolg, Githyanki, Kobold, Drider, Thri-Kreen, Minotaur, Kuo Toa, Orog, Harpy, Stormkin.\n- 5 quest-only descend forms, IDs 55-59: Death Knight, Wight, Revenant, Shadow Beast, Phantom.\n\nSteps from the plan, each ending green on `make -j$(nproc)`, `make test` and `make install`:\n\n- [ ] 1. Shared mechanics: rename Leonine Frame to Tauric Frame, add the psionic resistance feat, let Cold Immunity work as a feat, make race-granted epic damage reduction work, share one transformation-only hard lock, and make the respec argument NULL-safe.\n- [ ] 2. Creation races: registry, hit points, XP multipliers, family predicates, parser, terminal and web creation, tests.\n- [ ] 3. Descend forms: registry, hard lock, quest race-reward conversion, qedit and the world validator, tests.\n- [ ] 4. Help: one `RACE-<SLUG>` topic per race in one SQL component and `help.hlp`, plus PSIONIC RESISTANCE and EPIC-RACES.\n- [ ] 5. Docs: move the settled content into `PLAYER_RACES_REFERENCE.md` and the other docs, then delete the plan.\n- [ ] 6. Live check on port 4100.\n\nNot in this work item:\n\n- The descend forms' quests come later, one per form, modeled on the Vampire line (quest 34721, zone 347). Until they exist no character can become a form.\n- Repairing missing racial feats on saved characters is planned separately in `docs/ongoing-projects/RACIAL_FEAT_LOGIN_REPAIR_PLAN.md`. If it lands first, the races plan's code items 2 and 3 can drop their race checks.",
+    "state": "closed",
+    "created_at": "2026-09-26T18:55:05.161Z",
+    "updated_at": "2026-09-28T10:24:37.632Z",
+    "closed_at": "2026-09-26T22:35:28.283Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/2",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 6,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/2",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/2/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/2/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#2",
+      "relative": "#2",
+      "full": "max757/Luminari-Source#2"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  },
+  {
+    "id": 204485053,
+    "iid": 1,
+    "project_id": 86882182,
+    "title": "Price Extra Arms and the monk third hand after the arm count",
+    "description": "Follow-up from !1, which replaced the four-arm flag with an arm count. The open items are recorded in `docs/ongoing-projects/EXTRA_LIMB_MECHANICS.md#open-balance-work`.\n\n- Extra Arms still costs 3 race points per rank, the price set when a rank was one extra swing. A rank is now one full arm. The doc suggests 7.5 RP for each rank that adds the third or fourth arm and 1 RP for each rank past four, but equal pricing is not established: the third arm alone opens lower gloves and sleeves.\n- Pricing for mixed Four Arms, Extra Arms and race adjustments is undecided, and so is whether the Thri-Kreen cap exception applies.\n- Four Arms stays at 15 RP. The unarmed monk third hand raises its value for monks, and that value is not priced.\n- Before deploying: Extra Arms grants on saved characters or staff-built items now mean arms instead of swings. Check them.",
+    "state": "closed",
+    "created_at": "2026-09-26T17:32:49.949Z",
+    "updated_at": "2026-10-08T09:34:44.931Z",
+    "closed_at": "2026-10-08T09:32:46.764Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 7,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/1",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/1",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/1/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/1/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#1",
+      "relative": "#1",
+      "full": "max757/Luminari-Source#1"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null
+  }
+]

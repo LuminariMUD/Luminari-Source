@@ -8328,9 +8328,14 @@ void sort_object_bag(struct char_data *ch, const char *objname, int subcmd, int 
   char bagname[MEDIUM_STRING] = {'\0'};
   char objname_buf[MAX_INPUT_LENGTH] = {'\0'}; /* get_obj_in_list_vis consumes a dot prefix */
   struct obj_data *obj, *next_obj;
+  struct obj_data *bag;
 
-
-  struct obj_data *bag = get_char_bag(ch, bagnum);
+  if (ch->bags == NULL) /* a mobile has no bags */
+  {
+    send_to_char(ch, "You have no bags.\r\n");
+    return;
+  }
+  bag = get_char_bag(ch, bagnum);
 
   if (!strcmp(objname, "all"))
   {
@@ -9127,7 +9132,7 @@ ACMD(do_sheath)
   {
     // 2H weapon
     unequip_char(ch, WEAR_WIELD_2H);
-    sheath->sheath_primary = primary;
+    obj_to_sheath(primary, sheath, 1);
     act("You sheath $p into $P.", FALSE, ch, primary, sheath, TO_CHAR);
     act("$n sheathes $p into $P.", FALSE, ch, primary, sheath, TO_ROOM);
     return;
@@ -9148,7 +9153,7 @@ ACMD(do_sheath)
   if (primary)
   {
     unequip_char(ch, WEAR_WIELD_1);
-    sheath->sheath_primary = primary;
+    obj_to_sheath(primary, sheath, 1);
   }
   if (secondary)
   {
@@ -9156,7 +9161,7 @@ ACMD(do_sheath)
       unequip_char(ch, WEAR_WIELD_OFFHAND);
     else
       unequip_char(ch, WEAR_SHIELD);
-    sheath->sheath_secondary = secondary;
+    obj_to_sheath(secondary, sheath, 2);
   }
 
   if (primary && secondary)
@@ -9221,7 +9226,7 @@ ACMD(do_unsheath)
       break;
     }
     if (unsheath_item(ch, primary, pos))
-      sheath->sheath_primary = NULL;
+      obj_from_sheath(primary);
     if (pos < 0 || GET_EQ(ch, pos) != primary)
       primary = NULL;
   }
@@ -9233,7 +9238,7 @@ ACMD(do_unsheath)
     else
       pos = hands_needed(ch, secondary) == 1 ? WEAR_WIELD_OFFHAND : -1;
     if (unsheath_item(ch, secondary, pos))
-      sheath->sheath_secondary = NULL;
+      obj_from_sheath(secondary);
     if (pos < 0 || GET_EQ(ch, pos) != secondary)
       secondary = NULL;
   }

@@ -1,0 +1,46 @@
+[
+  {
+    "id": 2085432249,
+    "head_commit_sha": "1d3b47128b270865d566f68db35defe9e526d3ca",
+    "base_commit_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+    "start_commit_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+    "created_at": "2026-10-07T22:22:32.134Z",
+    "merge_request_id": 544717895,
+    "state": "collected",
+    "real_size": "18",
+    "patch_id_sha": "1bc8c0fea3676399e1904fc6e03b71b07a3376ac"
+  },
+  {
+    "id": 2084803955,
+    "head_commit_sha": "bfaaa8799c53f0ceedd27b35d987d2af5a4bfa83",
+    "base_commit_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+    "start_commit_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+    "created_at": "2026-10-07T17:53:56.226Z",
+    "merge_request_id": 544717895,
+    "state": "without_files",
+    "real_size": "6",
+    "patch_id_sha": "14846aa70a06918d821958da57124020bb2991b3"
+  },
+  {
+    "id": 2084787282,
+    "head_commit_sha": "4a9bd579beae57785c31f9dfef1413e89da79dc8",
+    "base_commit_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+    "start_commit_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+    "created_at": "2026-10-07T17:47:02.540Z",
+    "merge_request_id": 544717895,
+    "state": "without_files",
+    "real_size": "5",
+    "patch_id_sha": "a3b0e88a22188ef934e9fa723f0731a30a1614bb"
+  },
+  {
+    "id": 2084781091,
+    "head_commit_sha": "2b8959cdda35d4fb0781d1414556de8f07c6034b",
+    "base_commit_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+    "start_commit_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+    "created_at": "2026-10-07T17:44:23.036Z",
+    "merge_request_id": 544717895,
+    "state": "without_files",
+    "real_size": "5",
+    "patch_id_sha": "90068b2f4f82ca569b4bd64089b5125a0799a2a6"
+  }
+]

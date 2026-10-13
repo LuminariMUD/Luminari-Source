@@ -1,0 +1,29 @@
+[
+  {
+    "id": 327646703,
+    "name": "master",
+    "push_access_levels": [
+      {
+        "id": 387137752,
+        "access_level": 40,
+        "access_level_description": "Maintainers",
+        "deploy_key_id": null,
+        "user_id": null,
+        "group_id": null
+      }
+    ],
+    "merge_access_levels": [
+      {
+        "id": 355526669,
+        "access_level": 40,
+        "access_level_description": "Maintainers",
+        "user_id": null,
+        "group_id": null
+      }
+    ],
+    "allow_force_push": false,
+    "unprotect_access_levels": [],
+    "code_owner_approval_required": false,
+    "inherited": false
+  }
+]

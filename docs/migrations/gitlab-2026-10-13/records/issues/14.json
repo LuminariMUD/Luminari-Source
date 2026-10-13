@@ -1,0 +1,97 @@
+{
+  "id": 205336312,
+  "iid": 14,
+  "project_id": 86882182,
+  "title": "Vessel purchases and payouts move gold without a checked save",
+  "description": "## Problem\n\nS11 (#10) made `cargobuy` and `cargosell` save the captain's gold with `save_char_checked()` and undo the trade when that save fails. The other vessel commands that take or pay gold still write the ship's side to MariaDB at once and move the gold in memory only (`award_gold()`). The gold reaches the player file with the next per-minute save (the persistence step in `src/core/comm.c`). A crash before that save splits the two stores:\n\n- A purchase keeps what was bought and gives the gold back.\n- A payout takes the item or the freight and never pays.\n\nMost of these commands also do not check the ship-side save: `vessel_db_save_weapons()`, `vessel_db_save_runtime()` and `vessel_db_save_cargo()` return a result that is dropped, and `vessel_db_save_crew()` and `vessel_db_save_extras()` return none. A refused write goes unreported.\n\n## Sites (master `ec8f55b26`, all under `src/vessels/`)\n\nPurchases:\n\n| Command | Gold moves in | Ship side written |\n| -- | -- | -- |\n| `shipbuy` | `do_shipbuy()`, `vessels_edit.c:1115` | the new hull, before the gold |\n| `shipbuy` trade-in | `vessel_trade_in()`, `vessels_edit.c:1012` | the rebuilt hull (a failed save is only logged); the net can be a charge or a credit |\n| `shipchristen` | `do_shipchristen()`, `vessels_edit.c:1200` | the new name |\n| `shiphire` | `do_shiphire()`, `vessels_crew.c:595` | the crew |\n| `shipweapon` (buying) | `vessel_buy_weapon()`, `vessels_weapons.c:600` | weapons and runtime |\n| `shipequip` (buying) | `do_shipequip()`, `vessels_weapons.c:885` | weapons and runtime |\n| `shiprearm` | `do_shiprearm()`, `vessels_weapons.c:953` | weapons and runtime |\n| `shiprepair` | `do_shiprepair()`, `vessels_repair.c:484` | runtime and weapons |\n| `shipupgrade` | `do_shipupgrade()`, `vessels_upgrades.c:597` | the refit |\n| `shipsummon` | `do_shipsummon()`, `vessels_loss.c:541` | the summons |\n| bounty pay-off | `vessel_bounty_pay()`, `vessels_piracy.c:1061` | the bounty cleared (checked), before the gold |\n| `marque` | `do_marque()`, `vessels_piracy.c:1174` | the letter issued (checked), before the gold |\n\nPayouts:\n\n| Command | Gold moves in | Ship side written |\n| -- | -- | -- |\n| `shipweapon sell` | `do_shipweapon()`, `vessels_weapons.c:662` | the emptied slot |\n| `shipequip` (selling) | `do_shipequip()`, `vessels_weapons.c:848` | the emptied slot |\n| `contractdeliver` | `do_contractdeliver()`, `vessels_contracts.c:716` | the unloaded hold (unchecked) and the contract marked done (a failure is only logged), before the gold |\n\nNot part of this: the passenger fare, the insurance and merchant-consequence deliveries, and cargo trades already save the gold checked; freight acceptance and dock fees do too and become two-phase with #12. The land and sea transport fare (`enter_transport_paid()`, `transport.c:522`) keeps the fare and the journey in the same player file, so nothing splits.\n\n## Proposed fix\n\nS11's level, in the shape the passenger fare already has (`vessel_collect_passenger_fare()`: debit, `save_char_checked()`, restore on failure), through one shared helper:\n\n- Both stores are written and checked inside the command, and a failure of either is undone and reported, so only a crash between the two writes of one command can split them.\n- A purchase whose gold cannot be saved is refused; a purchase whose ship-side write fails is refunded.\n- A payout whose gold cannot be saved puts the item or the freight back.\n- DB-backed CuTest cases per command family for a failed gold save and a refused ship-side write.\n\nNot #12's two-phase settlement record: each of these commands would need its own stored undo (delete a hull, strip a weapon, dismiss a crew), and the window left after a checked save (a failed save, a failed undo, then a crash) is the one #12 closes for cargo, freight and dock fees.\n\nFound on 2026-10-03 while planning S13 and S14 of the vessel study (#13, #12); the sites were read, not fault-injected.",
+  "state": "closed",
+  "created_at": "2026-10-03T18:54:01.291Z",
+  "updated_at": "2026-10-04T20:38:24.558Z",
+  "closed_at": "2026-10-04T17:42:02.421Z",
+  "closed_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 2,
+  "merge_requests_count": 1,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/14",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/14",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/14/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/14/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#14",
+    "relative": "#14",
+    "full": "max757/Luminari-Source#14"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

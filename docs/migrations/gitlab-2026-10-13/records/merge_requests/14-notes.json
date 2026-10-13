@@ -1,0 +1,58 @@
+[
+  {
+    "id": 3941119849,
+    "type": null,
+    "body": "mentioned in commit 1c7e4bffb376d12b61b7f11a04e30cab0320d0f0",
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "created_at": "2026-10-01T21:53:07.904Z",
+    "updated_at": "2026-10-01T21:53:07.906Z",
+    "system": true,
+    "noteable_id": 541746165,
+    "noteable_type": "MergeRequest",
+    "project_id": 86882182,
+    "resolvable": false,
+    "confidential": false,
+    "internal": false,
+    "imported": false,
+    "imported_from": "none",
+    "noteable_iid": 14,
+    "commands_changes": {}
+  },
+  {
+    "id": 3941144473,
+    "type": null,
+    "body": "mentioned in commit 545a3a6473e3ecfc1f33ba2d7295c61d51192ae5",
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "created_at": "2026-10-01T21:56:19.609Z",
+    "updated_at": "2026-10-01T21:56:19.611Z",
+    "system": true,
+    "noteable_id": 541746165,
+    "noteable_type": "MergeRequest",
+    "project_id": 86882182,
+    "resolvable": false,
+    "confidential": false,
+    "internal": false,
+    "imported": false,
+    "imported_from": "none",
+    "noteable_iid": 14,
+    "commands_changes": {}
+  }
+]

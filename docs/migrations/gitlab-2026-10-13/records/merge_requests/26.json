@@ -1,0 +1,130 @@
+{
+  "id": 543404987,
+  "iid": 26,
+  "project_id": 86882182,
+  "title": "Keep a live object's own links and lists when another object is written over it",
+  "description": "Closes #30\n\nPhase 7 of `docs/ongoing-projects/object-save-fixes-and-arm-pricing.md`. Handed to review at\nthe tag `object-save-fixes-p7` (`73eaa93e5`): one code commit with its tests, and the plan's\nrecord of the phase. The review found five defects. Two code commits after the tag fix all five,\nand a last commit records the review.\n\nThe branch starts at `object-save-fixes-p3`, the head of MR !25 at the time, because phase 3 was\nstill in review and both phases edit the plan and `src/olc/genobj.c`. The review of phase 3 found\nthe `char_sdesc` double free below on its own and fixed it in `ddacf712f`, with the same line;\nthat commit is merged into this branch (`15f66c7c9`). MR !25 was merged on 2026-10-06\n(`5fd630349`) and master is merged into this branch (`16b1abdf5`), so this merge request shows\nphase 7 alone.\n\n## Cause\n\nTwo functions in `src/olc/genobj.c` wrote one whole `struct obj_data` over another and then put\nback a list of the target's runtime fields: `update_all_objects()`, for every live object of a\nprototype that OLC saves, and `copy_object_main()`, for the editor copies. Each list was older\nthan fields the struct has gained.\n\nAfter an OLC save of a prototype, each live object of it\n\n- pointed at the prototype's special abilities and spellbook. `free_obj()` frees both with the\n  object, so extracting one live object freed the prototype's lists under it and under the other\n  live objects;\n- had lost its hash links while still on its `obj_rnum_hash` chain, and its sheath pointers,\n  trap, group-loot link and pending limb slot;\n- had dropped its own strings, arcane mark and restring identifier without freeing them.\n\nThe iedit commit wrote back the hash links, sheath pointers and trap the object had when the\nedit began.\n\n## What changes\n\n`584524ec5`, handed to review:\n\n- `overwrite_object()` is the one place that says what a target keeps when another object is\n  written over it: where it is, what holds it and what it holds, its list, hash and registry\n  links, its events and transfer state, its sheath pointers and trap, and the other runtime-only\n  fields. `copy_object_main()` goes through it, and the iedit commit's own restore list is gone.\n- `give_obj_own_copies()` is the part of `read_object()` that gives an object copies of its own of\n  its prototype's arcane mark, restring identifier, spellbook and abilities.\n- `index_object()` clears the slot a new prototype goes into, and `oedit_setup_existing()` clears\n  its edit copy, since a copy keeps the target's runtime fields.\n- Fixed in the same commit: an edit copy shared `char_sdesc` with the live object and both freed\n  it (the line is also phase 3's `ddacf712f`), and a new prototype kept the event and registry\n  fields of whatever its slot held.\n\n`8e7b0b073`, review:\n\n- `adjust_objects()` and `delete_object()` move each renumbered live object to the hash chain of\n  its new rnum. They left it on the old chain, and the next `read_object()` into that bucket wrote\n  into a freed object.\n- Both skip objects with no prototype. `delete_object()` gave such an object a bogus rnum that\n  `extract_obj()` used as an `obj_index` subscript. A notice board with no object stays NOTHING.\n- `remove_obj_from_rnum_hash()` leaves a chain the object does not head alone. A mail letter or\n  forged note has rnum 1 on no chain (#31), and removing it emptied that bucket.\n- `delete_object()` frees the deleted prototype's strings and trigger list.\n\n`dd9732777`, review:\n\n- An OLC save gives each live object the new prototype's definition field by field where the\n  object still held the old prototype's, and keeps what it has of its own, as a reload from a save\n  would. Before, a save of a carrier prototype rewrote every generated weapon and armour in the\n  game, and any save took restrings, arcane marks, scribed spellbook pages, an essence's level and\n  a resized item's size. `add_object()` keeps the old prototype until the live objects are done.\n- The save no longer drops a live object's script while it stays registered for random and time\n  triggers, which read the object after it was freed. `overwrite_object()` keeps the target's\n  script.\n- A live target of `overwrite_object()` keeps its rnum, the key of its hash chain.\n- A save and an iedit commit carry a change in an object's weight to its containers and carrier,\n  as `obj_to_obj()` counts it.\n- The save frees the old prototype's trigger list and each live object's own.\n- `MAX_TEST_CASES` rises from 2048 to 4096: the suite has 2049 tests.\n\n## Tests\n\nAll in `unittests/CuTest/test_gameplay_e2e.c`:\n\n- `Test_gameplay_object_prototype_save_leaves_live_objects_whole`: two live objects, one restrung,\n  marked and with a weapon in its sheath; the edit adds an ability and a spellbook page. Each\n  object has lists of its own, the hash chain and the sheath pointer are as they were, the\n  restrung object keeps its name and mark, and extracting one leaves the prototype and the other\n  whole.\n- `Test_gameplay_object_editor_copy_leaves_each_object_its_own_links` and\n  `Test_gameplay_object_new_prototype_takes_nothing_from_its_slot`.\n- `Test_gameplay_object_renumber_keeps_the_hash_and_unnumbered_objects`\n- `Test_gameplay_object_prototype_save_keeps_what_each_object_made_its_own`\n- `Test_gameplay_object_overwrite_keeps_weight_totals`\n- `Test_gameplay_object_prototype_save_extracts_live_scripts`\n- `Test_gameplay_object_copy_keeps_a_live_targets_rnum`\n\n## Verification\n\n- Each test fails on the code before the change it covers: the first three on `8556f9ca8`, the\n  last five on `6a55903f5`, where the renumber test ends in a segmentation fault.\n- The 11 object tests are clean under valgrind.\n- On `dd9732777`: `make -j16 test`, 2049 tests pass. `./cutest` with the database tests on, first\n  run on a database freshly built from `sql/master_schema.sql`: 2049 of 2049 pass.\n- `python3 scripts/ci/local/run.py --base gitlab/master` on `dd9732777`: 33 of 33 jobs pass (577 s), the olc changed lines 99.39% covered. The format,\n  hygiene and secrets jobs pass again on `55189ee1c`, which adds the plan's record only.\n\n## Not in this merge request\n\n- An ability list or spellbook that still matched the old prototype is replaced by a copy at a\n  save and given up, not freed: #29's preview copy shares the lists of the object it previews,\n  and an open iedit copy shares its spellbook. #29 has to end that sharing first; a note on #29\n  says so.\n- An ability or spellbook page the builder edits in place reaches the live objects at their next\n  load, not at the save: the oedit copy shares those lists with the prototype, so the old\n  prototype already shows the edit when the save compares.\n- #31: mail letters and forged notes take rnum 1 without being objects of that prototype.\n- No deploy: the fix reaches production with the next release.",
+  "state": "merged",
+  "created_at": "2026-10-05T22:17:43.674Z",
+  "updated_at": "2026-10-07T11:11:38.145Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-07T11:10:36.098Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "30-an-olc-save-of-an-object-prototype-leaves-its-live-objects-sharing-the-prototype-s-lists",
+  "user_notes_count": 14,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "55189ee1c5c924be830999e3227ba1b882932a9c",
+  "merge_commit_sha": "632b50242f684cef2a89d0c9e754791a44a55d07",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-10-05T22:17:45.156Z",
+  "reference": "!26",
+  "references": {
+    "short": "!26",
+    "relative": "!26",
+    "full": "max757/Luminari-Source!26"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/26",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "7",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "648efa957a7b14c4fd53c84c9a58bba34fa40763",
+    "head_sha": "55189ee1c5c924be830999e3227ba1b882932a9c",
+    "start_sha": "648efa957a7b14c4fd53c84c9a58bba34fa40763"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

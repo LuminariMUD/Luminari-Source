@@ -1,0 +1,606 @@
+[
+  {
+    "id": "cec461d5ed87c34e7f34ae9ae00bc819ef9e8099",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3954784326,
+        "type": null,
+        "body": "assigned to @max757",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T11:19:29.657Z",
+        "updated_at": "2026-10-05T11:19:29.658Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "779931d5bf499c2e81f8e84534532b961fbc17d1",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3954791557,
+        "type": null,
+        "body": "mentioned in commit ab7a35b8447088eb9040896f0d933bee9c87f811",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T11:20:08.603Z",
+        "updated_at": "2026-10-05T11:20:08.605Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "7adc213496aabda2cf46390758468576c31cda44",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3954791737,
+        "type": null,
+        "body": "added 1 commit\n\n<ul><li>ab7a35b8 - Record phase 1 of the object save fixes: built, in review as MR !23</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/23/diffs?diff_id=2076310195&start_sha=ea33ddd29bbb47cd87c14f156391e91e7f658a82)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T11:20:09.361Z",
+        "updated_at": "2026-10-05T11:20:09.363Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "59e7493de39e21985520e527de75c091a6d60822",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3954793972,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T11:20:22.448Z",
+        "updated_at": "2026-10-05T11:20:22.450Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "20039a87a25f6734ea92692b01d35974a61981e6",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3956488892,
+        "type": "DiffNote",
+        "body": "**Blocking: accepting the record drops every other ability of a multi-ability object**\n\n**Location.** `objsave_replace_special_ability()`, `src/obj/objsave.c:123-142`; the writers at `objsave.c:542`, `:3499` and `:4534`.\n\n**Defect.** The three writers store only the first ability of the list (`specab = obj->special_abilities;`, no loop). The loader frees the whole list (line 129) and installs that one record. On master a first record with no command word is rejected, so a prototype-backed object keeps the full list `read_object()` copied from its prototype. This change accepts the record, and the rest of the list is freed.\n\nA first ability that has a command word already loses the rest on master. No multi-ability prototype in the dev world files has one first, so today nothing is truncated; after this change all of them are:\n\n| Object | Abilities | After load |\n| -- | -- | -- |\n| #1213 a black longsword | Bane, Flaming Burst (`ignitus`) | Bane; `utter ignitus` does nothing |\n| #1244 black scythe | Bane, Keen | Bane |\n| #20621 cat-o'-nine-tails | Keen, Wounding | Keen |\n\nFourteen more prototypes carry two `SPECAB_NONE` placeholder records, with no effect. Every saved copy loads this way from the first login after the deploy: player rows, house rows, pet rows, sheath contents and rent files all go through this function. The row never held the other abilities, so nothing stored is destroyed, and a corrected loader brings them back from the prototype.\n\nThe description's \"logged `Invalid SpAb record` and dropped the ability\" is true for an object with no prototype. A prototype-backed object kept its prototype's abilities, which is why accepting the record changes more than the description says.\n\n**Repro.** A prototype with the two records of #1244 (`3 30 48 1 20 0 0`, `15 30 1 0 0 0 0`), `read_object()`, then `test_objsave_save_obj_record()` + `objsave_parse_objects()` and `objsave_save_obj_record_db()` + `objsave_parse_objects_db()`, counting the abilities before and after. Run at `ab7a35b84` and again with `objsave.c` from `c8a28d892`, database tests on:\n\n```\nsaved line: SpAb: 3 30 48 1 20 0 0\nobjsave.c of c8a28d892: file loader 2 -> 2, player rows 2 -> 2  (SYSERR logged, prototype list kept)\nab7a35b84:              file loader 2 -> 1, player rows 2 -> 1  (Keen gone)\n```\n\n**Fix.** Keep the list and let the record replace one ability, not all of them:\n\n```c\n  /* The writers store the first ability only. It replaces the ability of its\n   * kind, or else the first one, and the rest of the list stays. */\n  for (ability = obj->special_abilities; ability != NULL; ability = ability->next)\n    if (ability->ability == values[0])\n      break;\n  if (ability == NULL)\n    ability = obj->special_abilities;\n  if (ability == NULL)\n  {\n    CREATE(ability, struct obj_special_ability, 1);\n    obj->special_abilities = ability;\n  }\n  else if (ability->command_word != NULL)\n    free(ability->command_word);\n  ability->ability = values[0];\n  /* level, activation_method and value[0..3] as now */\n  ability->command_word = fields == 8 ? strdup(command) : NULL;\n```\n\nThe `free_obj_special_abilities()` call, `ability->next = NULL` and the list assignment go. Match by kind, not by position: the first ability is not a stable place. `db.c:4151` prepends each `C` record and `genobj.c:350` writes the list in order, so an OLC save of the zone reverses the records, and a different ability is first after the next boot.\n\nTested on `ab7a35b84` with that change: the probe gives 2 -> 2 through both loaders, the three tests of this merge request pass, and the whole `./cutest` passes with the database tests on.\n\nAdd the probe as a test: the two-ability prototype round trip through the file loader and the player-row loader, asserting both abilities.\n\n**Older than this merge request, still open after the fix.** The writers save one ability. A change to any other ability of an instance is not persisted (the weapon-oil upgrade loop at `act.item.c:6123` can upgrade one that is not first), and an object with no prototype keeps only its first. Saving the whole list needs one line per ability and a way to tell today's one-line rows from new ones, so it is its own work item.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T15:13:49.559Z",
+        "updated_at": "2026-10-05T17:51:37.648Z",
+        "system": false,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "c8a28d892250bac6cac5a5a744670f0ba4ee08b3",
+          "start_sha": "c8a28d892250bac6cac5a5a744670f0ba4ee08b3",
+          "head_sha": "c62c0112401fd7893efdcacba93f98d284c93040",
+          "old_path": "src/obj/objsave.c",
+          "new_path": "src/obj/objsave.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 125,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-05T17:51:37.648Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      },
+      {
+        "id": 3957440466,
+        "type": "DiffNote",
+        "body": "Fixed in `1d904677a`, with the fix as proposed: the record replaces the ability of its kind, or else the first one, and the rest of the list stays. `free_obj_special_abilities()`, `ability->next = NULL` and the list assignment are gone.\n\nI checked the two choices in it against the code that changes an object's list before taking them:\n\n- By kind first: confirmed, `parse_object()` puts each `C` record in front and `save_objects()` writes the list in order, so the abilities change places at the boot after a zone save.\n- The first ability as the fallback, not a new node in front: a weapon oil turns Flaming into Flaming Burst on the object alone, so the saved kind is one the prototype does not have and must take the old one's place.\n\nTest: `Test_object_special_ability_record_keeps_the_rest_of_the_prototype_list`. It uses #1213 (Bane, Flaming Burst on `ignitus`) and not #1244, so that the second ability's command word is checked too. The saved Bane carries a bane race of its own, so the test also fails if the record is passed over. It covers:\n\n1. the round trip through the file loader, and through the player-row loader when the database tests are on, with both abilities compared;\n2. the same file loaded with the prototype's list the other way round;\n3. a first ability that has a command word, which lost the rest on master too;\n4. an ability of a kind the prototype does not have.\n\nIt fails on the loader of `ab7a35b84` at the first of these, on the fix without the match by kind at the second, and on the fix with an unmatched ability put in front at the fourth.\n\nVerification on `1d904677a`: `make -j16 test` 2039 pass; `./cutest` with the database tests on, on a freshly loaded `master_schema.sql` database, 2038 of 2039 (the #18 test); `run.py --base gitlab/master` 33 of 33 jobs (357 s).\n\nThe description now says what a rejected record did to a prototype-backed object, and the plan has the review's record (`c62c01124`).\n\n**The writers.** Filed as #28, with two cases run on `1d904677a` through the file writer and loader: an emptied list comes back as the prototype's two abilities (0 saved, 2 loaded), and a second ability changed from level 12 to 20 loads as 12.\n\n**Seen while tracing, unrelated to the loader.** `downgrade_item()` and `do_applyoil()` drop ability lists without freeing them, and the preview branch of `do_downgrade()` never extracts its preview object. Filed as #29.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:51:36.216Z",
+        "updated_at": "2026-10-05T17:51:37.648Z",
+        "system": false,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "c8a28d892250bac6cac5a5a744670f0ba4ee08b3",
+          "start_sha": "c8a28d892250bac6cac5a5a744670f0ba4ee08b3",
+          "head_sha": "c62c0112401fd7893efdcacba93f98d284c93040",
+          "old_path": "src/obj/objsave.c",
+          "new_path": "src/obj/objsave.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 125,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-05T17:51:37.648Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "9b45097b892bf76ffd50efb57a9f707e2c30a42f",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3956495652,
+        "type": null,
+        "body": "**Review of `ab7a35b84`: one finding, blocking**\n\n1. Accepting the seven-number record frees the rest of a multi-ability object's list, so #1213, #1244 and #20621 load with their first ability only. Thread on `src/obj/objsave.c:123`, with the repro and a tested fix.\n\nReproduced from the description, on a scratch build with a disposable `mariadb:10.11` loaded from `sql/master_schema.sql`:\n\n- With `objsave.c` from `c8a28d892`, the round-trip test fails and the file, player-row and pet-row loaders each log the rejected record. At `ab7a35b84` it passes with the database tests on.\n- With `spec_abilities.c` from `c8a28d892`, the `utter` test kills the process.\n- Every reader of `command_word` handles NULL. The one unguarded `strcmp()`, in `process_item_abilities()`, has no caller that passes a command word, as the plan says.\n- The pet save fingerprint hashes a NULL word and an empty word alike, so the change of representation does not force a pet resave.\n- `utter` reaches the flame-blade branch of `process_weapon_abilities()` with a NULL victim and returns.\n\nNo other findings.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T15:14:49.174Z",
+        "updated_at": "2026-10-05T15:14:49.174Z",
+        "system": false,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "a057271c2ed0e7ea00e0573599c22dfebfd5464b",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957423399,
+        "type": null,
+        "body": "mentioned in issue #28",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:48:39.297Z",
+        "updated_at": "2026-10-05T17:48:39.298Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "e3b21b4b4014c6d76c2e56ab1907bbe95ca5b0d2",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957425084,
+        "type": null,
+        "body": "mentioned in issue #29",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:49:01.222Z",
+        "updated_at": "2026-10-05T17:49:01.223Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "b6456faa60b3ae8e2844f1d1adc389324c13b67f",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957436464,
+        "type": null,
+        "body": "mentioned in commit 1d904677a55cabbe9c810c4702f7e5517df486cd",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:50:52.906Z",
+        "updated_at": "2026-10-05T17:50:52.907Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "92c7e34d9849551ddafe4a2cefff5111d470d417",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957436861,
+        "type": null,
+        "body": "added 2 commits\n\n<ul><li>1d904677 - Keep the rest of an object&#39;s abilities when its saved ability loads</li><li>c62c0112 - Record the review of phase 1: one finding, fixed, and two items filed</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/23/diffs?diff_id=2077553054&start_sha=ab7a35b8447088eb9040896f0d933bee9c87f811)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:50:53.986Z",
+        "updated_at": "2026-10-05T17:50:53.989Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "7a6c269ff0c899fd8085ce070391b995a0614df0",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957440576,
+        "type": null,
+        "body": "resolved all threads",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:51:37.672Z",
+        "updated_at": "2026-10-05T17:51:37.676Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "7e050c2a1027df1b98557426640c0f42b1d2b191",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957440692,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T17:51:39.198Z",
+        "updated_at": "2026-10-05T17:51:39.200Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "46a831ee3a3e87a1e42e40d0961545fb6ca7de93",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957639649,
+        "type": null,
+        "body": "mentioned in commit 5523e04a0733b943facd2bec8e1d15fce0a3a123",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T18:30:05.903Z",
+        "updated_at": "2026-10-05T18:30:05.906Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "fa9d2602937042b085be78c01e65784877bd908f",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3957651019,
+        "type": null,
+        "body": "mentioned in commit 8c0c5bd16875d7eab2bdceca19cfafae89d9aed8",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-05T18:32:11.211Z",
+        "updated_at": "2026-10-05T18:32:11.213Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "cc2554ffd461baa995c88cd3660be40641a589b0",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3976369260,
+        "type": null,
+        "body": "mentioned in commit b8951c3aa5f16b6ec9f9f390fff34b976ffc46c5",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-08T09:34:19.406Z",
+        "updated_at": "2026-10-08T09:34:19.408Z",
+        "system": true,
+        "noteable_id": 543057471,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 23,
+        "commands_changes": {}
+      }
+    ]
+  }
+]
