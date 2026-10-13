@@ -1,0 +1,88 @@
+{
+  "id": 205515119,
+  "iid": 29,
+  "project_id": 86882182,
+  "title": "downgrade and applyoil drop an object's special abilities without freeing them, and downgrade leaves its preview object behind",
+  "description": "## Problem\n\nThree places in `src/obj/act.item.c` drop memory that belongs to an object's special abilities,\nor an object itself. Read from the code, not measured.\n\n- `downgrade_item()` sets `obj->special_abilities = NULL` without freeing the list.\n- `do_applyoil()` creates the new ability with `CREATE(weapon->special_abilities, ...)`. The code\n  reaches that line when the weapon has no ability other than `SPECAB_NONE`, so a weapon whose\n  list holds only `SPECAB_NONE` placeholder records, as some prototypes in the dev world files\n  do, loses those nodes without a free.\n- The preview branch of `do_downgrade()` (no confirmation code yet) makes an object with\n  `read_object(ITEM_PROTOTYPE, VIRTUAL)`, copies the player's object over it with `copy_object()`,\n  shows its stats and returns. The preview object is never extracted, so each preview leaves one\n  object in `object_list`.\n\n## Proposed fix\n\nFree the list with `free_obj_special_abilities()` in the first two places, and extract the preview\nobject before the preview branch returns. Check first what `copy_object()` shares between the\npreview object and the player's object, so that the extraction frees nothing the player's object\nstill uses.\n\nTests: `downgrade` (preview, then confirm) and `applyoil` on a weapon with placeholder records,\nunder the memory-check and sanitizer jobs, and a count of `object_list` before and after a\npreview.\n\nFound on 2026-10-05 while tracing the review finding of MR !23 (work item #19); it is not part of\nthat work.",
+  "state": "opened",
+  "created_at": "2026-10-05T17:49:00.526Z",
+  "updated_at": "2026-10-07T11:11:34.796Z",
+  "closed_at": null,
+  "closed_by": null,
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 2,
+  "merge_requests_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/29",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/29",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/29/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/29/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#29",
+    "relative": "#29",
+    "full": "max757/Luminari-Source#29"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

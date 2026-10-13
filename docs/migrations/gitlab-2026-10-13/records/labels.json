@@ -1,0 +1,26 @@
+[
+  {
+    "id": 54023691,
+    "name": "Bug",
+    "description": null,
+    "text_color": "#FFFFFF",
+    "description_html": "",
+    "color": "#c21e56",
+    "archived": false,
+    "subscribed": false,
+    "priority": null,
+    "is_project_label": true
+  },
+  {
+    "id": 54023690,
+    "name": "Feature",
+    "description": null,
+    "text_color": "#FFFFFF",
+    "description_html": "",
+    "color": "#cc338b",
+    "archived": false,
+    "subscribed": false,
+    "priority": null,
+    "is_project_label": true
+  }
+]

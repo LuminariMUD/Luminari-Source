@@ -1,0 +1,130 @@
+{
+  "id": 542684217,
+  "iid": 21,
+  "project_id": 86882182,
+  "title": "Vessels S14: two-phase vessel settlements",
+  "description": "Closes #12\n\nS14 of the vessel study (`docs/ongoing-projects/vessels-ships.md`, Phase 14): a cargo trade, a\nfreight acceptance and a dock-fee payment are settled in two phases, so a crash between the\nship's side in MariaDB and the captain's gold in the player file no longer leaves one without\nthe other.\n\nReview range: `vessels-s14-base..vessels-s14` (the S13 close-out `96b3af5a1` comes first; the\nplan is `4ddf5f9ba`, the build `6bdce1e49`).\n\n## What changes\n\n- **Settlement row** (schema Phase 25, `vessel_settlements`). Written in the ship-side\n  transaction, it carries the undo: signed deltas for the port's supply and the hold's lot, the\n  contract to reopen, the dock fee owed again. Unique keys on `ship_id` and `player_id` hold a\n  ship's and a player's accounts while one is open.\n- **Player-file marker** (`VSet`, `GET_VESSEL_SETTLEMENT()`): the id of the newest settlement\n  whose gold the file holds, saved with the gold.\n- **Reconcile** (`vessel_settlements_reconcile()`), at login (from the insurance delivery every\n  login makes), and as a gate at the start of `cargobuy`, `cargosell`, `contractaccept`,\n  `contractdeliver`, `contractabandon` and `dockfees pay`: a row whose id is the file's marker is\n  deleted; any other is undone from the row, with no gold moved. Another captain's row is judged\n  from his player file, so a ship does not wait for an absent helmsman.\n- **Unanswered `COMMIT`**: the row is read back with a locking read. When it cannot be read (or\n  an undo cannot be recorded), the settlement is taken out of memory, the hull remembers its id,\n  and her manifest is not written until a reconcile has settled it.\n- `trade_settle()`'s \"the trade stands and will be saved shortly\" and the second write after an\n  unanswered `COMMIT` are gone: the row settles both. \"Undone\" is said only once the undo is\n  committed.\n\nNew code is in `src/vessels/vessels_settlement.c`; the commands change in `vessels_trade.c` and\n`vessels_contracts.c`.\n\n## Where to look\n\n- `settlement_undo()` and `settlement_unresolved`: the one piece of in-memory state, and why\n  `vessel_db_save_cargo()` refuses while it is set.\n- \"Covered\" is `marker == id`, not `<=` as `VIns` and `VMer` use: with one open row per player\n  the two agree, and equality does not depend on ids never restarting.\n- The dock fee's undo is a restore (only when the hull owes nothing), not a delta: a runtime save\n  rewrites the balance from memory at any time.\n\n## Verification\n\nThe first round ran on `8ed5d8a3a`; what the later fixes touch ran again on `80f6d45e5`, the last\ncommit that changes code. Details are in the Phase 14 section of the study document.\n\n| Check | Result |\n| -- | -- |\n| `make test-all`, database cases on (`80f6d45e5`) | 2,028 production tests and 32 protocol tests pass |\n| New tests | `unittests/CuTest/test_vessel_settlement.c`, ten DB-backed tests on real tables with real connection drops |\n| Phase 25 SQL on the test database and on a reload of the development dump | verifier 0/0 after rollback, 12 columns and 2 unique keys after the schema; boot DDL, `master_schema.sql` and the schema file create the same table |\n| Vessel help verifier | 7 checks pass (58 content phrases) |\n| Live gates on `8ed5d8a3a` (private-namespace harness, dump reload) | 21 of 22 pass; the damage gate failed on a timing race of its own, fixed in `9a8ca39a8` |\n| Live gates on `80f6d45e5` | economy after a fresh reload, economy with every database session killed twice, and damage all pass |\n| Local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) on `80f6d45e5` | 33 of 33 jobs pass |\n\nThe economy gate now also plays the reconcile: after its trades it checks that no settlement is\nopen and that the captain's file has a `VSet` line, then plants a freight acceptance as a crash\nwould leave it and checks that his next login puts the job back on the board.\n\nFound and fixed before hand-off (`a4ab96a35`): the login reconcile moved into\n`vessel_deliver_pending_insurance()` (a new line in `interpreter.c` cannot be covered by a unit\ntest), a remembered settlement is forgotten only after a locking read (its `COMMIT` may still be\non its way), and a hull that boot could not rebuild keeps her settlement instead of losing it.\n\n## Review round 1\n\nTwo [P3] findings, both fixed on top of `vessels-s14` (range `vessels-s14..feat/vessels-s14`,\nhead `b485062c8`); the threads have the details.\n\n| Commit | What |\n| -- | -- |\n| `bf82f7c93` | A fleet slot whose rows are still stored is held: `vessel_delete_persistence()` marks it until a purge commits, boot marks it where it gives up on a persisted hull, a spawn takes only a slot `vessel_slot_free()` passes, `shiplist` shows it, and `shippurge` deletes its rows (the settlement with them). A settlement is no longer undone on another hull. |\n| `74ee6fe5d` | `save_char_checked()` syncs the player file's directory after the rename, so a settlement's row is deleted only once the file that names it would survive a host crash. A failed sync is logged, not returned. |\n| `a5abda25b` | The reviewer's four probes (a dock-fee payment and a freight acceptance whose `COMMIT` gets no reply) are a test. |\n| `63ee4c809` | `VESSEL_SYSTEM.md`, `PLAYER_MANAGEMENT_SYSTEM.md` and the player guide's staff section. |\n| `b485062c8` | The record, in the Phase 14 section of the study document. |\n\nVerified on `63ee4c809`, the last commit that changes code:\n\n| Check | Result |\n| -- | -- |\n| `make test-all`, database cases on | 2,030 production tests and 32 protocol tests pass (twelve settlement tests) |\n| `strace` of a save | `fsync` of the temporary file, `rename`, `openat` of the directory, `fsync` of it |\n| Live held-slot check (private-namespace harness, dump reload) | boot held slot 13, `vedit spawn` took 14, `shippurge 13` freed it, the next spawn took 13; no settlement or row left |\n| Live gates | builder and economy (286 s, fresh reload) pass |\n| Local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) | 33 of 33 jobs pass; 17 of 19 changed lines of `players.c` covered (floor 61.37) |\n\n## After merge\n\nHelp sync (MARKET, CONTRACTS, VESSELS and SHIPLIST entries; SHIPLIST is the SHIP-ADMIN entry),\nmove the Phase 14 record to the history document, tag `vessels-s15-base` and branch\n`feat/vessels-s15`. Production gets Phase 25 from boot (`vessel_settlement_ensure_schema()`);\nthe SQL component is there for a manual apply.",
+  "state": "merged",
+  "created_at": "2026-10-04T10:42:00.075Z",
+  "updated_at": "2026-10-04T12:58:28.412Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-04T12:58:28.069Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "feat/vessels-s14",
+  "user_notes_count": 6,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "b485062c8d32f89aaa882d9e1e080e443739b112",
+  "merge_commit_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": false,
+  "force_remove_source_branch": false,
+  "prepared_at": "2026-10-04T10:42:02.123Z",
+  "reference": "!21",
+  "references": {
+    "short": "!21",
+    "relative": "!21",
+    "full": "max757/Luminari-Source!21"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/21",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "30",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "9eb7239139ae735128c048f009feeb99d6bc67c2",
+    "head_sha": "b485062c8d32f89aaa882d9e1e080e443739b112",
+    "start_sha": "9eb7239139ae735128c048f009feeb99d6bc67c2"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "id": 205408827,
+  "iid": 23,
+  "project_id": 86882182,
+  "title": "Test gaps left by the vessel steps S9-S15",
+  "description": "## Problem\n\nThe vessel steps S9 through S15 recorded these verification gaps and left them open. Each path\nwas checked once by hand or by a live gate, and none has a test that runs in `make test-all`.\n\n1. **`shipbuy` and its trade-in when the ship-side write is refused.** Work item #14 asked for a\n   database-backed test per command family for a refused ship-side write. The shipyard jobs,\n   the summons, and the payouts have one (`unittests/CuTest/test_vessel_payment.c`,\n   `test_vessel_loss.c`). `shipbuy` and the trade-in undo (`vessel_trade_in_undo()` in\n   `src/vessels/vessels_edit.c`) do not: no unit-test world generates ship interiors, so only\n   the loss gate (`scripts/vessels/test_vessel_loss_in_game.sh`) plays them.\n   `unittests/CuTest/test_vessel_shipyard.c` covers only the charge that cannot be saved and\n   the hull that cannot be delivered.\n2. **A write and its undo both refused.** The hire and the summons that stand have unit tests.\n   The trade-in whose records cannot be put right and the bought hull that stays in play\n   (`src/vessels/vessels_edit.c`) have neither a test nor a gate. They were verified once by\n   hand on 2026-10-04; the method is in `docs/testing/VESSEL_SYSTEM_TESTING.md` (\"Vessel Loss\n   Check\").\n3. **Smaller untested paths in `src/vessels/vessels_payment.c`:** a trade-in payout that cannot\n   be saved, a refund whose own save fails, a lost reply on the prepared bounty statement, and a\n   sale whose first write is refused and whose write-back also fails.\n4. **No live gate accepts freight.** No gate script types `contractaccept`; the economy gate\n   plants a freight settlement with SQL. The command is covered by\n   `unittests/CuTest/test_vessel_rewards.c` only.\n5. **The help import and the help delete** check the help-sync lock inside their transaction\n   (`src/olc/hedit.c`), as the help save does, but only the save and the lock function have a\n   test (`unittests/CuTest/test_database_transactions.c`).\n\n## Completion criteria\n\n- A unit-test fixture that can generate a ship interior, and with it tests for `shipbuy` and\n  the trade-in: a refused write undone and refunded, and a refused undo that keeps the charge\n  and tells the staff.\n- Tests for the four paths in item 3.\n- A `contractaccept` step in a live gate (the economy or the rules gate).\n- Tests that drive the help import and the help delete with the lock lost.\n- Or, for any item judged not worth a test, a line in `VESSEL_SYSTEM_TESTING.md` that says so.",
+  "state": "opened",
+  "created_at": "2026-10-04T20:37:15.223Z",
+  "updated_at": "2026-10-04T20:38:24.495Z",
+  "closed_at": null,
+  "closed_by": null,
+  "labels": ["Feature"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 0,
+  "merge_requests_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/23",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/23",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/23/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/23/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#23",
+    "relative": "#23",
+    "full": "max757/Luminari-Source#23"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

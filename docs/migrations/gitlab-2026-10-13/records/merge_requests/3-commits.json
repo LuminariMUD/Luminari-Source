@@ -1,0 +1,19 @@
+[
+  {
+    "id": "6c7ff12233e65e4f6b792a4d0f338cf8b074f549",
+    "short_id": "6c7ff122",
+    "created_at": "2026-09-27T12:05:26.000+03:00",
+    "parent_ids": ["2d7923cac18b91b6355623c3c0ff1e2bc03a68c1"],
+    "title": "Migrate tables that older installs created before their columns existed",
+    "message": "Migrate tables that older installs created before their columns existed\n\nweather_cache.wind_speed, player_save_objs.idx_name, and the room-keyed\nhint_usage_log columns were only in create statements, which never touch\nan existing table. Production lacked wind_speed and idx_name (every\ncharacter object load scanned 508k rows), and both production and dev\nkept a region-keyed hint_usage_log that rejected every log_hint_usage()\ninsert.\n\nrun_legacy_table_migrations() adds them as versioned, idempotent\nmigrations 2026092701-03 on every boot. They repair lookup and analytics\ntables, so a failure is logged and retried rather than stopping boot.\nThe ad-hoc wind_speed ALTER in the create path is now redundant.\n",
+    "author_name": "moshehbenavraham",
+    "author_email": "moshehwebservices@live.com",
+    "authored_date": "2026-09-27T12:05:26.000+03:00",
+    "committer_name": "moshehbenavraham",
+    "committer_email": "moshehwebservices@live.com",
+    "committed_date": "2026-09-27T12:05:26.000+03:00",
+    "trailers": {},
+    "extended_trailers": {},
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/commit/6c7ff12233e65e4f6b792a4d0f338cf8b074f549"
+  }
+]

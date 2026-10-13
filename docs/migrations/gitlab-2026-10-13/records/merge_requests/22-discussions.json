@@ -1,0 +1,1164 @@
+[
+  {
+    "id": "b38b25a8b1e23cc13e9738b00dc00c2cf55f538e",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951451559,
+        "type": null,
+        "body": "assigned to @max757",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T15:12:24.378Z",
+        "updated_at": "2026-10-04T15:12:24.379Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "ccf2dc51f1c95d23c260e7d470937be70734683d",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951452763,
+        "type": null,
+        "body": "mentioned in commit 6c0975cd17591695a7e52725ba78b9c1f2af0534",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T15:13:20.126Z",
+        "updated_at": "2026-10-04T15:13:20.128Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "ae7c5c4067957a75999bb99fbb60f68d91168557",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951452777,
+        "type": null,
+        "body": "added 1 commit\n\n<ul><li>6c0975cd - Record S15&#39;s verification and hand-off</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/22/diffs?diff_id=2074717003&start_sha=bc3f39c30a8f6dca1f97319c14914d6d2bafa3e6)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T15:13:21.164Z",
+        "updated_at": "2026-10-04T15:13:21.165Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "c366e6c2809011648ab5daa2ed7923458ffc08e1",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951453282,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T15:13:42.531Z",
+        "updated_at": "2026-10-04T15:13:42.533Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "5b6d74bc427bebe5a376a988649855d7f079db8c",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951453362,
+        "type": null,
+        "body": "mentioned in issue #14",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T15:13:46.058Z",
+        "updated_at": "2026-10-04T15:13:46.060Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "bd2866932cd346678ca946f515c4d233487a2695",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3951513215,
+        "type": "DiffNote",
+        "body": "**[P2] A summons puts the carts aboard ashore with the shipyard's coordinates**\n\n`vehicle_release_all_from_vessel()` copies the hull's position into each vehicle it releases (`vehicle->x_coord = (int)vessel->x`, `src/vessels/vehicles_transport.c:602`). Before this MR the summons released the vehicles first and overwrote `ship->x` / `ship->y` afterwards. The new order saves the summons first, so by this line `ship->x` / `ship->y` already hold the summoning shipyard's coordinates (set at lines 568-569). The cart is left in the room where the hull was, carrying, in memory and in its `vehicle_data` row, the coordinates of the shipyard she was called to.\n\nA vehicle's coordinates are its position: `drive` moves it to `x_coord + dx, y_coord + dy` and carries every rider there (`src/vessels/vehicles.c:1739`, `src/vessels/vehicles_commands.c:602-613`), and boot places it by coordinates alone (`vehicle_restore_runtime_location()`).\n\n**Repro** (probe test on `6c0975cd1` against the test database, the `loss_harbor` fixture of `test_vessel_loss.c`: hull at sea in room 1 at (10,12), captain on the dock at (40,41), one cart with `parent_vessel_id` = the hull):\n\n```\ndo_shipsummon(captain, \"1\")  ->  \"You pay 28 gold. ...\"\ncart after summons: parent=0 location(rnum)=1 x=40 y=41\nvehicle_data row:   x_coord=40 y_coord=41\n```\n\nIn play: load a cart aboard a hull lying at A, have a friend wait aboard, and `shipsummon` her from shipyard B. The friend is put over the side at A beside the cart; they mount it, `drive north`, and stand next to B at once with whatever the cart carries, however long the hull's passage is. After the next boot the cart itself stands at B.\n\n**Fix**: release from the copy, which still holds where she was:\n\n```c\nvehicle_release_all_from_vessel(&before, exterior);\n```\n\nWith that one change the probe reads `x=10 y=12` in memory and in the row, and the three `Test_vessel_summons*` tests still pass. The summons test should carry a cart so the order stays pinned.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T15:49:57.975Z",
+        "updated_at": "2026-10-04T17:37:35.768Z",
+        "system": false,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "start_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "head_sha": "6c0975cd17591695a7e52725ba78b9c1f2af0534",
+          "old_path": "src/vessels/vessels_loss.c",
+          "new_path": "src/vessels/vessels_loss.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 611,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-04T17:37:35.768Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      },
+      {
+        "id": 3951672349,
+        "type": "DiffNote",
+        "body": "changed this line in [version 3 of the diff](/max757/Luminari-Source/-/merge_requests/22/diffs?diff_id=2074816797&start_sha=6c0975cd17591695a7e52725ba78b9c1f2af0534#21ac5a5938235f3a402007613aedf404effd303d_611_635)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:36:51.082Z",
+        "updated_at": "2026-10-04T17:36:51.082Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "start_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "head_sha": "6c0975cd17591695a7e52725ba78b9c1f2af0534",
+          "old_path": "src/vessels/vessels_loss.c",
+          "new_path": "src/vessels/vessels_loss.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 611,
+          "line_range": null
+        },
+        "resolvable": false,
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      },
+      {
+        "id": 3951673266,
+        "type": "DiffNote",
+        "body": "Fixed in a1a02f325, as proposed: the vehicles are released from the copy taken before the summons (`vehicle_release_all_from_vessel(&before, exterior)`), which still holds where she was.\n\n`Test_vessel_summons_sends_a_hull_out_of_the_world` now carries a cart. It stays aboard through both refused summonses; after the summons it is in the room where she lay with `x=10 y=12`, in memory and in its `vehicle_data` row. With the old argument the test fails at `expected <10> but was <40>`.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:37:34.603Z",
+        "updated_at": "2026-10-04T17:37:35.768Z",
+        "system": false,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "start_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "head_sha": "6c0975cd17591695a7e52725ba78b9c1f2af0534",
+          "old_path": "src/vessels/vessels_loss.c",
+          "new_path": "src/vessels/vessels_loss.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 611,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-04T17:37:35.768Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "53185fb8ff6c7c737f5695d0695276b2be14343d",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3951515996,
+        "type": "DiffNote",
+        "body": "**[P3] A refunded `shipbuy` can still leave a hull that the next boot rebuilds for the buyer**\n\n`do_shipbuy` refunds whenever the spawn returns -1 (`vessels_edit.c:1163-1168`), and the spawn's rollback does not look at whether `vessel_delete_persistence(slot)` committed (`vessels_edit.c:808`). The new write order covers three of the four writes: rows left without a runtime row hold the slot at boot. It does not cover the runtime row itself.\n\n**Case**: the `REPLACE INTO ship_runtime_state` reaches the server and is applied, and its reply is lost (the case this MR writes back or reads back at every other site). `vessel_db_save_runtime()` returns FALSE. If the connection that lost the reply is the start of an outage (a network cut between the game and the database outlasting the read timeout, a database restart), the rollback's `START TRANSACTION` cannot reconnect and `vessel_delete_persistence()` returns FALSE. The buyer reads \"The ship could not be persisted, so the spawn was rolled back. Your N gold is returned.\", and the refund is saved to the player file.\n\nThe database now holds her whole record: interior row, weapons, owner, runtime row. Unlike the shipyard jobs, no hull is left in memory, so no later save writes over those rows and nothing converges (\"held\" only keeps the slot from being reused). At the next boot `load_all_ship_interiors()` finds an interior row with a runtime snapshot and rebuilds her, owned by the buyer, who has the price back.\n\n**Repro** (by inspection: no unit world generates interiors): `mysql_test_drop_connection_at(\"REPLACE INTO ship_runtime_state\", 1, TRUE)` inside `vessel_spawn_from_prototype()` with the database out of reach for the delete that follows; then count the slot's rows in `ship_runtime_state` and read the purse.\n\n**Fix**: do not undo a spawn whose rows cannot be removed. Try `vessel_delete_persistence(slot)` before the hull is torn down; when it does not commit, keep her in play and return the slot, so the purchase stands, the fee stays paid, and her next save writes her rows (there is no periodic fleet save: see the thread on `vessel_purchase_recorded()`), as `vessel_sale_recorded()` lets a sale stand when its put-back cannot be written. Every outcome is then a paid hull, or a paid buyer without one after a crash (the direction the MR accepts), never a free hull.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T15:51:39.556Z",
+        "updated_at": "2026-10-04T17:37:37.868Z",
+        "system": false,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "start_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "head_sha": "bb9b86e3ed7cab242a85fd765f34d06de07df05c",
+          "old_path": "src/vessels/vessels_edit.c",
+          "new_path": "src/vessels/vessels_edit.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 800,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-04T17:37:37.868Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      },
+      {
+        "id": 3951673313,
+        "type": "DiffNote",
+        "body": "Fixed in c584bdab0, as proposed: the spawn's rollback deletes her rows before it takes her out of play, the way `shippurge` treats a live hull. When the delete does not commit she stays in play and the spawn returns her slot, so `shipbuy` reports the purchase and the price stays paid; her next save writes her rows. The rule is in the shared constructor, so it also holds for `vedit spawn` and the NPC fleets.\n\nNo retry of the save at that point: the delete is one transaction, so it leaves her rows as the failed save left them, and a save a moment after a delete that could not reach the database would fail the same way.\n\nPlayed live (no unit world generates interiors): with the design's runtime row refused by a CHECK constraint and every delete from `ship_interiors` refused by a trigger, `shipbuy` handed the hull over, the 44,000 gold stayed paid, the log named her slot, and after both refusals were dropped her christening wrote her runtime row. Details in the summary note.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:37:36.787Z",
+        "updated_at": "2026-10-04T17:37:37.868Z",
+        "system": false,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "start_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "head_sha": "bb9b86e3ed7cab242a85fd765f34d06de07df05c",
+          "old_path": "src/vessels/vessels_edit.c",
+          "new_path": "src/vessels/vessels_edit.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 800,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-04T17:37:37.868Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "b14e178a5f756bc7c3223b5822d436a2b9f9b769",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3951533491,
+        "type": "DiffNote",
+        "body": "**[P3] A purchase whose write-back fails is called undone and refunded while her rows keep it**\n\nWhen the hull cannot be written and the write-back fails too, `vessel_purchase_recorded()` logs a SYSERR, refunds, and tells the buyer \"nothing was done and your N gold is returned\". `vessel_sale_recorded()` refuses to do that for a sale (\"Undone\" is never said of a sale her rows still hold); the purchase side, the summons (`vessels_loss.c:591-602`) and the trade-in undo (`vessels_edit.c:951-956`, refund at `:1053`) all do it.\n\nThe two failures are one event, not two: a reply lost on a statement the server ran is usually the start of an outage, and the write-back's first statement then cannot reconnect.\n\n**Repro** (probe test on `6c0975cd1` against the test database, the `payment_berth` fixture of `test_vessel_payment.c`):\n\n```c\nmysql_test_drop_connection_at(\"INSERT INTO ship_crew_roster\", 1, TRUE);\nconn->port = 1; /* the database stays out of reach for the write-back */\npayment_command(&berth, do_shiphire, \"gunner green\");\nconn->port = port;\n```\n\n```\nsaid:   The harbor office could not record that, so nothing was done and your 2400 gold is returned.\nmemory: gunner tier=0  gold=200000 (was 200000)\nfile:   gold=200000\nrows:   SELECT COUNT(*) FROM ship_crew_roster WHERE ship_id = 487  ->  1\n```\n\nThe log's \"until she is saved again\" is open-ended: there is no periodic fleet save. `save_all_vessels()` runs at copyover (`act.wizard.c:5278`) and after the game loop ends (`comm.c:862`), and her crew and refit rows are otherwise rewritten only by her next shipyard job, dismissal or crew change. A crash or a kill before one of those boots her with the gunner (`vessel_db_load_crew()`), and the 2,400 gold is back in the player file. The same holds for a weapon, a refit bit, a name, the stowed and summoned runtime row, and the rows of a traded-in hull's new class. Only the log file hears of it.\n\n**Fix**: refund, and say \"nothing was done\", only when the write-back succeeded. When it fails, let the purchase stand, as the sale does: keep a copy of the hull as bought, put it back in memory, keep the fee (it is already saved), and log; her next save completes the rows. A summons that cannot be written back carries on as summoned. The trade-in has already rebuilt the old hull when its write-back fails: keep the charge there and tell the staff with `mudlog()`, as `contractdeliver` does. So that a database that is away before the command still refuses the purchase without charging, check that it answers before `vessel_charge()`.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T16:04:54.737Z",
+        "updated_at": "2026-10-04T17:37:39.861Z",
+        "system": false,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "start_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "head_sha": "bb9b86e3ed7cab242a85fd765f34d06de07df05c",
+          "old_path": "src/vessels/vessels_payment.c",
+          "new_path": "src/vessels/vessels_payment.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 129,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-04T17:37:39.861Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      },
+      {
+        "id": 3951673345,
+        "type": "DiffNote",
+        "body": "Fixed in c53d1601e. The gold is returned, and \"nothing was done\" said, only when the write-back succeeded.\n\n- **Shipyard jobs** (`vessel_purchase_recorded()`): a write-back that fails puts the bought hull back in memory, writes her once more (the write-back may have rewritten part of her rows) and keeps the price, as `vessel_sale_recorded()` lets a sale stand. Logged only when that last write fails too.\n- **Summons**: carries on as summoned, the fee stays paid.\n- **Trade-in**: `vessel_trade_in_undo()` now reports whether she is as she was in play and in her rows. If not (the write-back failed, or her rooms could not be recreated), the charge is kept, the staff are told with `mudlog()` and the captain reads that his gold stays paid until they settle it.\n- **`vessel_charge()`** pings first: a database that does not answer refuses the purchase before any gold is taken (\"The harbor's records cannot be reached; no gold was taken.\"). One place for all twelve commands.\n\nOne thing the proposal did not cover: a summons that stands when *none* of its writes arrived (the outage begins between the charge and the first write) leaves her full manifest in the rows, and the arrival wrote only the runtime row, so a crash after she made port would have brought the cargo in with her. `vessel_summon_arrive()` now saves the manifest before the runtime row.\n\nTests: your probe is `Test_vessel_purchase_stands_when_it_cannot_be_written_back` (the hire stands, 2,400 gold paid in memory and in the file, one roster row); its twin for the summons is `Test_vessel_summons_stands_when_it_cannot_be_written_back`; a database that is off, or gone with no reconnect, refuses the hire uncharged. Live results are in the summary note.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:37:38.810Z",
+        "updated_at": "2026-10-04T17:37:39.861Z",
+        "system": false,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "start_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "head_sha": "bb9b86e3ed7cab242a85fd765f34d06de07df05c",
+          "old_path": "src/vessels/vessels_payment.c",
+          "new_path": "src/vessels/vessels_payment.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 129,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-04T17:37:39.861Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "1db184077e3163ae3feb3a6a01439855d407a0fb",
+    "individual_note": false,
+    "resolvable": true,
+    "resolved": true,
+    "notes": [
+      {
+        "id": 3951534516,
+        "type": "DiffNote",
+        "body": "**[P3] The refused summons is written back manifest first, which opens the window line 581 closes**\n\nThe forward order writes the emptied manifest before the stowed hull, \"a crash between the two writes must not bring her in with the cargo the summons leaves behind\" (lines 581-583). The write-back runs the same two calls in the same order with the old state: the full manifest first, then the hull as she was.\n\n**Case**: the reply to `REPLACE INTO ship_runtime_state` is lost, so her row says stowed and summoned (the second case of `lost_replies[]` in `Test_vessel_summons_sends_a_hull_out_of_the_world`). The write-back restores the full manifest; then the process dies, or the hull's write-back fails, before her runtime row is rewritten. Her rows now say: stowed, due at this shipyard, hold full. The next boot brings her in with the cargo.\n\n**Fix**: write the hull back before the manifest:\n\n```c\nif (!vessel_save_hull(ship) || !vessel_db_save_cargo(ship))\n```\n\nA stop between the two then leaves her where she was with an empty manifest in the rows, the same loss the forward order already accepts.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T16:05:41.559Z",
+        "updated_at": "2026-10-04T17:37:42.187Z",
+        "system": false,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "start_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "head_sha": "bb9b86e3ed7cab242a85fd765f34d06de07df05c",
+          "old_path": "src/vessels/vessels_loss.c",
+          "new_path": "src/vessels/vessels_loss.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 619,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-04T17:37:42.187Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      },
+      {
+        "id": 3951673379,
+        "type": "DiffNote",
+        "body": "Fixed in e5fcba5d3: the write-back writes the hull before the manifest, and the comment at the call says why it runs the other way round from the forward order.\n\nNo test pins the order. A unit test cannot stop between the two writes, and since c53d1601e a write-back that fails is followed by a second write of the summons, so both orders end in the same rows.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:37:40.930Z",
+        "updated_at": "2026-10-04T17:37:42.187Z",
+        "system": false,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "commit_id": null,
+        "position": {
+          "base_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "start_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+          "head_sha": "bb9b86e3ed7cab242a85fd765f34d06de07df05c",
+          "old_path": "src/vessels/vessels_loss.c",
+          "new_path": "src/vessels/vessels_loss.c",
+          "position_type": "text",
+          "old_line": null,
+          "new_line": 619,
+          "line_range": null
+        },
+        "resolvable": true,
+        "resolved": true,
+        "resolved_by": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "resolved_at": "2026-10-04T17:37:42.187Z",
+        "suggestions": [],
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "dd7ddedf6862c485f7cf61b839ce4d30348a26e9",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951536018,
+        "type": null,
+        "body": "**Review of `vessels-s15-base..6c0975cd1`: four findings**\n\nEach is in its own thread on the line it concerns, with the case and the fix.\n\n| | Where | Finding | Shown by |\n| -- | -- | -- | -- |\n| P2 | `src/vessels/vessels_loss.c:611` | A summons puts the carts aboard ashore with the summoning shipyard's coordinates: one `drive` carries the cart and its riders there. A regression of this range (the release used to run before the hull's position was overwritten). | probe test |\n| P3 | `src/vessels/vessels_payment.c:107` | A purchase whose write-back fails is called undone and refunded while her rows keep it; with no periodic fleet save they keep it until her next shipyard job, a copyover or a clean shutdown. Also the summons and the trade-in undo. | probe test |\n| P3 | `src/vessels/vessels_edit.c:801` | A refunded `shipbuy` whose rollback cannot delete her rows leaves a complete record when the lost reply was the runtime row's; the next boot rebuilds her for the buyer. | inspection |\n| P3 | `src/vessels/vessels_loss.c:591` | The refused summons is written back manifest first, the order the forward path avoids. | inspection |\n\n**How it was checked**: the source diff read in full, every helper the undo paths call traced; a second, separate read of the same range, which found nothing further; probes in a scratch worktree at the head against the test database, where the 237 `Test_vessel*` tests pass.\n\n**Read and found sound**:\n\n- The copy and restore at the seven shipyard sites: `vessel_add_maintenance()`, `vessel_apply_crew_bonuses()`, `vessel_dock_repair_apply()`, `vessel_refit_arcs()` and the six parts of `vessel_save_hull()` change nothing outside the struct, and `autopilot_stop()` only the two fields the summons remembers.\n- The gold: every charge follows a funds check, every refund equals its charge, and the trade-in's charge plus payout equals the old `credit + sold - price` in both signs.\n- The trade-in undo: interior vnums are a function of the slot and the index, so the old rooms come back under the same numbers; the hull object, autopilot and schedule pointers stay valid; the stale `dock` rnum is only a fallback for a hull without an object.\n- `contract_record()`: both writes are absolute, so the second send and the rewrite as taken repeat safely; the gate clears an unresolved settlement before the manifest is written inside the transaction.\n- `marque`: a held letter is refused before the charge, so the read-back cannot mistake an old letter for the new one.\n- `vessel_save_one()`'s new FALSE cases reach the copyover gate and the trade-in only on a real write failure.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T16:06:29.543Z",
+        "updated_at": "2026-10-04T16:06:29.543Z",
+        "system": false,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "8644e57cf23bb57ea9d7e7997e62363875c22521",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951672327,
+        "type": null,
+        "body": "mentioned in commit c584bdab03892a015e61cb52ef5938572aa445b1",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:36:50.104Z",
+        "updated_at": "2026-10-04T17:36:50.105Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "b19a343f6884256e96a4a9ef5af51e982d7e07a7",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951672329,
+        "type": null,
+        "body": "mentioned in commit a1a02f3257f16304558596dbe2027313221705e8",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:36:50.109Z",
+        "updated_at": "2026-10-04T17:36:50.110Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "ade7e71ac1ab14fb798b1f4f5f7efa13700ac05b",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951672332,
+        "type": null,
+        "body": "mentioned in commit e5fcba5d36b1e21501c73c2416326e8d13d002cf",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:36:50.134Z",
+        "updated_at": "2026-10-04T17:36:50.135Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "431a003b67ca5e81a1fd5fdcf16fbe3ecf80bbf6",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951672338,
+        "type": null,
+        "body": "mentioned in commit 94c3c5a9a6c2de89ac2bc8e413e8f4151be09998",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:36:50.264Z",
+        "updated_at": "2026-10-04T17:36:50.266Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "107096610a0e30a23c080dd5f57f5a1330498146",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951672336,
+        "type": null,
+        "body": "mentioned in commit c53d1601e01ddc7c91cf056c2fc343835f76961a",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:36:50.267Z",
+        "updated_at": "2026-10-04T17:36:50.270Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "3eff316213a4fb9936ec6e41b1af60a4c3359c43",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951672337,
+        "type": null,
+        "body": "mentioned in commit bb9b86e3ed7cab242a85fd765f34d06de07df05c",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:36:50.291Z",
+        "updated_at": "2026-10-04T17:36:50.295Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "1e6c3c9afefaac150e22b7e7108a82283a119d32",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951672366,
+        "type": null,
+        "body": "added 6 commits\n\n<ul><li>a1a02f32 - Put a summoned hull&#39;s carts off where she lay</li><li>e5fcba5d - Write a refused summons back hull first</li><li>c53d1601 - Let a purchase stand when it cannot be written back</li><li>c584bdab - Keep a spawned hull whose rows cannot be removed</li><li>94c3c5a9 - Describe the purchases that stand in the vessel system document</li><li>bb9b86e3 - Record S15&#39;s review round 1</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/22/diffs?diff_id=2074816797&start_sha=6c0975cd17591695a7e52725ba78b9c1f2af0534)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:36:51.680Z",
+        "updated_at": "2026-10-04T17:36:51.682Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "e04231076ab4cb22a42dc835ce9f237af7df4bec",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951673403,
+        "type": null,
+        "body": "resolved all threads",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:37:42.218Z",
+        "updated_at": "2026-10-04T17:37:42.224Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "501960e8b9becf912073e2f919f47c6c1a6a2cf9",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951673429,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:37:43.678Z",
+        "updated_at": "2026-10-04T17:37:43.680Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "59386438069b42afff8aa1567e738f94c762fd30",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951673459,
+        "type": null,
+        "body": "**Review round 1: all four findings fixed** (`vessels-s15..bb9b86e3e`, one commit each; the threads have the details)\n\n| | Finding | Fix |\n| -- | -- | -- |\n| P2 | A summons put the carts aboard ashore with the shipyard's coordinates | `a1a02f325`: the vehicles are released from the copy of the hull taken before the summons; the summons test carries a cart |\n| P3 | A purchase whose write-back fails was called undone and refunded while her rows kept it | `c53d1601e`: refund only after a write-back that succeeded. A shipyard job and a summons stand and stay paid; the trade-in keeps the charge and tells the staff; `vessel_charge()` refuses uncharged when the database does not answer; a hull that makes port saves her manifest with her runtime row |\n| P3 | A refunded `shipbuy` could leave a hull the next boot rebuilt | `c584bdab0`: the spawn's rollback deletes her rows first; when that does not commit she stays in play and stays paid |\n| P3 | A refused summons was written back manifest first | `e5fcba5d3`: the hull is written back first |\n\n`VESSEL_SYSTEM.md` follows in `94c3c5a9a`, the record in the study document in `bb9b86e3e`. No help entry changes: what a captain is told when one write fails is as the entries say.\n\n**Verification** (on `94c3c5a9a`; the head adds only the record)\n\n| Check | Result |\n| -- | -- |\n| `make test-all`, database cases on | 2,036 production tests and 32 protocol tests pass (two new: a hire and a summons that stand) |\n| Live, a database that refuses both a write and its undo | passes, see below |\n| Gates that run the changed commands (fresh dump reload) | loss, gunnery, rules, damage, economy: all pass |\n| Local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) | 33 of 33 jobs pass |\n\nThe live job, in the private-namespace harness: a CHECK constraint on `ship_runtime_state` refused the runtime row of Kohdee's `Persistence_Goshawk` and of a new warship design, and a trigger refused every delete from `ship_interiors`. `shiphire gunner green` signed the gunner on and kept its 2,400 gold. `shipbuy <design> trade` reported that the records could not be put right and kept its 2,654 gold, with the staff line in the log. `shipbuy <design>` handed over the hull and kept its 44,000 gold. `shipsummon` from the west dock stood for 28 gold and she made port there. The log named each case. With the refusals dropped, her next job wrote both hands and the west dock into her rows, and the bought hull's christening wrote her runtime row.\n\nNot tested: the order of the summons's write-back (a unit test cannot stop between two writes).\n\nThe MR is mergeable, with a merge commit as before (the documents cite commit hashes). After the merge: the help sync of the five entries, the Phase 15 section to the history document, and closing the study documents.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:37:45.180Z",
+        "updated_at": "2026-10-04T17:37:45.180Z",
+        "system": false,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "d48ec33e1ec25f17d6487faf038da8d07255cab4",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951680490,
+        "type": null,
+        "body": "mentioned in commit 1ab373f02be08710de446e5d715692c05f820e35",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:42:02.326Z",
+        "updated_at": "2026-10-04T17:42:02.328Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "1799b1a3eafdcba2f71c1ed71e8cdb4020336b32",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951685686,
+        "type": null,
+        "body": "mentioned in commit 2d0e0212c65197e9ed790fc1fffece87f4b87e8a",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T17:46:02.048Z",
+        "updated_at": "2026-10-04T17:46:02.050Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "607bd780e821cb9bcece058333ed46a9c329a190",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951983716,
+        "type": null,
+        "body": "mentioned in issue #20",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T20:37:06.720Z",
+        "updated_at": "2026-10-04T20:37:06.723Z",
+        "system": true,
+        "noteable_id": 542730876,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 22,
+        "commands_changes": {}
+      }
+    ]
+  }
+]

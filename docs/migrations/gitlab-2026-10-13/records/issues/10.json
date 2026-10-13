@@ -1,0 +1,97 @@
+{
+  "id": 205185498,
+  "iid": 10,
+  "project_id": 86882182,
+  "title": "Cargo buy and sell move gold without a checked save",
+  "description": "## Problem\n\n`cargobuy` and `cargosell` (`src/vessels/vessels_trade.c`) move gold only in memory, then write the cargo manifest and the port's supply to the database. Neither saves the player file, and `vessel_db_save_cargo()`'s result is not checked.\n\n- **Buying:** `award_gold(ch, -cost)`, then `port_adjust_supply()` and `vessel_db_save_cargo()`. If the server crashes before the captain's next routine save, the cargo is in the database but the gold comes back on reload: free cargo.\n- **Selling:** `award_gold(ch, revenue)`, then the supply and manifest writes. A crash before the next save loses the sale's gold while the cargo is already gone. If the manifest write fails, a later save keeps the gold with the cargo still recorded aboard: sold cargo that can be sold again.\n\n## Background\n\nThis is the same gap MR !15's review found in freight contract acceptance ([P2], note 3943254722). That was fixed there in `a703572e3`:\n\n- the contract claim and the manifest commit in one transaction;\n- the bond is debited only after that commits, then saved with `save_char_checked()`;\n- a failed save restores the gold, reopens the contract and unloads the freight;\n- `vessel_db_save_cargo()` now returns whether its writes succeeded.\n\n`cargobuy` and `cargosell` predate S9 and were left out of that fix to keep it to the finding.\n\n## Fix\n\nGive both commands the same shape:\n\n- write the manifest and port supply in one transaction;\n- move the gold only after it commits, and save it with `save_char_checked()`;\n- on a failed save, restore the gold and undo the manifest and supply changes.\n\nAdd DB-backed tests for a refused manifest write and a failed character save, like `Test_vessel_freight_bond_pays_for_the_goods`. New SQL that carries values must use `PREPARED_STMT`, since `check_sql_interpolation.py` gates the file's count.",
+  "state": "closed",
+  "created_at": "2026-10-02T07:52:29.882Z",
+  "updated_at": "2026-10-03T18:54:11.063Z",
+  "closed_at": "2026-10-02T20:39:55.516Z",
+  "closed_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 1,
+  "merge_requests_count": 1,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/10",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/10",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/10/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/10/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#10",
+    "relative": "#10",
+    "full": "max757/Luminari-Source#10"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

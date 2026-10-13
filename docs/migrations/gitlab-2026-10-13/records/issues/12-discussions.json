@@ -1,0 +1,702 @@
+[
+  {
+    "id": "f68be3e92569d914f5e705d68c5302eb5abb3da3",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947444848,
+        "type": null,
+        "body": "assigned to @max757",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:26:19.231Z",
+        "updated_at": "2026-10-02T20:26:19.232Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "6a9f8277d71cec99a3f89541e84d652d2284be47",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947444909,
+        "type": null,
+        "body": "marked as related to #10",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:26:20.431Z",
+        "updated_at": "2026-10-02T20:26:20.432Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "1b061dcfff666b27f3bff731095ee31f7d7fa007",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947469930,
+        "type": null,
+        "body": "mentioned in commit 47a63c340b597b96abe20b0923b0f49ac8862403",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:33:56.838Z",
+        "updated_at": "2026-10-02T20:33:56.839Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "01fa9a6e7d52e5f778c5a429653d2f5d1b8f2415",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947469933,
+        "type": null,
+        "body": "mentioned in commit a1f08bc7bfd9d98003c6c834cb328bc512915232",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:33:56.879Z",
+        "updated_at": "2026-10-02T20:33:56.881Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "8266d86f45ea882fa506628f907b80bfc8490444",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3947470403,
+        "type": null,
+        "body": "mentioned in merge request !17",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-02T20:34:08.072Z",
+        "updated_at": "2026-10-02T20:34:08.074Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "c964d709183350a03f41ca9cd713c8f25f61cc12",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3948779792,
+        "type": null,
+        "body": "Two cases from MR !17's second review round (2026-10-03) belong here.\n\n**A trade COMMIT that goes unanswered** (MariaDB client error 2013) is now settled in\n`trade_record()` (fix `2ba35d6b1`, on `feat/vessels-s12` / MR !18): the trade's writes set absolute\nvalues, so it is written again on a reconnected session, and the second commit decides the\noutcome. What remains: if that second write cannot commit either (the database unreachable just\nafter a lost reply), the database may not match the ship's hold until her manifest is next written\nand the minute save runs. A reload before then lets the database's version win. A settlement\nrecord would close this.\n\n**Freight acceptance** (`do_contractaccept()`, `src/vessels/vessels_contracts.c`) has the same\nCOMMIT shape: an unanswered COMMIT unloads the freight and reports \"no gold was taken\" even if the\ncontract was taken and the freight stowed. Its write is conditional\n(`UPDATE ... WHERE status = OPEN`), so it cannot simply be repeated: writing it again after a\ncommit that did land finds the contract taken and reports another captain. The settlement record\nplanned here (a durable intent the reconcile can find) is the fix; dock-fee payment should get the\nsame check.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T07:13:58.992Z",
+        "updated_at": "2026-10-03T07:13:58.992Z",
+        "system": false,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "fe970d45797b445ed51ba64f83a354552ece3613",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3948917363,
+        "type": null,
+        "body": "mentioned in issue #13",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T08:59:42.261Z",
+        "updated_at": "2026-10-03T08:59:42.263Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "83b1e003844bc960f433b044ccd7dd6ed3e2f6af",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3948917795,
+        "type": null,
+        "body": "marked as related to #13",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T09:00:04.092Z",
+        "updated_at": "2026-10-03T09:00:04.094Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "9d422a1fe47718fecf2194628fc399ca77c9bd96",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3949058355,
+        "type": null,
+        "body": "mentioned in commit b28b2af49fe7a94978bba3aa63db6e03f10f5db0",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T10:28:05.166Z",
+        "updated_at": "2026-10-03T10:28:05.167Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "094cb5d0afe7ef070910de0a2b74c214cf2253af",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3949128209,
+        "type": null,
+        "body": "mentioned in merge request !19",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T11:07:12.393Z",
+        "updated_at": "2026-10-03T11:07:12.396Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "a7bdb591bf756e9bebe95ded261c194d67d938f5",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3949790478,
+        "type": null,
+        "body": "mentioned in commit b15a8bc607e6ba03f9518ac7ff6465e1488abf72",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T18:46:00.462Z",
+        "updated_at": "2026-10-03T18:46:00.464Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "e50b467e21a93a42a44e5fa19960f5192ac7c168",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3949791084,
+        "type": null,
+        "body": "Scheduled as **S14** of the vessel study, resolved in the `../Luminari-Source-vessels-ships` worktree after S13 (#13):\n\n- Branch: `feat/vessels-s14`, to be cut from S13's merge commit with the annotated tag `vessels-s14-base`.\n- Plan and record: [`docs/ongoing-projects/vessels-ships.md`](https://gitlab.com/max757/Luminari-Source/-/blob/feat/vessels-s13/docs/ongoing-projects/vessels-ships.md#part-5-implementation-sequence), Part 5 item 14 (commit b15a8bc607e6ba03f9518ac7ff6465e1488abf72): the settlement table is schema Phase 25, and the player-file marker follows the two the vessel code already keeps (`VIns` for insurance claims, `VMer` for merchant consequences), with the reconcile beside their login deliveries (`src/core/interpreter.c`).\n- Scope, as described above: `cargobuy`, `cargosell`, `contractaccept` and `dockfees pay`. The settlement row is also the durable marker that settles an unanswered `COMMIT` for them, which S13 (#13) leaves to this step.\n- Order: S13 comes first because this step uses its shared `COMMIT` helper (committed, refused or unanswered) and its rule that a connection that lost its transaction accepts nothing but `ROLLBACK`.\n- The S14 merge request will say `Closes #12`, so it is listed here and closes this item when it merges.\n\nNot started yet.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T18:46:28.536Z",
+        "updated_at": "2026-10-03T18:46:28.536Z",
+        "system": false,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "fad83683a767db10b5a34c3e019f34ba9dc7f547",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3949799932,
+        "type": null,
+        "body": "mentioned in issue #14",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T18:54:02.060Z",
+        "updated_at": "2026-10-03T18:54:02.061Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "445a9b6441bbd7714a316825c5ca4377f1f4a7c2",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3949800084,
+        "type": null,
+        "body": "marked as related to #14",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T18:54:12.210Z",
+        "updated_at": "2026-10-03T18:54:12.212Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "2850706e29e286c7831f70420d9a5c7f6eab9a0d",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3950191477,
+        "type": null,
+        "body": "mentioned in merge request !20",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-03T23:44:35.386Z",
+        "updated_at": "2026-10-03T23:44:35.389Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "644fc7e7d12b1794fd42297381bbfae8ef65a6a4",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951052625,
+        "type": null,
+        "body": "mentioned in commit 4ddf5f9ba124066f1d2d75351ca37b0ba283999d",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T10:41:32.507Z",
+        "updated_at": "2026-10-04T10:41:32.508Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "025d3ec51ce4a979b5e52e305659e4cf154e71e3",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951052633,
+        "type": null,
+        "body": "mentioned in commit 6bdce1e494d9698a7407d1055725be3e42358f5b",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T10:41:32.757Z",
+        "updated_at": "2026-10-04T10:41:32.759Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "48bf7b9ef2d211a3a2e7ce9005e25c025cee5f53",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951053625,
+        "type": null,
+        "body": "mentioned in merge request !21",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T10:42:01.786Z",
+        "updated_at": "2026-10-04T10:42:01.788Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "2558f877e93d08a3970549f6fe78ace6a7fb408b",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951253057,
+        "type": null,
+        "body": "mentioned in commit e7bc5242cc2ea76583d27bae7109d970290aef22",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T12:58:28.525Z",
+        "updated_at": "2026-10-04T12:58:28.527Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "1313f31919d84deb3ba83584ba1d617b6d332014",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3951261392,
+        "type": null,
+        "body": "mentioned in commit 16c6611fb36a0a6d67a4b093f1faf929683e9609",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-10-04T13:03:52.600Z",
+        "updated_at": "2026-10-04T13:03:52.602Z",
+        "system": true,
+        "noteable_id": 205253873,
+        "noteable_type": "Issue",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 12,
+        "commands_changes": {}
+      }
+    ]
+  }
+]

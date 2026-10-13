@@ -1,0 +1,141 @@
+{
+  "id": 542319781,
+  "iid": 17,
+  "project_id": 86882182,
+  "title": "Vessels S11: checked cargo trades",
+  "description": "S11 of the vessel study: checked cargo trades.\n\nCloses #10\n\n## Problem\n\n`cargobuy` and `cargosell` (`src/vessels/vessels_trade.c`) moved gold in memory only, then wrote\nthe port's supply and the cargo manifest unchecked and outside any transaction. A crash before the\ncaptain's next routine save returned a buyer's gold with the cargo recorded aboard, or lost a\nseller's gold with the cargo gone; a failed manifest write left sold cargo recorded aboard, to be\nsold again after a reboot.\n\n## Fix\n\nThe shape `a703572e3` gave freight acceptance:\n\n- `trade_record()` writes the port's supply and the manifest in one transaction and rolls back if\n  either write fails. It replaces `port_adjust_supply()`, whose UPDATE is now a prepared\n  statement (`vessels_trade.c`'s formatted-SQL baseline drops from 7 to 6).\n- The gold moves only after that commits, and is saved with `save_char_checked()`. If the save\n  fails, the gold and the hold are restored and the pre-trade supply and manifest recorded again\n  with the same helper. A refused write moves no gold.\n- A sale trains the crew only once it is saved.\n- If the undo cannot be recorded either (review round 1), the trade stands as recorded, in memory\n  too, and the persistence service's minute save stores the gold; \"undone\" is said only after an\n  undo commits. The crash window that remains needs a settlement record and a player-file marker:\n  work item #12.\n\n## Tests\n\n- New DB-backed `Test_vessel_cargo_trades_record_the_gold_with_the_goods`: for each command, a\n  refused manifest write and a failed character save leave the gold, the hold, the manifest rows\n  and the port's supply as they were (including a whole-hold sale whose emptied lot is put back);\n  a saved trade moves all four.\n- The contraband test's trades now save the captain, so it uses the freight test's scratch player\n  files; the three trade tests share one fixture helper for their temporary tables.\n\n## Verification\n\n- `make test-all` with the database cases: 1,995 CuTest cases OK, the protocol harness's 32, and\n  the Python suites.\n- `scripts/ci/check_sql_interpolation.py`: within baseline.\n- The economy live gate (`test_vessel_economy_in_game.sh`, the only gate that runs `cargobuy` and\n  `cargosell`) on a fresh reload of the development dump: passed in 208 s.\n- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`): all 33 jobs passed.\n\n## Review round 1\n\n- [P2] failed compensation reported as undone: fixed in `a1f08bc7b` with `trade_settle()`; the\n  new double-fault cases (sale and purchase) failed on `50ca77f2d` and pass. Verified with\n  `make test-all` (database cases on), the SQL interpolation check, and the local CI matrix\n  (all 33 jobs). Record `47a63c340`.\n\nPlan and record: `docs/ongoing-projects/vessels-ships.md`, \"Phase 11 (S11) progress\". Review range\n`vessels-s11-base..vessels-s11`.",
+  "state": "merged",
+  "created_at": "2026-10-02T18:20:07.935Z",
+  "updated_at": "2026-10-03T07:13:56.988Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-02T20:39:55.278Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "feat/vessels-s11",
+  "user_notes_count": 4,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "47a63c340b597b96abe20b0923b0f49ac8862403",
+  "merge_commit_sha": "f18208549af4a14a57c578022d639b3442930028",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": false,
+  "prepared_at": "2026-10-02T18:20:09.741Z",
+  "reference": "!17",
+  "references": {
+    "short": "!17",
+    "relative": "!17",
+    "full": "max757/Luminari-Source!17"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/17",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "5",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef",
+    "head_sha": "47a63c340b597b96abe20b0923b0f49ac8862403",
+    "start_sha": "88495e08ae2ab52e60875fa64999ffee64c9bcef"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

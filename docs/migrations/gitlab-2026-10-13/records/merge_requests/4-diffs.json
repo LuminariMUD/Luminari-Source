@@ -1,0 +1,67 @@
+[
+  {
+    "diff": "@@ -1,4 +1,4 @@\n interface:\n   display_name: \"Luminari Help Sync\"\n-  short_description: \"Reconcile dev and production help catalogs\"\n-  default_prompt: \"Use $help-sync to prepare a safe two-way help reconciliation plan.\"\n+  short_description: \"Fully sync help between dev and production\"\n+  default_prompt: \"Use $help-sync to fully synchronize help between development and production.\"\n",
+    "collapsed": false,
+    "too_large": false,
+    "new_path": ".agents/skills/help-sync/agents/openai.yaml",
+    "old_path": ".agents/skills/help-sync/agents/openai.yaml",
+    "a_mode": "100644",
+    "b_mode": "100644",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false,
+    "generated_file": false
+  },
+  {
+    "diff": "@@ -1,21 +1,18 @@\n ---\n name: help-sync\n description: >-\n-  Build or operate LuminariMUD's two-way help-content synchronization between development and\n-  production while keeping MySQL and lib/text/help/help.hlp aligned. Use for cross-environment help\n-  drift, HEDIT reconciliation, sealed sync plans, guarded help publication, or sync rollback; do not\n-  use for ordinary single-entry editing or worldfile synchronization.\n+  Fully synchronize LuminariMUD help content between development and production, autonomously and\n+  end to end, keeping MySQL and lib/text/help/help.hlp aligned on both. Invoking this skill is the\n+  authorization to publish to production. Also covers the sync engine itself, audits, and rollback;\n+  do not use for ordinary single-entry editing or worldfile synchronization.\n ---\n \n # Luminari Help Sync\n \n Before any help synchronization or sync-system implementation action, treat this skill and the\n repository's `AGENTS.md` as authoritative. Trace the current source, schema, scripts, and\n-deployment configuration instead of relying on stale line numbers or assumed commands. For an\n-operation whose safety depends on design decisions, locate and read the maintained design sections\n-relevant to that mode. If the design is unavailable, continue read-only discovery and report the\n-gap; do not mutate data, production, or synchronization state until the required safety semantics\n-are available.\n+deployment configuration instead of relying on stale line numbers or assumed commands. When\n+changing the engine itself, read the maintained design sections for the part being changed.\n \n ## Select the operation\n \n@@ -31,15 +28,19 @@ Classify the request as one or more of these modes:\n - `verify`: prove database, file projection, and candidate hashes agree; or\n - `rollback`: restore a named run from its validated backups and verify the restored state.\n \n-Default an ambiguous operational request to read-only `audit` or `plan`. Do not infer permission to\n-apply, delete, roll back, restart, or mutate production from skill invocation alone.\n+Invoking this skill, with or without further words, means `sync`: one complete\n+`sync --authorize-production` run from audit through verified publication on both endpoints. The\n+invocation is the production authorization. Do not downgrade it to `audit` or `plan`, and do not\n+stop after a plan or preview to ask whether to publish. Only a request that explicitly limits itself\n+to inspecting, auditing, previewing, explaining, or reporting status stays read-only.\n \n-A direct request to sync, reconcile, publish, or complete the help synchronization end to end is not\n-ambiguous. Treat that request as authorization for one bounded\n-`sync --authorize-production` run. Do not stop merely to ask the user to repeat the same production\n-authorization after preview. The command must still emit the exact preview, bind its fresh token,\n-refuse conflicts, deletions, and renames, and verify both endpoints. A request only to inspect,\n-audit, preview, explain, or report status does not authorize this mode.\n+The purpose of this skill is to make both environments hold the same help catalog without the user\n+supervising it. Never ask for confirmation, and never delay, question, or withhold publication\n+because of what the help describes: whether production runs the code, races, classes, commands, or\n+mechanics an entry documents; how far production's checkout lags master; whether players could be\n+confused; or any other judgment about the content. Help content is published exactly as the engine\n+reconciles it. The command itself still emits the exact preview, binds its fresh token, and\n+verifies both endpoints.\n \n ## Establish the capability and environment\n \n@@ -149,9 +150,8 @@ true:\n 2. every conflict and required policy decision is resolved;\n 3. the sealed plan ID, hashes, row counts, deletions, and backup destination are emitted before\n    mutation;\n-4. either the user explicitly authorizes that exact manual apply after preview, or the current user\n-   request explicitly authorizes a bounded end-to-end sync whose command refuses all deletions,\n-   renames, and unresolved conflicts;\n+4. the skill was invoked (which authorizes the bounded `sync` run), or the user explicitly\n+   authorized that exact manual apply after preview;\n 5. the HEDIT write barrier is active;\n 6. a fresh production export still matches the plan's expected production hash; and\n 7. validated targeted database and `help.hlp` backups exist.\n@@ -169,13 +169,13 @@ barrier.\n \n ## Run bounded end-to-end synchronization\n \n-For a direct user request to complete synchronization, run:\n+Whenever the skill is invoked, run:\n \n ```text\n python3 scripts/help-sync/help_sync.py sync --authorize-production [--repair-layers]\n ```\n \n-This is the preferred autonomous route after the first common baseline exists. It creates and saves\n+This is the default route after the first common baseline exists. It creates and saves\n the plan, includes supported integrity repairs, applies and proves development, emits a fresh\n production preview, publishes using that exact token, acknowledges the runtime reload, advances\n both baseline artifacts, and independently verifies both endpoints. It holds the development HEDIT\n@@ -184,16 +184,16 @@ arrives.\n \n Run the read-only audit first. If a file differs from its database projection, inspect the parsed\n file difference for legitimate file-only work. Normalize legitimate file-only entries into the\n-development database through the ordinary reviewed help-editing path. When the drift is only a\n-stale projection, add `--repair-layers`; this is an internal execution decision and does not require\n-another conversational confirmation.\n-\n-Do not ask for another routine confirmation during this bounded run. Stop only when the tool proves\n-that judgment or authority is genuinely required: an uninitialized baseline, an unresolved\n-conflict, any deletion or rename, legitimate file-only work that has not been normalized into the\n-development database, an unavailable credential or target, exhausted concurrent-edit passes, or a\n-failed apply/rollback/verification invariant. Fix discoverable environment or dependency problems\n-autonomously when they are within the authorized help-sync scope.\n+development database through the ordinary reviewed help-editing path, then continue. When the drift\n+is only a stale projection, add `--repair-layers`. Both are internal execution decisions, not\n+questions for the user.\n+\n+Run straight through to the verified result without conversational pauses. The only stops are the\n+ones the engine itself enforces and cannot get past: an uninitialized baseline, an unresolved\n+same-field conflict, a deletion or rename, an unreachable credential or target, exhausted\n+concurrent-edit passes, or a failed apply/rollback/verification invariant. Fix discoverable\n+environment or dependency problems (SSH drops, missing packages, stale locks) yourself and rerun.\n+When the engine does stop, name the exact entries and the decision needed in one line.\n \n ## Roll back and report\n \n",
+    "collapsed": false,
+    "too_large": false,
+    "new_path": ".agents/skills/help-sync/SKILL.md",
+    "old_path": ".agents/skills/help-sync/SKILL.md",
+    "a_mode": "100644",
+    "b_mode": "100644",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false,
+    "generated_file": false
+  },
+  {
+    "diff": "@@ -461,6 +461,19 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):\n                 ignore_errors=True,\n             )\n \n+    def test_verify_accepts_stored_keywords_in_authored_case(self):\n+        plan, _ = self.build_plan()\n+        apply_plan_to_endpoint(self.root, \"development\", plan)\n+        connection = self.config.connect(autocommit=True)\n+        with connection.cursor() as cursor:\n+            cursor.execute(\"UPDATE help_keywords SET keyword='Alpha' WHERE help_tag='alpha'\")\n+        connection.close()\n+        verification = verify_endpoint(\n+            self.root, \"development\", Catalog.from_dict(plan[\"candidate\"])\n+        )\n+        self.assertIn(\"alpha\", [check[\"tag\"] for check in verification[\"lookup_checks\"]])\n+        self.assertTrue(all(check[\"passed\"] for check in verification[\"lookup_checks\"]))\n+\n     def test_apply_verify_idempotence_unrelated_tables_and_rollback(self):\n         plan, before = self.build_plan(self.changed_candidate)\n         first = apply_plan_to_endpoint(self.root, \"development\", plan)\n",
+    "collapsed": false,
+    "too_large": false,
+    "new_path": "scripts/help-sync/tests/test_endpoint_integration.py",
+    "old_path": "scripts/help-sync/tests/test_endpoint_integration.py",
+    "a_mode": "100644",
+    "b_mode": "100644",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false,
+    "generated_file": false
+  },
+  {
+    "diff": "@@ -626,10 +626,12 @@ def verify_endpoint(root: Path, expected_environment: str, candidate: Catalog) -\n                 for index in indexes:\n                     entry = candidate.entries[index]\n                     keyword = entry.keywords[0]\n+                    # Catalog keywords are normalized to upper case while stored rows keep\n+                    # their authored case; the game matches them case-insensitively too.\n                     cursor.execute(\n                         \"SELECT he.tag, he.entry, he.min_level FROM help_entries he \"\n                         \"INNER JOIN help_keywords hk ON he.tag=hk.help_tag \"\n-                        \"WHERE LOWER(he.tag)=LOWER(%s) AND BINARY hk.keyword=BINARY %s\",\n+                        \"WHERE LOWER(he.tag)=LOWER(%s) AND LOWER(hk.keyword)=LOWER(%s)\",\n                         (entry.tag, keyword),\n                     )\n                     row = cursor.fetchone()\n",
+    "collapsed": false,
+    "too_large": false,
+    "new_path": "scripts/help-sync/endpoint.py",
+    "old_path": "scripts/help-sync/endpoint.py",
+    "a_mode": "100644",
+    "b_mode": "100644",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false,
+    "generated_file": false
+  },
+  {
+    "diff": "@@ -34,9 +34,10 @@ never print or modify credentials.\n \n - Helpfiles have to be updated in two places: the database and `lib/text/help/help.hlp`\n \n-- For an explicit request to synchronize help end to end, use the help-sync skill's bounded sync\n-  workflow without pausing for duplicate confirmation; deletions, renames, and conflicts still\n-  require explicit review.\n+- Invoking the help-sync skill, or any request to sync help, means one complete autonomous\n+  `sync --authorize-production` run to verified publication on both endpoints. Never ask for\n+  confirmation, and never hold help back because production does not yet run the code it\n+  documents. Only engine-refused deletions, renames, and conflicts stop the run.\n \n - When adding or updating features and relevant, make sure to update documentation and helpfiles\n \n",
+    "collapsed": false,
+    "too_large": false,
+    "new_path": "AGENTS.md",
+    "old_path": "AGENTS.md",
+    "a_mode": "100644",
+    "b_mode": "100644",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false,
+    "generated_file": false
+  }
+]

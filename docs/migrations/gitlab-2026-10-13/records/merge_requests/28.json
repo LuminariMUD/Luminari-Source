@@ -1,0 +1,130 @@
+{
+  "id": 544717895,
+  "iid": 28,
+  "project_id": 86882182,
+  "title": "Save a sheath's weapons with a pet and extract them with the sheath",
+  "description": "Closes #17\n\nPhase 5 of `docs/ongoing-projects/object-save-fixes-and-arm-pricing.md`. Handed to review at\nthe tag `object-save-fixes-p5` (`bfaaa8799`): two code commits, each with its test, a test\ncommit, and the plan's record of the phase.\n\n## Cause\n\nA sheath's weapons hang off `sheath_primary` and `sheath_secondary`, and nothing else holds\nthem. Only the player save (`player_save_objs_sheathed`, rows under the owner's name) and the\n`sheath` / `unsheath` commands handled them.\n\n- `objsave_save_obj_record_db_pet()` wrote no sheath rows, and a pet has no rows under an\n  owner's name anyway: a loaded sheath given to a pet came back empty when the pet was restored,\n  and its weapons were in no row.\n- `extract_obj()` did not look at them: junking or selling a loaded sheath, and the extraction\n  after a rent save, freed the sheath and left the weapons in `object_list` with no holder.\n  After a rent save their rows were written, so that was a leak only; after a junk or a sale\n  they were gone from play without having been destroyed.\n\n## What changes\n\n`59bc44f45`: `extract_obj()` extracts what a sheath holds, beside the loop that extracts a\ncontainer's contents. Nothing nulls the pointers afterwards: the sheath is freed in the same\ncall. `Test_object_extraction_takes_a_sheaths_weapons` (no database) extracts a sheath holding\ntwo weapons and finds `object_list` as it was; without the change the two weapons stay.\n\n`2b8959cdd`: `Crash_save_pet()` writes a sheath's weapons as the pet's own objects beside the\nsheath, through the pet record writer, as `House_save()` does for a house: no new table and no\nmigration. A worn sheath's weapons are written at `MIN(0, location)`, as inventory records,\nsince `pet_object_graph_valid()` refuses two records on one wear position and with them the\nwhole set; a carried sheath's are written at its own depth, so a sheath in a bag puts its\nweapons in the bag. The restored pet carries the weapons and an empty sheath.\n`Test_pet_save_stores_a_sheaths_weapons_as_its_own` (database) saves a pet with a worn sheath\nholding a blade and a shield and a carried sheath holding a dagger through `pet_save_objs()`\nand loads it through `pet_load_objs()`: five rows, one of them with a wear position, and the\nrestored pet wears an empty sheath and carries the other sheath, empty, and the three weapons.\nWithout the change the save writes two rows.\n\n`4a9bd579b`: the pet test also refuses a weapon's row, the blade's and then the shield's; each\nattempt fails the save, as any refused row does, and leaves the records written before it. The\nfirst matrix run had left those two failure lines uncovered.\n\n`docs/systems/SAVE_SYSTEMS_BREAKDOWN.md` has the pet rule, in the pets section.\n\nThe plan's check before the change held, with nothing to change: `overwrite_object()` keeps a\ntarget's own sheath pointers (phase 7), every writer's temporary object comes from\n`read_object()` or `create_obj()`, and the editors free their copies with\n`free_object_strings()`, never `extract_obj()`.\n\n## Found while building\n\nThe leak #17 describes never showed in the memory-check or sanitizer jobs, and could not have:\na weapon left behind stays on its rnum hash chain, so valgrind and LeakSanitizer count it as\nstill reachable. `Test_house_save_stores_a_sheaths_weapons_as_its_own` is clean under valgrind\nwith and without the fix; it no longer extracts its weapons by hand, since the teardown's\nextraction of the sheath takes them. The extraction test watches `object_list` instead.\n\n## Verification\n\n- Both new tests fail on the code of `0b88bb81d`: the extraction test with the two weapons still in\n  `object_list`, the pet test with 2 rows written instead of 5.\n- The two new tests, the house sheath test and the refused-row save test are clean under\n  valgrind, with the database on.\n- `make -j16 test` on `4a9bd579b`: 2055 tests pass. `make install` done.\n- `./cutest` with the database tests on, on a database freshly built from `sql/master_schema.sql`:\n  2055 of 2055 pass.\n- `python3 scripts/ci/local/run.py --base gitlab/master` on `2b8959cdd`: 33 of 33 jobs pass\n  (522 s); the unit, sanitizer and memory-check jobs run 2055 tests each. The persistence changed\n  lines were 4 of 6 covered, above the floor, the two uncovered being the refusals `4a9bd579b`\n  then covered.\n- On `4a9bd579b`: 33 of 33 jobs pass (256 s); the unit, sanitizer and memory-check jobs run 2055\n  tests each, and the persistence changed lines are 100% covered.\n- The format, hygiene and secrets jobs pass again on `bfaaa8799`, which adds the plan's record\n  only.\n\n## Not in this merge request\n\n- The player sheath loader's debug trace (`SHEATH1` to `SHEATH6`, and the text of its\n  `SELECT`) logged at every load: work item #33, seen while building and not changed here.\n  `objs_from_sheath()`, which had no caller, went in the review round (below).\n- `otransform`'s copy of a fresh object over the live one, which leaves the live object on its\n  old rnum hash chain with the fresh copy's links and miscounts both prototypes: work item #34,\n  pre-existing, seen while fixing the review findings.\n- A sheath's weapons are not walked by `Crash_extract_norents()`: a rentable sheath keeps a\n  no-rent weapon through a rent, as before.\n- No deploy: the fixes reach production with the next release.\n\n## Review round\n\nThree findings, fixed one commit each after the tag; the plan's phase 5 section has the record.\n\n| Thread | Commit | Test |\n| -- | -- | -- |\n| Stale sheath slot read through freed memory | `079e9bd6e` | `Test_gameplay_sheathed_weapon_extracted_alone_leaves_its_slot`, `Test_player_load_puts_a_sheaths_weapons_back_in_it`, `TestArmCountUnsheathChecksEachItem` |\n| A sheathed artifact's destruction invisible to the ledger | `8a8f0fdd7` | `Test_artifact_integration_sheathed_instance_destruction_releases_ownership` |\n| `delete_object()` destroys a deleted sheath's weapons and walks into one freed | `da68e251a` | `Test_gameplay_object_delete_hands_a_sheaths_weapons_to_its_wearer` |\n\nA sheathed object now knows its sheath (`sheathed_in`); `obj_to_sheath()` and `obj_from_sheath()`\nin `src/core/handler.c` set and clear the slot and the back-pointer together, at every site.\n`extract_obj()` takes a sheathed object out of its sheath as it takes an object out of a room,\na character or a container; `artifact_on_extract()` counts a sheathed object as placed; and\n`delete_object()` hands a deleted sheath's weapons to its holder beside the contents.\n\nVerification, on `da68e251a`: the first gameplay test fails on `bfaaa8799` with the reviewer's\nvalgrind read at `handler.c:3098`; the artifact and delete tests fail on `079e9bd6e` with only\ntheir test applied, the delete one with the walk reading the freed dagger under valgrind. The\nsheath, artifact and renumber tests are clean under valgrind with the database on; `make -j16\ntest` passes 2059 tests; `./cutest` with the database tests on, on a fresh\n`sql/master_schema.sql` database, passes 2059 of 2059; the local matrix: 33 of 33 jobs pass (1431 s); the unit, sanitizer and memory-check jobs run 2059\ntests each, the persistence changed lines are 100% covered and the olc changed lines 75%, both\nabove their floors, and the clang-tidy gate has no finding. The\nformat, hygiene and secrets jobs pass again on the record commit.",
+  "state": "merged",
+  "created_at": "2026-10-07T17:44:22.561Z",
+  "updated_at": "2026-10-08T06:39:18.663Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-08T06:38:02.096Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "17-a-loaded-sheath-loses-its-weapons-on-a-pet-and-leaks-them-when-extracted",
+  "user_notes_count": 9,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "1d3b47128b270865d566f68db35defe9e526d3ca",
+  "merge_commit_sha": "05c76111f0d290314f4cfd65520abaf039be1db6",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-10-07T17:44:23.887Z",
+  "reference": "!28",
+  "references": {
+    "short": "!28",
+    "relative": "!28",
+    "full": "max757/Luminari-Source!28"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/28",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "18",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd",
+    "head_sha": "1d3b47128b270865d566f68db35defe9e526d3ca",
+    "start_sha": "0b88bb81dec1bf35e122c01cf43def16af615acd"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

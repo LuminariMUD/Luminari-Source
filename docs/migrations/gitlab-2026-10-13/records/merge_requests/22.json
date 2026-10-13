@@ -1,0 +1,130 @@
+{
+  "id": 542730876,
+  "iid": 22,
+  "project_id": 86882182,
+  "title": "Vessels S15: checked vessel purchases and payouts",
+  "description": "Closes #14\n\nS15 of the vessel study (`docs/ongoing-projects/vessels-ships.md`, Phase 15), the last step: the\nvessel commands that take or pay gold now write and check both stores inside the command, the\ncaptain's gold in the player file and the ship's side in MariaDB. Before, the ship's side was\nwritten at once and the gold moved in memory only, so a crash before the next per-minute save\nkept a purchase and gave its gold back, or took a sold item and never paid.\n\nReview range: `vessels-s15-base..vessels-s15` (the S14 close-out `16c6611fb` comes first; the\nplan is `c295d6aa8`, the build `aec826b19`, the gate step `6a1ada514` and `77cc74137`, the\nfixes found before hand-off `bc2a45b69`). Review round 1 is on top, `vessels-s15..feat/vessels-s15`:\nsee the last section.\n\n## What changes\n\n- **A purchase takes the gold first.** `vessel_charge()` checks that the database answers, saves\n  the debit with `save_char_checked()` and refuses the purchase when either fails, before\n  anything aboard has changed. If the ship's side then cannot be written, it is put back and the\n  gold is returned (`vessel_refund()`). If the put-back cannot be written either, the purchase\n  stands and stays paid (review round 1).\n- **A payout writes the ship's side first**, then pays and saves. A payment that cannot be saved\n  takes the gold back and puts the item back, in memory and in the rows. If the put-back cannot\n  be written, the sale stands and the gold is paid in memory (\"undone\" is never said of a sale\n  the rows still hold).\n- **Seven shipyard jobs** (`shiphire`, `shipweapon buy`, `shipequip buy`, `shiprearm`, dock\n  `shiprepair`, `shipupgrade`, `shipchristen`) copy the hull before they change her;\n  `vessel_purchase_recorded()` writes her with the new `vessel_save_hull()` (interior row,\n  runtime state, weapons, owner, crew, refits, each checked) and on a failure restores the copy,\n  writes her back and refunds. `shipweapon sell` and `shipequip sell` use\n  `vessel_sale_recorded()`.\n- **`shipbuy`** charges, then spawns; a failed spawn (it rolls itself back) refunds. The rollback\n  deletes her rows before it takes her out of play; when they cannot be deleted she stays in\n  play and stays paid (review round 1). The spawn writes the runtime row last, so a crash in\n  mid-spawn leaves rows that hold the slot at boot, not a hull. **A trade-in** charges what is owed before the fittings are\n  counted, rebuilds and saves, then pays for the fittings; a hull that cannot be rebuilt or\n  recorded, or a payment that cannot be saved, undoes the rebuild (`vessel_trade_in_undo()`: the\n  new interior reclaimed, the hull restored from the copy, her old rooms recreated as boot\n  recreates them). An undo that cannot be recorded keeps the charge for the staff to settle\n  (review round 1).\n- **`shipsummon`** saves the summons (the emptied manifest, then the hull as stowed, cast off\n  and with her autopilot stopped) before she leaves the world or anything alongside or aboard\n  is touched, so one that cannot be saved leaves her as she was; one that cannot be written back\n  either stands (review round 1).\n- **`bounty pay`, `marque`**: charge, then the row; when the write reports a failure the row is\n  read back, and the fee is returned only if the row does not show the write.\n- **`contractdeliver`**: the contract and the manifest in one transaction (sent once more after\n  a `COMMIT` without a reply; both writes are absolute), then the payout. When neither the\n  delivery nor taking it back can be confirmed, the captain and the staff are told.\n- `shipupgrade` now saves the runtime row with the refit bit: the raised ceilings were in memory\n  only until the next runtime save, so a crash kept \"installed\" without its points.\n\nNew code is in `src/vessels/vessels_payment.c`; the commands change in their own files.\n\n## Where to look\n\n- Outside a transaction, a statement sent on a connection that has just been lost does not fail:\n  the library reconnects and sends it again. A single statement fails only with its reply lost,\n  after the server ran it. That is why a refused purchase is **written back**, not only restored\n  in memory, and why the admiralty's rows are read back.\n- The undo of the shipyard jobs is `*ship = *before`. Nothing outside the struct changes between\n  the copy and the restore at those seven sites; `shipchristen` renames the hull object and the\n  rooms only after the write.\n- `vessel_db_save_runtime()` saves a stowed hull's own location, not the room of a hull object\n  that still stands (the summons is saved while it does).\n- `vessel_save_one()` now fails when the owner, crew or refit write fails; it still attempts\n  every part past the interior, runtime and weapon rows. `vessel_save_hull()` stops at the first\n  failure.\n- Two faults, left as they are and recorded: the bounty pay-off and `marque` return the fee when\n  the write reports a failure and the row cannot be read back either.\n- A database that does not answer refuses these purchases before the gold is taken; the tests\n  that bought and sold in memory only now use the test database.\n- Not S14's settlement record, as planned: a crash between a command's two writes still splits\n  the stores, always against the player (paid and not delivered, or delivered and not paid).\n\n## Verification\n\nEverything below ran on `bc3f39c30`, whose code is `bc2a45b69`; the head `6c0975cd1` (the tag)\nadds only the record of these results to the study and testing documents. Details are in the\nPhase 15 section of the study document.\n\n| Check | Result |\n| -- | -- |\n| `make test-all`, database cases on | 2,034 production tests and 32 protocol tests pass |\n| New tests | `unittests/CuTest/test_vessel_payment.c`: four DB-backed tests on the real tables (the seven shipyard jobs, the two sales, the admiralty's fees, the delivery), each with a player file that cannot be saved and a ship-side write that is lost; cases for `shipsummon` in `test_vessel_loss.c` and for `shipbuy` and the trade-in's charge in `test_vessel_shipyard.c` |\n| Vessel help verifier | 7 checks pass (64 content phrases) |\n| SQL | none new |\n| Live gates (private-namespace harness, dump reload) | 22 of 22 jobs pass, the economy gate also with every database session killed twice |\n| Local CI matrix (`scripts/ci/local/run.py --base gitlab/master`) | 33 of 33 jobs pass |\n\nNo unit world generates ship interiors, so the refused hull write of `shipbuy` and of the trade-in\nis played in the loss gate: the harness has the database refuse one design's runtime row (a CHECK\nconstraint), and Vesselmate, who owns only the gate's boat, buys a hull of that design and trades\nthe boat in for one. Both are undone, his purse is the same before and after, she is still a boat\nwith her owner and her bosun, and the gate's real trade-in then rebuilds the same hull.\n\nFound and fixed before hand-off (`bc2a45b69`, recorded in `bc3f39c30`): an independent read of\nthe build found no single failed write that loses or duplicates gold or an item, and seven\nnarrower things, all fixed: a refused summons had already cast off, released vehicles and\nstopped the autopilot; the summons wrote the stowed hull before the emptied manifest;\n`vessel_save_one()` had begun to skip parts after a failed owner, crew or refit write; a\ntrade-in whose rebuild failed left the hull without an interior; a spawn's leftover rows could\nbecome a hull at boot; a sale that stands did not rewrite the hull; a delivery with an unknown\noutcome said too little. The first CI run failed clang-tidy on the tests' struct `memcmp()`.\nThe first version of the gate step traded in a harbor fixture of the staff character and was\nmoved into the two-character session.\n\n## Review round 1\n\nFour findings (one P2, three P3), each fixed in its own commit on top of the tag, range\n`vessels-s15..feat/vessels-s15`:\n\n| | Finding | Fix |\n| -- | -- | -- |\n| P2 | A summons put the carts aboard ashore with the shipyard's coordinates | `a1a02f325`: the vehicles are released from the copy of the hull taken before the summons |\n| P3 | A purchase whose write-back fails was called undone and refunded while her rows kept it | `c53d1601e`: the gold is returned only after a write-back that succeeded. A shipyard job and a summons stand and stay paid; the trade-in keeps the charge and tells the staff; `vessel_charge()` refuses uncharged when the database does not answer; a hull that makes port saves her manifest with her runtime row |\n| P3 | A refunded `shipbuy` could leave a hull the next boot rebuilt | `c584bdab0`: the spawn's rollback deletes her rows first; when that does not commit she stays in play and stays paid |\n| P3 | A refused summons was written back manifest first | `e5fcba5d3`: the hull is written back first |\n\n`VESSEL_SYSTEM.md` follows in `94c3c5a9a`, the record in `bb9b86e3e`. No help entry changes.\n\nVerified on `94c3c5a9a`: `make test-all` with the database cases (2,036 production tests and 32\nprotocol tests; two are new, a hire and a summons that stand); a live job with a database that\nrefuses both a write and its undo (a hire, a trade-in, a purchase and a summons, then the next\nsave of each hull); the loss, gunnery, rules, damage and economy gates; and the local CI matrix,\n33 of 33 jobs.",
+  "state": "merged",
+  "created_at": "2026-10-04T15:12:24.159Z",
+  "updated_at": "2026-10-04T17:42:02.496Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-04T17:42:02.231Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "feat/vessels-s15",
+  "user_notes_count": 10,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "bb9b86e3ed7cab242a85fd765f34d06de07df05c",
+  "merge_commit_sha": "1ab373f02be08710de446e5d715692c05f820e35",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": false,
+  "force_remove_source_branch": false,
+  "prepared_at": "2026-10-04T15:12:25.815Z",
+  "reference": "!22",
+  "references": {
+    "short": "!22",
+    "relative": "!22",
+    "full": "max757/Luminari-Source!22"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/22",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "34",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22",
+    "head_sha": "bb9b86e3ed7cab242a85fd765f34d06de07df05c",
+    "start_sha": "e7bc5242cc2ea76583d27bae7109d970290aef22"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

@@ -1,0 +1,102 @@
+[
+  {
+    "id": 205404138,
+    "iid": 19,
+    "project_id": 86882182,
+    "title": "A saved special ability without a command word is rejected at load",
+    "description": "## What happens\n\nAn object's saved special ability is rejected at load when it has no command word, which is the\nnormal case for an ability that fires on hit or on a critical hit.\n\n`objsave_replace_special_ability()` (`src/obj/objsave.c`) requires eight fields:\n\n```c\nstrict_sscanf(line, \"%d %d %d %d %d %d %d %127s\", ...) != 8\n```\n\nThe writers in the same file store an empty string when the ability has no command word:\n\n```c\n\"SpAb: %d %d %d %d %d %d %d %s\\n\", ..., (specab->command_word && *specab->command_word) ? specab->command_word : \"\"\n```\n\nSo a record such as `SpAb: 61 30 48 0 0 0 0 ` (vampiric, level 30, on hit and on crit) has seven\nfields, the load logs `SYSERR: Invalid SpAb record in object save data: 61 30 48 0 0 0 0` and the\nobject keeps only what its prototype gives it. An ability added to that one object (staff edit,\ncrafting, generated treasure) is dropped, and the next save stores the object without it.\n\n## Since when\n\nCommit `853a3f226` (2026-07-29, \"fix residual CodeQL findings\") added the field-count check. The\nloader before it accepted the seven-number record and left the command word empty.\n\n## Seen\n\nProduction log, 2026-10-04: the line above at every login of the staff character Kohdee (nine\ntimes, same record). No other character logged it between 2026-10-02 and 2026-10-04.\n\n## Fix\n\nAccept seven numbers with no command word (store an empty or NULL command word, as the old loader\ndid), keep rejecting a record with fewer than seven numbers, and add a round-trip test in\n`unittests/CuTest/test_database_persistence.c` next to the existing `SpAb: 0 0 0 0 0 0 0 cccc`\ncase: save an object whose ability has no command word, load it, and compare the ability.",
+    "state": "closed",
+    "created_at": "2026-10-04T20:00:23.471Z",
+    "updated_at": "2026-10-05T18:30:06.275Z",
+    "closed_at": "2026-10-05T18:30:06.227Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/19",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/19",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/19/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/19/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#19",
+      "relative": "#19",
+      "full": "max757/Luminari-Source#19"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9746631,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-05T17:49:11.189Z",
+    "link_updated_at": "2026-10-05T17:49:11.189Z"
+  }
+]

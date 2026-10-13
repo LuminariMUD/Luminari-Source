@@ -1,0 +1,101 @@
+[
+  {
+    "id": 204488717,
+    "iid": 2,
+    "project_id": 86882182,
+    "title": "Add the 17 Duris player races",
+    "description": "Implement [`docs/ongoing-projects/DURIS_PLAYER_RACES_PLAN.md`](https://gitlab.com/max757/Luminari-Source/-/blob/master/docs/ongoing-projects/DURIS_PLAYER_RACES_PLAN.md). It holds each race's registry data, stats, feats and race point score, the code the race guide does not cover, and the order of work. Every design decision in it is settled.\n\n- 12 creation races, IDs 152-163: Centaur, Githzerai, Firbolg, Githyanki, Kobold, Drider, Thri-Kreen, Minotaur, Kuo Toa, Orog, Harpy, Stormkin.\n- 5 quest-only descend forms, IDs 55-59: Death Knight, Wight, Revenant, Shadow Beast, Phantom.\n\nSteps from the plan, each ending green on `make -j$(nproc)`, `make test` and `make install`:\n\n- [ ] 1. Shared mechanics: rename Leonine Frame to Tauric Frame, add the psionic resistance feat, let Cold Immunity work as a feat, make race-granted epic damage reduction work, share one transformation-only hard lock, and make the respec argument NULL-safe.\n- [ ] 2. Creation races: registry, hit points, XP multipliers, family predicates, parser, terminal and web creation, tests.\n- [ ] 3. Descend forms: registry, hard lock, quest race-reward conversion, qedit and the world validator, tests.\n- [ ] 4. Help: one `RACE-<SLUG>` topic per race in one SQL component and `help.hlp`, plus PSIONIC RESISTANCE and EPIC-RACES.\n- [ ] 5. Docs: move the settled content into `PLAYER_RACES_REFERENCE.md` and the other docs, then delete the plan.\n- [ ] 6. Live check on port 4100.\n\nNot in this work item:\n\n- The descend forms' quests come later, one per form, modeled on the Vampire line (quest 34721, zone 347). Until they exist no character can become a form.\n- Repairing missing racial feats on saved characters is planned separately in `docs/ongoing-projects/RACIAL_FEAT_LOGIN_REPAIR_PLAN.md`. If it lands first, the races plan's code items 2 and 3 can drop their race checks.",
+    "state": "closed",
+    "created_at": "2026-09-26T18:55:05.161Z",
+    "updated_at": "2026-09-28T10:24:37.632Z",
+    "closed_at": "2026-09-26T22:35:28.283Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/2",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 6,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/2",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/2/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/2/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#2",
+      "relative": "#2",
+      "full": "max757/Luminari-Source#2"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9629788,
+    "link_type": "relates_to",
+    "link_created_at": "2026-09-27T08:30:15.786Z",
+    "link_updated_at": "2026-09-27T08:30:15.786Z"
+  }
+]

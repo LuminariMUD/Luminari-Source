@@ -1,0 +1,130 @@
+{
+  "id": 539089433,
+  "iid": 3,
+  "project_id": 86882182,
+  "title": "Migrate tables that older installs created before their columns existed",
+  "description": "Columns and indexes that exist only in `CREATE TABLE IF NOT EXISTS` statements never reach a\ndatabase whose table already exists. A schema audit of dev and production against a fresh install\nfound three that the code depends on:\n\n- `weather_cache.wind_speed` (read by the cyclone spell): missing on production.\n- `player_save_objs.idx_name`: missing on production, so every character object load and delete\n  scanned about 508k rows.\n- `hint_usage_log` still had the older region-keyed shape on both dev and production, so every\n  `log_hint_usage()` insert failed with `Unknown column 'room_vnum'`.\n\n`run_legacy_table_migrations()` adds them as versioned, idempotent migrations 2026092701-03, run on\nevery boot. A failure is logged and retried at the next boot rather than stopping the server.\n\nAlready applied: production (after a full DB backup, no restart) and dev (through startup).\n\nValidation: `make test-all` against an isolated MariaDB (1837 + 32 tests), including the new\n`Test_legacy_table_migrations_repair_old_shapes_idempotently`; local `quality-clang-tidy` job.",
+  "state": "merged",
+  "created_at": "2026-09-27T09:10:00.027Z",
+  "updated_at": "2026-09-27T16:22:30.709Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-09-27T16:22:30.955Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "fix/legacy-table-migrations",
+  "user_notes_count": 1,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": ["Bug"],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "6c7ff12233e65e4f6b792a4d0f338cf8b074f549",
+  "merge_commit_sha": "b7152a7d97d6dbcc2884cf7d5428c21dd158587a",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-09-27T09:10:02.312Z",
+  "reference": "!3",
+  "references": {
+    "short": "!3",
+    "relative": "!3",
+    "full": "max757/Luminari-Source!3"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/3",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "5",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "2d7923cac18b91b6355623c3c0ff1e2bc03a68c1",
+    "head_sha": "6c7ff12233e65e4f6b792a4d0f338cf8b074f549",
+    "start_sha": "2d7923cac18b91b6355623c3c0ff1e2bc03a68c1"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

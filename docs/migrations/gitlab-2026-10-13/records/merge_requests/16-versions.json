@@ -1,0 +1,13 @@
+[
+  {
+    "id": 2072285553,
+    "head_commit_sha": "472f1ca0054a8e7858282d11711d61c978e223b3",
+    "base_commit_sha": "a6adb46a8b3f980d0d6e25b4d668efd019b0f294",
+    "start_commit_sha": "a6adb46a8b3f980d0d6e25b4d668efd019b0f294",
+    "created_at": "2026-10-02T15:22:55.772Z",
+    "merge_request_id": 542250162,
+    "state": "collected",
+    "real_size": "122",
+    "patch_id_sha": "0b0bea55560130660d98d6203cc95fb20c7a896b"
+  }
+]

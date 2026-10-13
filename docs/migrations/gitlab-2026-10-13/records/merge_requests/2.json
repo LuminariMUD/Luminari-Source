@@ -1,0 +1,130 @@
+{
+  "id": 538978798,
+  "iid": 2,
+  "project_id": 86882182,
+  "title": "Add the 17 Duris player races",
+  "description": "Implements the Duris player races plan (the plan itself is retired in the last commit; its content now lives in `docs/guides/PLAYER_RACES_REFERENCE.md`).\n\nCloses #2\n\n## What changes\n\n- **Shared mechanics.** `FEAT_LEONINE_FRAME` becomes `FEAT_TAURIC_FRAME` (same ID 1267). New `FEAT_PSIONIC_RESISTANCE` (1322) held by Trelux; the mental-damage case and the Lich cold immunity read their feats beside the race checks saved characters still need. Race grants of epic damage reduction now build the DR entry through `update_feat_damage_reduction()`. `race_is_transformation_only()` is the single hard-lock predicate. `respec_engine()` accepts a NULL argument for every race.\n- **Twelve creation races (IDs 152-163):** Centaur, Githzerai, Firbolg, Githyanki, Kobold, Drider, Thri-Kreen, Minotaur, Kuo Toa, Orog, Harpy, Stormkin. Registry data, parser (name and display name), creation help cases, web media keys, XP tiers, hit points, family predicates, lost slots.\n- **Five descend forms (IDs 55-59):** Death Knight, Wight, Revenant, Shadow Beast, Phantom. Transformation-only; a standard quest race reward converts through `descend_form_conversions[]` in `src/quest/quest.c`. QEDIT, `wtool`, and `QUEST_FILE_FORMAT.md` accept the IDs. No quest awards a form yet.\n- **Help:** `sql/components/help_duris_races_entries.sql` (+ verifier, manifest, `EXTRA_DIST`), PSIONIC-RESISTANCE topic, Thri-Kreen in EPIC-RACES; `help.hlp` is the exact projection of the development help DB.\n- **Docs:** race reference, race guide, mechanics reference, limb mechanics.\n\n## Worth a reviewer's attention\n\nThese go beyond the plan, each because this work exposed the defect:\n\n- An epic damage reduction DR entry has spell 0, which the player-file DR save skips as a duplicate, so it was never saved (study-taken DR was lost on every reload). `load_char()` now rebuilds it from the feat's real ranks.\n- `process_race_level_feats()` read `GET_RACE()` (the disguise race). It now reads `GET_REAL_RACE()`, since these are the first races with grants above level 1.\n- Protocol v1 web onboarding lists every race on one page; with 45 races it overflowed the 15000-byte payload. v1 race summaries are now 140 characters (`WEB_ONBOARDING_V1_RACE_SUMMARY_CHARS`); v2 is unchanged.\n- The Minotaur help topic updates the retired Dragonlance `minotaur` entry in place (it already owned the MINOTAUR and RACE-MINOTAUR keywords), so nothing is deleted.\n\n## Verification\n\n- `make test`: 1836 CuTest cases pass; the full local CI matrix (33 jobs) passes on the head, 6446f4af8; `scripts/world/tests/test_semantics.py` passes.\n- New tests: `TestDurisCreationRaces*`, `TestDescendForm*`, `TestRaceLevelFeatsFollowTheRealRace`, `TestRaceGrantedDamageReductionBuildsOneEntryThatSurvivesReload`, `TestRespecEngineAcceptsANullArgument` (`test_race_equivalence.c`); psionic resistance, cold immunity, tauric frame (`test_racial_innate_feats.c`); media keys and a fully unlocked plus forged-form catalog (`test_web_onboarding.c`).\n- Help SQL applied twice to shadow tables with the verifier passing; the development help DB projects exactly to the committed `help.hlp`.\n- Live check on port 4100: bought and created a Thri-Kreen through the terminal, bought a Centaur and created it through the web catalog's `wireValue`, created a premade Kobold, leveled the Thri-Kreen through its level 6 and 11 grants, and reconnected all three. The forms stay out of both catalogs and `accexp`.\n\n## After merge\n\n- Production help needs the help-sync run; nothing here touches production.\n- Each descend form still needs its quest (modeled on the Vampire line, quest 34721, zone 347) before anyone can become one.\n\n## Review fixes (6446f4af8)\n\n- Every race reward now saves once the quest history and next stage are recorded, before a follower's load trigger can run, so a restart cannot reopen a completed conversion quest. The Lich and Vampire rewards had no final save at all.\n- Transformation is one-way everywhere: the race-reward preflight, the legacy Lich quest (`hlquest.c`), and the Lich rite refuse a character whose real race is already transformation-only.\n\n## Crash fix found during the live check\n\n`close_socket()` freed the character of any descriptor outside `IS_PLAYING()`. The first-quit \"Reason:\" survey (`CON_QUIT_REASON`), mail and board composition, and the house and board editors keep a character that is still in the world in such states, so a dropped link there freed a character still on `character_list`: the server then spun at 100% CPU or segfaulted in `perform_dupe_check()` at the next login. A character still on the list now goes linkdead and saves; logging back in reconnects to it. Regression test: `Test_lost_link_at_the_quit_survey_leaves_the_character_linkdead` (it aborts on the old code). Verified live on port 4100: a new account's first quit, link dropped at \"Reason:\", then a login that reconnects with the server idle.",
+  "state": "merged",
+  "created_at": "2026-09-26T20:35:22.816Z",
+  "updated_at": "2026-09-26T22:35:27.414Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-09-26T22:35:28.039Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "2-add-the-17-duris-player-races",
+  "user_notes_count": 6,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": ["Feature"],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "6446f4af8063cef1bf5e88902b11ccc642dccaaa",
+  "merge_commit_sha": "2d7923cac18b91b6355623c3c0ff1e2bc03a68c1",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-09-26T20:35:24.418Z",
+  "reference": "!2",
+  "references": {
+    "short": "!2",
+    "relative": "!2",
+    "full": "max757/Luminari-Source!2"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/2",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "46",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "4adcab7a084f87097542ac7ac5757bc94d854d94",
+    "head_sha": "6446f4af8063cef1bf5e88902b11ccc642dccaaa",
+    "start_sha": "4adcab7a084f87097542ac7ac5757bc94d854d94"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

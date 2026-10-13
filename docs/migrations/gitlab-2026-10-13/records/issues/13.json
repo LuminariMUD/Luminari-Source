@@ -1,0 +1,97 @@
+{
+  "id": 205305439,
+  "iid": 13,
+  "project_id": 86882182,
+  "title": "Database writes can land outside their transaction after an auto-reconnect",
+  "description": "## Problem\n\nEvery MariaDB connection is created with `MYSQL_OPT_RECONNECT` on (`src/database/mysql.c:174`,\n`322`, `466`, `554`). A probe against MariaDB (2026-10-03, while fixing MR !17's second review\nfinding) showed what this does to an open transaction when the connection drops:\n\n1. The next statement fails with client error 2006. The library refuses one reconnect because the\n   session was \"in transaction\", and clears that flag.\n2. The statement after that reconnects silently and runs in **autocommit on a new session**. The\n   server has already rolled back the original transaction, so earlier writes are gone while later\n   ones land on their own. Even a `COMMIT` then reports success with nothing saved.\n3. A `COMMIT` that fails with client error 2013 was sent, but its reply was lost, so the outcome\n   is unknown. Code nearly everywhere treats that as \"rolled back\".\n\nCode is safe only if it issues nothing but `ROLLBACK` after the first failed statement in a\ntransaction, and if it treats an unanswered `COMMIT` as unknown. Cargo trades were fixed on\n`feat/vessels-s12` (`2ba35d6b1`, MR !18): `vessel_db_save_cargo()` stops at its first failure, and\n`trade_record()` writes again after an unanswered COMMIT. A read-only audit of the other 25\ntransaction sites found these.\n\n## Writes that continue after a failure (partial writes land outside the transaction)\n\n- **Player object saves can duplicate items** (`src/obj/objsave.c`). The object writer returns 1\n  even when its INSERT failed (561-567), and `Crash_save` ignores results from its recursive calls\n  (1095-1096). The bag saves ignore their results too (1340-1349, 1477-1486, 1565-1574), as does\n  the sheath writer (576, 580). So `Crash_crashsave` and `Crash_rentsave` always reach COMMIT.\n  After a drop, the server rolls back the DELETE, the later INSERTs autocommit, the COMMIT\n  \"succeeds\", and `PLR_CRASH` is cleared (1376). The next login loads the old rows plus the new\n  partial ones. Periodic crash saves are a hot path (`limits.c:1405`).\n- **`Crash_idlesave` never commits** (`objsave.c:1379-1502`). It opens the transaction through\n  `objsave_begin_player_save()` and has only ROLLBACKs, so every later autocommit statement on\n  `conn` joins that open transaction. It runs only when `free_rent` is NO; the default is YES.\n- **House contents** (`src/obj/house.c:125-129`, `166`): the same always-1 writer.\n- **Pet gear** (`objsave.c:1121-1126`, used by `save_char_pets` and `pet_store_pet` in\n  `src/player/players.c`): the contents branch keeps writing after a sibling write failed.\n- **Help import** (`src/olc/hedit.c:3599-3606`, `3364`, `3370`, `3499`): the loop counts errors and\n  carries on. The final ROLLBACK reports that everything was rolled back, while a partial import\n  stays in the database.\n- **Help save** (`hedit.c:633-653`, `764-796`): the version-history and keyword-DELETE statements\n  are unchecked, so a drop there leaves the save non-atomic, and the COMMIT can report success.\n- **Bounty overwrite** (`src/vessels/vessels_merchants.c:783` \u2192 `vessels_piracy.c:617-626`,\n  `657`): a failed bounty read inside the transaction returns 0. Then `0 + amount` is written as\n  the absolute bounty on the reconnected session, overwriting a larger bounty downward.\n\n## COMMITs whose outcome is unknown, treated as rolled back\n\n- `pet_retrieve_stored` (`players.c:8112-8117`): if the commit landed, the pet row is ACTIVE with\n  no live pet, and the next pet save deletes it with its gear.\n- `pet_store_pet` (`players.c:7892-7897`): a STORED row plus the live pet, which means a duplicate\n  pet or a key clash on later saves.\n- `vessel_transfer_owner` (`src/vessels/vessels_ownership.c:219-233`): memory reverts to the old\n  owner but the database keeps the new one, so ownership flips at the next reboot.\n- `vessel_event_finish` (`src/vessels/vessels_events.c:712-729`): a staff retry applies the\n  leaderboard increments a second time.\n- `do_contractaccept` (`src/vessels/vessels_contracts.c:598`): the contract stays TAKEN with\n  nothing in the hold (also noted on #12).\n\n## Also seen in the audit (not reproduced)\n\n- When a pooled connection fails its ping, `mysql_pool_acquire` closes and replaces it\n  (`mysql.c:309-318`). That would leave the global `conn` pointing at freed memory, and the ping\n  fails in exactly this in-transaction case.\n- The help-sync lock (`help.c:140`, `GET_LOCK`) belongs to the session, so a silent reconnect\n  drops it without the holder knowing.\n- Not a transaction issue: `hedit.c:743-745` calls `mysql_store_result(conn)` after a prepared\n  SELECT, so it returns NULL and removed help keywords are never deleted.\n\n## Proposed fix\n\n- **One rule for every transaction:** after the first failed statement, issue nothing but\n  ROLLBACK. Writers inside transactions (the objsave and house writers, `Crash_save`, the bag and\n  sheath saves, the pet gear branch, the help import helpers) return failure and stop. The\n  bounty read propagates its failure. `Crash_idlesave` commits.\n- **An unanswered COMMIT (client error 2000-2999) is unknown, not rolled back.** Where the writes\n  are absolute and idempotent, write again on a reconnected session, as `trade_record()` now does.\n  Where they are conditional or incremental (pet store/retrieve, owner transfer, event finish,\n  freight), read back a durable marker after reconnecting before choosing a state. #12's\n  settlement record covers the vessel cases.\n- **Consider a shared helper** (for example `db_commit_checked()` returning\n  committed/refused/unknown) so each site does not reinvent the classification.\n- **Tests:** DB-backed CuTest cases per fixed site. Inject an unanswered COMMIT at the test level,\n  and for a real drop use `mysql_send_query(conn, \"COMMIT\", 6)`, `shutdown()` of\n  `mysql_get_socket(conn)`, then `mysql_read_query_result()`, which gives a real 2013 after a real\n  commit. Real drops need persistent tables, because TEMPORARY fixtures vanish on reconnect.\n- **The pool's stale-`conn` replacement and the help-lock loss** need their own check.\n\nFound and spot-checked on 2026-10-03 (objsave writer, `Crash_idlesave`, bounty read confirmed in\nthe code); the audit is read-only and only the trade path was fault-injected.",
+  "state": "closed",
+  "created_at": "2026-10-03T08:59:41.671Z",
+  "updated_at": "2026-10-04T08:32:56.054Z",
+  "closed_at": "2026-10-04T08:32:55.869Z",
+  "closed_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "labels": ["Bug"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 4,
+  "merge_requests_count": 1,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/13",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/13",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/13/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/13/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#13",
+    "relative": "#13",
+    "full": "max757/Luminari-Source#13"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

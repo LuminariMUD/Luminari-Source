@@ -1,0 +1,212 @@
+[
+  {
+    "id": "280c7b6e78dafb104f067453591dc31bf019994e",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3928065267,
+        "type": null,
+        "body": "Code review of `a85e97d9f46bb73a51bc2474bd2b5bcc3ae9f0d5` \u2192 `10da1aa76ddb97cc51503813a2a06de42b92fdcc`.\n\nThe pinned change introduces three actionable defects that allow shipyard maintenance, crew-stun restrictions, and target protection to be bypassed.\n\n**Overall impact: high.** This replaces weapon storage and combat behavior for existing and newly created vessels, migrates persisted loadouts, and changes movement, harbor access, and NPC shipping behavior, affecting ship owners, passengers, naval combatants, and schema deployment.\n\n1. **[P2] Keep the vessel berthed when maintenance starts** \u2014 [src/vessels/vessels_weapons.c:383](https://gitlab.com/max757/Luminari-Source/-/blob/10da1aa76ddb97cc51503813a2a06de42b92fdcc/src/vessels/vessels_weapons.c#L383)\n\n   An owner can issue `undock` and then buy a weapon or rearm during the 30-second departure countdown. `vessel_refit_ship()` checks only whether the hull is physically in port, so it accepts the purchase, but adding maintenance neither cancels the pending departure nor prevents `vessel_departure_tick()` from clearing `dock`. The vessel can therefore sail with hundreds of maintenance seconds remaining; buying after casting off finishes but before leaving the port also bypasses the restriction. Starting maintenance needs to preserve the berth and block an already-started departure, not just future calls to `vessel_begin_departure()`.\n\n2. **[P2] Apply crew stun to manual vessel maneuvers** \u2014 [src/vessels/vessels_movement.c:975](https://gitlab.com/max757/Luminari-Source/-/blob/10da1aa76ddb97cc51503813a2a06de42b92fdcc/src/vessels/vessels_movement.c#L975)\n\n   The stun guard only covers movement through `vessel_sail_tick()`. A pilot who passes the mental blast's Will save can still use `setsail <direction>` while the crew is stunned: `do_greyhawk_setsail()` calls `vessel_maneuver()`, which never checks the stun and immediately changes position, heading, and speed when the hull is moving at speed 6 or less. `setsail up/down` also remains available. This lets players steer or stop the hull during the cannon's intended loss of control; the maneuver and altitude paths need the same crew-stun restriction.\n\n3. **[P2] Revalidate a cached lock before firing** \u2014 [src/vessels/vessels_gunnery.c:735](https://gitlab.com/max757/Luminari-Source/-/blob/10da1aa76ddb97cc51503813a2a06de42b92fdcc/src/vessels/vessels_gunnery.c#L735)\n\n   When no contact argument is supplied, `vessel_locked_target()` checks only that the fleet slot is active. If a locked submarine dives, or an unfired-upon target enters port, `shipfire <slot>` before the next gunnery tick can still damage it: the remaining weapon and consent checks do not call `vessel_target_problem()`. The tick eventually clears the lock, but it leaves a window in which submerged or harbor-protected vessels can be fired upon, whereas the previous command checked harbor protection on every shot. Recheck target protection and visibility when firing through an existing lock.\n\nValidation: a fresh reviewer inspected the complete pinned diff (39 files) and relevant pinned source, tests, and repository instructions. All finding locations were verified. Static review only; no runtime tests were run.",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-09-30T06:18:04.842Z",
+        "updated_at": "2026-09-30T06:18:04.842Z",
+        "system": false,
+        "noteable_id": 540539064,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 9,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "8207170516a7f8dd1f9af5b4fa792086aba67f9e",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3928281305,
+        "type": null,
+        "body": "mentioned in commit 798de84a2d51ba650b553bd80567d4687dacfd06",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-09-30T07:11:12.263Z",
+        "updated_at": "2026-09-30T07:11:12.265Z",
+        "system": true,
+        "noteable_id": 540539064,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 9,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "2355cb51861be0848fefe70c563657340eedfafe",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3928281353,
+        "type": null,
+        "body": "added 5 commits\n\n<ul><li>838f5882 - Keep a hull at her berth while the shipwrights work</li><li>e479ab1b - Refuse setsail to a stunned crew</li><li>132abac0 - Check a lock&#39;s target at every shot</li><li>56e96cb0 - Check a stunned hull&#39;s route as her crew will sail it</li><li>798de84a - Record the MR !9 review fixes</li></ul>\n\n[Compare with previous version](/max757/Luminari-Source/-/merge_requests/9/diffs?diff_id=2064319329&start_sha=10da1aa76ddb97cc51503813a2a06de42b92fdcc)",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-09-30T07:11:12.947Z",
+        "updated_at": "2026-09-30T07:11:12.949Z",
+        "system": true,
+        "noteable_id": 540539064,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 9,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "5a4f397741f378f9d08514613f5c7167b6999f70",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3928283046,
+        "type": null,
+        "body": "Review round 1 is addressed on `feat/vessels-s4` (`git log vessels-s4..feat/vessels-s4`, head `798de84a2`), one commit per finding:\n\n1. **Keep the vessel berthed when maintenance starts** (`838f58824`): `vessel_refit_ship()` now takes work only from a berthed hull with no departure under way. `shipweapon`, `shipequip`, `shiprearm`, `shipupgrade`, and `shipinsure` refuse while the crew is casting off and after she has cast off in the harbor; work started at the berth keeps her there, because `vessel_begin_departure()` refuses unfinished work. The shipyard test tries a rearm while casting off and a purchase once cast off.\n2. **Apply crew stun to manual vessel maneuvers** (`e479ab1bd`): `vessel_maneuver()` refuses a stunned crew, which covers `setsail <direction>` and `setsail up|down`. The Mind Blast test tries both on a stunned hull.\n3. **Revalidate a cached lock before firing** (`132abac00`): `vessel_locked_target()` drops a lock on a contact that has gone, dived, entered port, or left sight wherever the lock is read (the tick, `shipfire`, `shipsight`, `shiplock`), replacing the tick's own check. The arc-fire test fires through a lock on a contact that has just dived: the lock is lost and no round is spent.\n\nFound while tracing finding 2 (`56e96cb00`): the schedule route check sails a copy of the hull, and a stunned copy never recovered, so it held its heading until the check gave up; a Mind Blast hit on a scheduled hull at departure disabled her schedule. The copy now sails with her crew unstunned, and the route-check test covers a stunned hull.\n\nVerification: each new assertion fails on the code before its fix. `make test-all` with the DB cases on passes 1921 CuTest cases. All 33 local CI jobs pass on `56e96cb00`, and the format and hygiene jobs on the docs record `798de84a2`. The gunnery, rules, events, and movement live gates pass on a fresh reload of the development dump. SHIPHIRE and SHIPFIRE help and `VESSEL_SYSTEM.md` are updated; the vessel help is applied to the development database and its verifier passes.\n\nReady to merge with a merge commit (not squashed: the docs cite commit hashes).",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-09-30T07:11:34.359Z",
+        "updated_at": "2026-09-30T07:11:34.359Z",
+        "system": false,
+        "noteable_id": 540539064,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 9,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "8eb6269f7c4ebb54e566c6410b07b83292d972cd",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3928285029,
+        "type": null,
+        "body": "changed the description",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-09-30T07:11:52.803Z",
+        "updated_at": "2026-09-30T07:11:52.804Z",
+        "system": true,
+        "noteable_id": 540539064,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 9,
+        "commands_changes": {}
+      }
+    ]
+  },
+  {
+    "id": "b5916dc0ebdebbbfbf5331366dda9b04b7b23685",
+    "individual_note": true,
+    "resolvable": false,
+    "notes": [
+      {
+        "id": 3929234718,
+        "type": null,
+        "body": "mentioned in commit c8bab4576c01591cc69dbef427a88fd7ed27238f",
+        "author": {
+          "id": 42759441,
+          "username": "max757",
+          "public_email": "",
+          "name": "Max aka Mosheh",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+          "web_url": "https://gitlab.com/max757"
+        },
+        "created_at": "2026-09-30T10:03:56.635Z",
+        "updated_at": "2026-09-30T10:03:56.637Z",
+        "system": true,
+        "noteable_id": 540539064,
+        "noteable_type": "MergeRequest",
+        "project_id": 86882182,
+        "resolvable": false,
+        "confidential": false,
+        "internal": false,
+        "imported": false,
+        "imported_from": "none",
+        "noteable_iid": 9,
+        "commands_changes": {}
+      }
+    ]
+  }
+]

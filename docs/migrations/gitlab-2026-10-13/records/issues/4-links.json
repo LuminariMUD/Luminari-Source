@@ -1,0 +1,461 @@
+[
+  {
+    "id": 204672081,
+    "iid": 5,
+    "project_id": 86882182,
+    "title": "Grant saved characters the single-rank racial feats their race gained later",
+    "description": "## Problem\n\nA character receives racial feats only from `process_race_level_feats()`\n(`src/character/class.c:3086`), which `advance_level()` runs for the level just reached. A feat\nadded to an existing race therefore reaches only characters created or respecced afterwards (a\nrespec reruns `do_start()`). Saved characters silently lack mechanics their race now provides.\n\nEvidence on master `962463fa6`, counted from the development player files (`lib/plrfiles/*/*.plr`,\ncharacters whose `Feat:` block records any feats):\n\n| Race | Feat (assigned at level 1 in `src/character/race.c`) | Added by | Characters missing it |\n| -- | -- | -- | -- |\n| Half-Troll | Bodyslam (`FEAT_BODYSLAM`) | `0831ef644` (2026-09-12), which turned the race check into a feat check | 85 of 85 |\n| Crystal Dwarf | Stability (`FEAT_STABILITY`) | `0831ef644` | 31 of 33 |\n| Trelux | Psionic Resistance (`FEAT_PSIONIC_RESISTANCE`) | the Duris races work (#2) | 20 of 20 |\n| Gnome | Brilliance and Blunder (`FEAT_BRILLIANCE_AND_BLUNDER`) | #4 (`e4946d92e`) | 215 of 215 |\n\nSo old Half-Trolls lost the bodyslam skill, old Crystal Dwarves their knockdown resistance, and no\nexisting gnome can build a four-spell artificer device. `racefix` cannot help: it reads the\ndeprecated `level_feats[][]` array in `src/character/class.c:2072`, which has none of these rows.\n\nBecause of this gap, two damage checks in `src/combat/fight.c` keep a race test beside the feat:\n`GET_RACE(ch) == RACE_TRELUX || HAS_FEAT(ch, FEAT_PSIONIC_RESISTANCE)` (line 3915) and\n`IS_LICH(ch) || HAS_FEAT(ch, FEAT_COLD_IMMUNITY)` (line 3429). `docs/systems/GAME_MECHANICS_SYSTEMS.md`\n(\"Racial Innate Feats and Spell-Like Abilities\") documents that workaround.\n\n## Fix\n\nWhen a character enters the game, grant each single-rank racial feat that its real race assigns\nat or below its level and that it does not hold, through the same code the level-up path uses.\n\n1. Shared grant: move the per-assignment body of `process_race_level_feats()` (special handling\n   via `special_handling_level_feats()` or the \"[race] You have gained/improved\" message, then\n   the rank increment and the `FEAT_DAMAGE_REDUCTION` update) into one static helper, so a\n   repaired feat behaves exactly like a level-up grant.\n2. Repair: add `grant_missing_race_feats()` beside it, declared in `src/character/class.h`. Skip\n   NPCs and invalid races. Walk `race_list[GET_REAL_RACE(ch)].featassign_list` (the real race,\n   as the level-up path does, so a disguise or wild shape changes nothing) and grant each\n   assignment whose `level_received` is at most `GET_LEVEL(ch)`, whose feat has `can_stack`\n   false in `feat_list[]`, and whose `HAS_REAL_FEAT()` is zero (gear granting the feat must not\n   hide the gap). Log character, race and feat for each grant; return the number granted.\n3. Hook: call it in `enter_player_game()` (`src/core/interpreter.c:7695`) right after the\n   class-spell top-up (\"make sure we assign any new spells\"). Menu login, copyover recovery\n   (`src/core/comm.c`) and description-completion entry (`src/character/char_descs.c`) all pass\n   through there. A new character enters at level 0 and gets nothing until `do_start()` runs.\n   The next save persists the feat; a login before that save repeats the same grant.\n\nStackable (multi-rank) racial feats stay out: a saved rank does not show which ranks came from\nthe race and which from class or study, so a top-up could over- or under-grant. Current racial\ngrants of stackable feats: Armor Skin, Damage Reduction, Enhanced Spell Damage, Fast Casting,\nFast Healing, Fast Movement, Slow Casting. No migration script, `racefix` change or new command\nis needed.\n\nOnce the repair lands, drop the Trelux race test from the psionic resistance check. All 14\ndevelopment Liches already hold Cold Immunity; drop `IS_LICH()` from the cold check too unless\nproduction data shows otherwise (Lich electric immunity stays a race check).\n\n## Done when\n\n- [ ] `grant_missing_race_feats()` exists and is called from `enter_player_game()`.\n- [ ] Tests in `unittests/CuTest/test_racial_innate_feats.c`: a saved Half-Troll without\n  Bodyslam and a Crystal Dwarf without Stability each gain it once and a second call grants\n  nothing; a held feat keeps its rank; an assignment above the character's level is skipped; a\n  stackable racial feat (Armor Skin on a Half-Ogre) is not topped up; the real race is read\n  while a disguise race is set; an NPC is untouched.\n- [ ] Live check on port 4100 (`MUD_PORT=4100 ./scripts/autorun/autorun.sh`): remove a racial\n  feat with `featset <name> '<feat>' -1` (for example Bodyslam on a Half-Troll), reconnect, see\n  the \"[race] You have gained\" line, use the feat, find it in the player file after the next\n  save; repeat through a copyover.\n- [ ] The two race tests in `compute_damtype_reduction()` are removed or their retention is\n  justified in the code.\n- [ ] `docs/systems/GAME_MECHANICS_SYSTEMS.md` (racial innate section) and\n  `docs/guides/ADDING_NEW_RACE_GUIDE.md` (racial feats) say that a single-rank feat added to an\n  existing race reaches saved characters at their next login, while a stackable grant still\n  reaches only new or respecced characters.\n- [ ] `make -j$(nproc)`, `make test` and `make install` pass.\n\nRollout note: production picks the repair up at the next restart, which needs its own approval;\nthe log lines count the repaired characters. A rollback leaves granted feats in place, which is\nwhat those characters should hold.",
+    "state": "closed",
+    "created_at": "2026-09-28T10:22:38.654Z",
+    "updated_at": "2026-10-02T17:50:29.685Z",
+    "closed_at": "2026-10-02T17:50:29.676Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 1,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/5",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 6,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/5",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/5/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/5/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#5",
+      "relative": "#5",
+      "full": "max757/Luminari-Source#5"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9642089,
+    "link_type": "relates_to",
+    "link_created_at": "2026-09-28T10:24:38.695Z",
+    "link_updated_at": "2026-09-28T10:24:38.695Z"
+  },
+  {
+    "id": 204672085,
+    "iid": 6,
+    "project_id": 86882182,
+    "title": "Publish the artificer help from #4 to production",
+    "description": "#4 changed player help in the development help DB and `lib/text/help/help.hlp` (commits\n`a6d9eda29` and `a814d7cdc`), written through the help-sync delta writer (plan id\n`work-item-4-artificer-help`). Production help was deliberately left unsynced when #4 merged.\n\nPending changes from #4:\n\n- new artificer class entry (`ARTIFICER ARTIFICER-CLASS CLASS-ARTIFICER`);\n- the device entry (`ARTIFICER-DEVICES DEVICE DEVICE-CREATE DEVICES TOTAL-DEVICE`) rewritten to the real `device` subcommands, charges, penalties and repair;\n- `GNOMES RACE-GNOME RACE-GNOMES` lists Gnomish Tinkering and Brilliance and Blunder;\n- the class roster entry no longer carries the two artificer keywords.\n\nHelp is published even when production does not yet run the code it documents.\n\n## Done when\n\n- [ ] A full help-sync run (`sync --authorize-production`, per\n  `.agents/skills/help-sync/SKILL.md`) publishes these entries to the production help DB and\n  production `help.hlp`.\n- [ ] The run's verification shows development and production matching for these entries.",
+    "state": "opened",
+    "created_at": "2026-09-28T10:22:43.198Z",
+    "updated_at": "2026-09-28T10:24:39.913Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Feature"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/6",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 2,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/6",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/6/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/6/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#6",
+      "relative": "#6",
+      "full": "max757/Luminari-Source#6"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9642090,
+    "link_type": "relates_to",
+    "link_created_at": "2026-09-28T10:24:39.866Z",
+    "link_updated_at": "2026-09-28T10:24:39.866Z"
+  },
+  {
+    "id": 204672185,
+    "iid": 7,
+    "project_id": 86882182,
+    "title": "Read-only device subcommands should not need a standard action",
+    "description": "Found in the live check of #4 (its item 28); still true on master `962463fa6`.\n\n`device` is registered with `ACTION_STANDARD` (`src/core/interpreter.c:1494`), and the\ninterpreter refuses a command whose actions are unavailable with \"You must wait for the required\naction before trying that command.\" (`src/core/interpreter.c:6963`). `device use` spends the\nstandard action (`USE_STANDARD_ACTION(ch)` in `ACMDU(do_device)`, `src/act/act.other.c`), so\nright after a use the read-only subcommands `device list`, `info`, `spells`, `usage` and\n`cooldown` are refused too.\n\nOnly the acting subcommands (`use`, `create`, `add`, `repair`, `destroy`, ...) should need the\naction. `is_device_cancel_command()` (`src/core/interpreter.c:6585`) already reads the subcommand\nbefore the busy check and is a model.\n\n## Done when\n\n- [ ] `device list`, `info`, `spells`, `usage` and `cooldown` work without an available standard\n  action; `device use` and the other acting subcommands still need it.\n- [ ] A production-linked test in `unittests/CuTest/test_artificer_devices.c` that fails on the\n  old code (`CUTEST_FILTER=artificer ./cutest`).\n- [ ] `make -j$(nproc)`, `make test` and `make install` pass.",
+    "state": "opened",
+    "created_at": "2026-09-28T10:24:07.743Z",
+    "updated_at": "2026-09-28T10:24:07.743Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/7",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 3,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/7",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/7/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/7/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#7",
+      "relative": "#7",
+      "full": "max757/Luminari-Source#7"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9642091,
+    "link_type": "relates_to",
+    "link_created_at": "2026-09-28T10:24:41.002Z",
+    "link_updated_at": "2026-09-28T10:24:41.002Z"
+  },
+  {
+    "id": 204672203,
+    "iid": 8,
+    "project_id": 86882182,
+    "title": "Devices accept entries that need an object or a typed argument",
+    "description": "Found in the live check of #4 (its item 30); still true on master `962463fa6`.\n\n`device_spell_level()` (`src/act/act.other.c:11876`) admits any wizard or cleric list entry\nregardless of its targets, so `device spells` lists and `device create` accepts entries such as\n`SPELL_ENCHANT_ITEM` (`TAR_OBJ_INV`) and `SPELL_PRESERVE` (`TAR_OBJ_ROOM`). `device use` always\ncalls `call_magic(ch, target, NULL, ...)` (`src/act/act.other.c:12847`), so those get no object\nand have no effect.\n\nEntries that read the global `cast_arg3` misbehave too: only `do_gen_cast` sets it\n(`src/magic/spell_parser.c:3402`), so `spell_minor_creation` (`src/magic/spells.c:5016`, wizard\nlevel 1) run from a device reads the argument of whoever last used `cast`. The other readers in\n`src/magic/spells.c` are `spell_control_summoned_creature`, `spell_siphon_might`,\n`spell_human_potential`, `spell_mass_human_potential`, `spell_overland_flight` and\n`spell_ventriloquate`; check which are reachable at device circles 1-4.\n\nFor each family, either refuse it in `device add`/`device create` and leave it out of\n`device spells`, or pass the object and argument through `device use`.\n\n## Done when\n\n- [ ] No device can hold an entry that does nothing from a device.\n- [ ] No device use reads a `cast_arg3` left by another player's cast.\n- [ ] Production-linked tests in `unittests/CuTest/test_artificer_devices.c` that fail on the old\n  code.\n- [ ] If player-visible device behavior changes, the device help entry is updated in the dev help\n  DB and `lib/text/help/help.hlp`.\n- [ ] `make -j$(nproc)`, `make test` and `make install` pass.",
+    "state": "opened",
+    "created_at": "2026-09-28T10:24:19.701Z",
+    "updated_at": "2026-09-28T10:24:19.701Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/8",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 5,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/8",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/8/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/8/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#8",
+      "relative": "#8",
+      "full": "max757/Luminari-Source#8"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9642093,
+    "link_type": "relates_to",
+    "link_created_at": "2026-09-28T10:24:42.170Z",
+    "link_updated_at": "2026-09-28T10:24:42.170Z"
+  },
+  {
+    "id": 204672217,
+    "iid": 9,
+    "project_id": 86882182,
+    "title": "Artificer device feat text describes temporary devices",
+    "description": "Found in the live check of #4 (its item 29); still true on master `962463fa6`.\n\nThe artificer feat `FEAT_WEIRD_SCIENCE` (`src/character/feats.c:5862-5867`) says its devices are\ntemporary with a limited number of uses per day. In the code, devices are permanent (the saved\n`duration` field is never read) and regain one use per tick out of combat (`check_device_one()`,\n`src/core/limits.c`). The device help entry already states the real rules.\n\n## Done when\n\n- [ ] The `FEAT_WEIRD_SCIENCE` description matches the device mechanic and the device help entry.\n- [ ] `make -j$(nproc)` passes.",
+    "state": "opened",
+    "created_at": "2026-09-28T10:24:28.829Z",
+    "updated_at": "2026-09-28T10:24:28.829Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/9",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 2,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": false,
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/9",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/9/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/9/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#9",
+      "relative": "#9",
+      "full": "max757/Luminari-Source#9"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9642094,
+    "link_type": "relates_to",
+    "link_created_at": "2026-09-28T10:24:43.407Z",
+    "link_updated_at": "2026-09-28T10:24:43.407Z"
+  }
+]

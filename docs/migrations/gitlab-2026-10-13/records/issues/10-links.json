@@ -1,0 +1,302 @@
+[
+  {
+    "id": 205253873,
+    "iid": 12,
+    "project_id": 86882182,
+    "title": "Vessel settlements: two-phase gold and cargo records across a crash",
+    "description": "## Problem\n\nA vessel settlement writes two stores that share no transaction: the ship's side (cargo\nmanifest, port supply, contract, dock-fee balance) goes to MariaDB, and the captain's gold goes\nto the player file. Since S11 (work item #10, MR !17), `cargobuy` and `cargosell` record the\ntrade first, then save the gold with `save_char_checked()`. If that save fails, they record the\npre-trade state again. If that undo cannot be recorded either, the trade stands, in memory as in\nthe database, and the persistence service's per-minute checked save stores the gold once the\ndisk recovers.\n\nOne window stays open: a failed player-file save, a failed undo, and then a crash before any\nlater save succeeds. The database then keeps the trade and the player file keeps the old gold,\nso a buyer keeps both the gold and the cargo, and a seller loses the cargo without being paid.\n\nA settlement record kept only in the database cannot close this window. At recovery it cannot\ntell whether a later save carried the gold, so a record left behind by a failed delete would\nundo a paid trade or put sold cargo back aboard (a dupe). It only moves the window to the mirror\ncase: the save succeeded, but the delete failed before the crash.\n\n## Full fix\n\nTreat each vessel settlement as two-phase, with a marker in the player file:\n\n- A settlement table (schema phase with rollback and verifier SQL, `master_schema.sql`, the boot\n  ensure function). Its row is written in the same transaction as the trade and carries the\n  undo: signed deltas for the supply and the lot, not absolute values.\n- A player-file field: the newest settlement id whose gold this file holds, saved with the gold.\n- Reconcile at login, and before the ship's next trade or cargo save: a row the player file\n  covers is settled (delete it), and a row it does not cover is undone (apply the deltas). The\n  ship's trading is held while a row is open.\n- \"Undone\" is reported only after the undo commits.\n\n## Same shape elsewhere\n\nFreight acceptance (`do_contractaccept`, `vessels_contracts.c`) and dock-fee payment\n(`do_dockfees`, `vessels_trade.c`) also compensate after a failed save, and on a failed\ncompensation they only log a `SYSERR` and report that no gold was taken. They should use the same\nsettlement path.\n\nContext: the MR !17 review thread\nhttps://gitlab.com/max757/Luminari-Source/-/merge_requests/17#note_3947012858",
+    "state": "closed",
+    "created_at": "2026-10-02T20:26:12.932Z",
+    "updated_at": "2026-10-04T12:58:28.339Z",
+    "closed_at": "2026-10-04T12:58:28.318Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/12",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/12",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/12/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/12/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#12",
+      "relative": "#12",
+      "full": "max757/Luminari-Source#12"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9717224,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-02T20:26:20.426Z",
+    "link_updated_at": "2026-10-02T20:26:20.426Z"
+  },
+  {
+    "id": 205305439,
+    "iid": 13,
+    "project_id": 86882182,
+    "title": "Database writes can land outside their transaction after an auto-reconnect",
+    "description": "## Problem\n\nEvery MariaDB connection is created with `MYSQL_OPT_RECONNECT` on (`src/database/mysql.c:174`,\n`322`, `466`, `554`). A probe against MariaDB (2026-10-03, while fixing MR !17's second review\nfinding) showed what this does to an open transaction when the connection drops:\n\n1. The next statement fails with client error 2006. The library refuses one reconnect because the\n   session was \"in transaction\", and clears that flag.\n2. The statement after that reconnects silently and runs in **autocommit on a new session**. The\n   server has already rolled back the original transaction, so earlier writes are gone while later\n   ones land on their own. Even a `COMMIT` then reports success with nothing saved.\n3. A `COMMIT` that fails with client error 2013 was sent, but its reply was lost, so the outcome\n   is unknown. Code nearly everywhere treats that as \"rolled back\".\n\nCode is safe only if it issues nothing but `ROLLBACK` after the first failed statement in a\ntransaction, and if it treats an unanswered `COMMIT` as unknown. Cargo trades were fixed on\n`feat/vessels-s12` (`2ba35d6b1`, MR !18): `vessel_db_save_cargo()` stops at its first failure, and\n`trade_record()` writes again after an unanswered COMMIT. A read-only audit of the other 25\ntransaction sites found these.\n\n## Writes that continue after a failure (partial writes land outside the transaction)\n\n- **Player object saves can duplicate items** (`src/obj/objsave.c`). The object writer returns 1\n  even when its INSERT failed (561-567), and `Crash_save` ignores results from its recursive calls\n  (1095-1096). The bag saves ignore their results too (1340-1349, 1477-1486, 1565-1574), as does\n  the sheath writer (576, 580). So `Crash_crashsave` and `Crash_rentsave` always reach COMMIT.\n  After a drop, the server rolls back the DELETE, the later INSERTs autocommit, the COMMIT\n  \"succeeds\", and `PLR_CRASH` is cleared (1376). The next login loads the old rows plus the new\n  partial ones. Periodic crash saves are a hot path (`limits.c:1405`).\n- **`Crash_idlesave` never commits** (`objsave.c:1379-1502`). It opens the transaction through\n  `objsave_begin_player_save()` and has only ROLLBACKs, so every later autocommit statement on\n  `conn` joins that open transaction. It runs only when `free_rent` is NO; the default is YES.\n- **House contents** (`src/obj/house.c:125-129`, `166`): the same always-1 writer.\n- **Pet gear** (`objsave.c:1121-1126`, used by `save_char_pets` and `pet_store_pet` in\n  `src/player/players.c`): the contents branch keeps writing after a sibling write failed.\n- **Help import** (`src/olc/hedit.c:3599-3606`, `3364`, `3370`, `3499`): the loop counts errors and\n  carries on. The final ROLLBACK reports that everything was rolled back, while a partial import\n  stays in the database.\n- **Help save** (`hedit.c:633-653`, `764-796`): the version-history and keyword-DELETE statements\n  are unchecked, so a drop there leaves the save non-atomic, and the COMMIT can report success.\n- **Bounty overwrite** (`src/vessels/vessels_merchants.c:783` \u2192 `vessels_piracy.c:617-626`,\n  `657`): a failed bounty read inside the transaction returns 0. Then `0 + amount` is written as\n  the absolute bounty on the reconnected session, overwriting a larger bounty downward.\n\n## COMMITs whose outcome is unknown, treated as rolled back\n\n- `pet_retrieve_stored` (`players.c:8112-8117`): if the commit landed, the pet row is ACTIVE with\n  no live pet, and the next pet save deletes it with its gear.\n- `pet_store_pet` (`players.c:7892-7897`): a STORED row plus the live pet, which means a duplicate\n  pet or a key clash on later saves.\n- `vessel_transfer_owner` (`src/vessels/vessels_ownership.c:219-233`): memory reverts to the old\n  owner but the database keeps the new one, so ownership flips at the next reboot.\n- `vessel_event_finish` (`src/vessels/vessels_events.c:712-729`): a staff retry applies the\n  leaderboard increments a second time.\n- `do_contractaccept` (`src/vessels/vessels_contracts.c:598`): the contract stays TAKEN with\n  nothing in the hold (also noted on #12).\n\n## Also seen in the audit (not reproduced)\n\n- When a pooled connection fails its ping, `mysql_pool_acquire` closes and replaces it\n  (`mysql.c:309-318`). That would leave the global `conn` pointing at freed memory, and the ping\n  fails in exactly this in-transaction case.\n- The help-sync lock (`help.c:140`, `GET_LOCK`) belongs to the session, so a silent reconnect\n  drops it without the holder knowing.\n- Not a transaction issue: `hedit.c:743-745` calls `mysql_store_result(conn)` after a prepared\n  SELECT, so it returns NULL and removed help keywords are never deleted.\n\n## Proposed fix\n\n- **One rule for every transaction:** after the first failed statement, issue nothing but\n  ROLLBACK. Writers inside transactions (the objsave and house writers, `Crash_save`, the bag and\n  sheath saves, the pet gear branch, the help import helpers) return failure and stop. The\n  bounty read propagates its failure. `Crash_idlesave` commits.\n- **An unanswered COMMIT (client error 2000-2999) is unknown, not rolled back.** Where the writes\n  are absolute and idempotent, write again on a reconnected session, as `trade_record()` now does.\n  Where they are conditional or incremental (pet store/retrieve, owner transfer, event finish,\n  freight), read back a durable marker after reconnecting before choosing a state. #12's\n  settlement record covers the vessel cases.\n- **Consider a shared helper** (for example `db_commit_checked()` returning\n  committed/refused/unknown) so each site does not reinvent the classification.\n- **Tests:** DB-backed CuTest cases per fixed site. Inject an unanswered COMMIT at the test level,\n  and for a real drop use `mysql_send_query(conn, \"COMMIT\", 6)`, `shutdown()` of\n  `mysql_get_socket(conn)`, then `mysql_read_query_result()`, which gives a real 2013 after a real\n  commit. Real drops need persistent tables, because TEMPORARY fixtures vanish on reconnect.\n- **The pool's stale-`conn` replacement and the help-lock loss** need their own check.\n\nFound and spot-checked on 2026-10-03 (objsave writer, `Crash_idlesave`, bounty read confirmed in\nthe code); the audit is read-only and only the trade path was fault-injected.",
+    "state": "closed",
+    "created_at": "2026-10-03T08:59:41.671Z",
+    "updated_at": "2026-10-04T08:32:56.054Z",
+    "closed_at": "2026-10-04T08:32:55.869Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 4,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/13",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/13",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/13/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/13/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#13",
+      "relative": "#13",
+      "full": "max757/Luminari-Source#13"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9725871,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-03T18:46:36.978Z",
+    "link_updated_at": "2026-10-03T18:46:36.978Z"
+  },
+  {
+    "id": 205336312,
+    "iid": 14,
+    "project_id": 86882182,
+    "title": "Vessel purchases and payouts move gold without a checked save",
+    "description": "## Problem\n\nS11 (#10) made `cargobuy` and `cargosell` save the captain's gold with `save_char_checked()` and undo the trade when that save fails. The other vessel commands that take or pay gold still write the ship's side to MariaDB at once and move the gold in memory only (`award_gold()`). The gold reaches the player file with the next per-minute save (the persistence step in `src/core/comm.c`). A crash before that save splits the two stores:\n\n- A purchase keeps what was bought and gives the gold back.\n- A payout takes the item or the freight and never pays.\n\nMost of these commands also do not check the ship-side save: `vessel_db_save_weapons()`, `vessel_db_save_runtime()` and `vessel_db_save_cargo()` return a result that is dropped, and `vessel_db_save_crew()` and `vessel_db_save_extras()` return none. A refused write goes unreported.\n\n## Sites (master `ec8f55b26`, all under `src/vessels/`)\n\nPurchases:\n\n| Command | Gold moves in | Ship side written |\n| -- | -- | -- |\n| `shipbuy` | `do_shipbuy()`, `vessels_edit.c:1115` | the new hull, before the gold |\n| `shipbuy` trade-in | `vessel_trade_in()`, `vessels_edit.c:1012` | the rebuilt hull (a failed save is only logged); the net can be a charge or a credit |\n| `shipchristen` | `do_shipchristen()`, `vessels_edit.c:1200` | the new name |\n| `shiphire` | `do_shiphire()`, `vessels_crew.c:595` | the crew |\n| `shipweapon` (buying) | `vessel_buy_weapon()`, `vessels_weapons.c:600` | weapons and runtime |\n| `shipequip` (buying) | `do_shipequip()`, `vessels_weapons.c:885` | weapons and runtime |\n| `shiprearm` | `do_shiprearm()`, `vessels_weapons.c:953` | weapons and runtime |\n| `shiprepair` | `do_shiprepair()`, `vessels_repair.c:484` | runtime and weapons |\n| `shipupgrade` | `do_shipupgrade()`, `vessels_upgrades.c:597` | the refit |\n| `shipsummon` | `do_shipsummon()`, `vessels_loss.c:541` | the summons |\n| bounty pay-off | `vessel_bounty_pay()`, `vessels_piracy.c:1061` | the bounty cleared (checked), before the gold |\n| `marque` | `do_marque()`, `vessels_piracy.c:1174` | the letter issued (checked), before the gold |\n\nPayouts:\n\n| Command | Gold moves in | Ship side written |\n| -- | -- | -- |\n| `shipweapon sell` | `do_shipweapon()`, `vessels_weapons.c:662` | the emptied slot |\n| `shipequip` (selling) | `do_shipequip()`, `vessels_weapons.c:848` | the emptied slot |\n| `contractdeliver` | `do_contractdeliver()`, `vessels_contracts.c:716` | the unloaded hold (unchecked) and the contract marked done (a failure is only logged), before the gold |\n\nNot part of this: the passenger fare, the insurance and merchant-consequence deliveries, and cargo trades already save the gold checked; freight acceptance and dock fees do too and become two-phase with #12. The land and sea transport fare (`enter_transport_paid()`, `transport.c:522`) keeps the fare and the journey in the same player file, so nothing splits.\n\n## Proposed fix\n\nS11's level, in the shape the passenger fare already has (`vessel_collect_passenger_fare()`: debit, `save_char_checked()`, restore on failure), through one shared helper:\n\n- Both stores are written and checked inside the command, and a failure of either is undone and reported, so only a crash between the two writes of one command can split them.\n- A purchase whose gold cannot be saved is refused; a purchase whose ship-side write fails is refunded.\n- A payout whose gold cannot be saved puts the item or the freight back.\n- DB-backed CuTest cases per command family for a failed gold save and a refused ship-side write.\n\nNot #12's two-phase settlement record: each of these commands would need its own stored undo (delete a hull, strip a weapon, dismiss a crew), and the window left after a checked save (a failed save, a failed undo, then a crash) is the one #12 closes for cargo, freight and dock fees.\n\nFound on 2026-10-03 while planning S13 and S14 of the vessel study (#13, #12); the sites were read, not fault-injected.",
+    "state": "closed",
+    "created_at": "2026-10-03T18:54:01.291Z",
+    "updated_at": "2026-10-04T20:38:24.558Z",
+    "closed_at": "2026-10-04T17:42:02.421Z",
+    "closed_by": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "labels": ["Bug"],
+    "milestone": null,
+    "assignees": [
+      {
+        "id": 42759441,
+        "username": "max757",
+        "public_email": "",
+        "name": "Max aka Mosheh",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/max757"
+      }
+    ],
+    "author": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "type": "ISSUE",
+    "assignee": {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    },
+    "user_notes_count": 2,
+    "merge_requests_count": 1,
+    "upvotes": 0,
+    "downvotes": 0,
+    "start_date": null,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/14",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "0 of 0 checklist items completed",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/86882182/issues/14",
+      "notes": "https://gitlab.com/api/v4/projects/86882182/issues/14/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/14/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/86882182",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#14",
+      "relative": "#14",
+      "full": "max757/Luminari-Source#14"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "imported": false,
+    "imported_from": "none",
+    "service_desk_reply_to": null,
+    "issue_link_id": 9725932,
+    "link_type": "relates_to",
+    "link_created_at": "2026-10-03T18:54:10.937Z",
+    "link_updated_at": "2026-10-03T18:54:10.937Z"
+  }
+]

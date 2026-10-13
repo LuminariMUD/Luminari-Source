@@ -1,0 +1,130 @@
+{
+  "id": 542609275,
+  "iid": 20,
+  "project_id": 86882182,
+  "title": "Vessels S13: transactions that survive a lost connection",
+  "description": "S13 of the vessel study: transactions that survive a lost connection.\n\nCloses #13\n\n## Problem\n\nEvery database connection reconnects by itself (`MYSQL_OPT_RECONNECT`). When one dropped inside a\ntransaction, the server rolled the transaction back, one command failed, and the statements after\nit ran one by one in autocommit on a new session; a `COMMIT` among them reported success. An\nobject save left the old rows and the new partial ones together. A `COMMIT` whose reply was lost\nwas taken for a rollback when it may have committed. Work item #13 lists the sites.\n\nProbing the client library with real drops before planning showed two things the item did not\nhave: `mysql_ping()` retries by itself and returns success on a new session, and the close of a\nprepared statement can be the first command to meet the drop, so no statement fails at all.\n\n## Fix\n\n- **The rule lives in the query layer** (`src/database/mysql.c`), the only place that sends\n  commands. A connection that lost its transaction is marked and takes no statement until the\n  caller ends the transaction: `ROLLBACK` is sent, a `COMMIT` fails and is answered with a\n  `ROLLBACK`, a new `START TRANSACTION` starts clean. Queries, prepared statements, the close of\n  one, and pings all mark. The mark is kept on the handle (`MARIADB_OPT_USERDATA`), so it\n  survives the reconnect and goes with the handle. No writer has to stop at its first failure.\n- **`mysql_commit_transaction()`** tells a confirmed `COMMIT`, a refused one and one without a\n  reply apart, and rolls back what is not confirmed. Cargo trades use it (`trade_commit()` is\n  gone). After a `COMMIT` without a reply, pet storage and retrieval, a hull's change of owner and\n  the end of a vessel event read the database back with a locking read, which waits for the lost\n  session to finish.\n- **Object and house saves.** The writers report a row that was not written. The save commits the\n  rest, keeps `PLR_CRASH` or `ROOM_HOUSE_CRASH` so the next pass saves again, and tells the staff\n  whose objects they were. `Crash_save_single()` no longer clears the flag after a failed object\n  save. `Crash_idlesave()` commits. An extra description that does not fit a record is left out\n  instead of the object (object, sheath and pet writers).\n- **`house_data`** loses the unique key on `vnum` that let a house keep one object\n  (`master_schema.sql`, `db_init.c`), with boot migration `2026100401`.\n- **Smaller sites.** A bounty that cannot be read is not overwritten with the new offense. The\n  help writers check inside their transaction that the session still holds the help\n  synchronization lock. `hedit` deletes removed keywords.\n- **The pool** reconnects a stale handle in place instead of closing the handle `conn` points at.\n\n## Found on the way, fixed here\n\n- `mysql_pool_acquire()` could hold the game while the database was away: it retired a connection\n  that failed its check and, with none left and none to open, tried again without end on the\n  game's one thread. It now returns no connection, which its caller already handles. Read from\n  the code, not seen in production.\n- `Crash_cryosave()` stored a frozen character's objects beside the last save's, with no\n  transaction. It runs only where rent is not free.\n- The rule itself: a caller that failed without ending its transaction would have left the\n  connection refusing everyone's statements, and the query that loads a player's objects at login\n  stops the server when it fails. All 26 transaction sites end theirs on every path, and the mark\n  now lasts one game pulse at most: after that the layer rolls the transaction back itself and\n  logs it (`3eab48d60`).\n- The test database built from `master_schema.sql` had the `house_data` key: the new house test\n  failed on it until the boot migration ran.\n\n## Tests\n\nThe connection is really lost: `mysql_test_drop_connection_at()` shuts the socket down at a named\nstatement, before it is sent or after the server ran it. These tests write the real tables with\ntest-only rows, since a TEMPORARY table goes with its session.\n\n- `unittests/CuTest/test_database_transactions.c` (new): the rule for a query, a prepared\n  statement, a statement close and a ping; the helper's three results; the pool; a crash save and\n  a house save lost at a row and retried; a row refused on a good connection; the idle, cryo and\n  rent saves; the owner transfer, the event finish and the bounty; the help lock and `hedit`.\n- `test_database_persistence.c`: the pet save lost at a row, the keeper's store and retrieve both\n  ways, the longest record, the left-out extra description, the migration on the old table shape.\n- `test_vessel_rewards.c`: the cargo trade test now loses its connection for real.\n\n## Verification\n\nOn `3eab48d60`, the final source:\n\n- `make test-all` with the database cases: 2,015 CuTest cases, the protocol harness's 32 and the\n  Python suites passed; SQL interpolation within baseline.\n- The boot migration ran for real on a test database built from the old definitions: the unique\n  key was there before, gone after, and `idx_vnum` stayed.\n- The local CI matrix (`scripts/ci/local/run.py --base gitlab/master`): all 33 jobs passed,\n  clang-tidy with 0 findings; the changed lines are covered at 95.83% in the database layer and\n  84.75% in persistence.\n- All 20 live gates and provisioners in `scripts/vessels/` passed in the namespace harness on\n  fresh reloads of the development dump.\n- A live check of the layer: the economy gate passed while a second process killed the server's\n  database sessions twice, and the server's log has no `SYSERR`.\n\nThe first CI run found a race in the test seam (the reply could arrive before the socket was shut\ndown) and two analyzer findings in the new tests; both are fixed in the commits here.\n\n## Review round 1\n\nNine findings, each fixed in its own commit on top of `vessels-s13`\n(`vessels-s13..feat/vessels-s13`); every thread has the details.\n\n| | Finding | Fix |\n| -- | -- | -- |\n| P1 | A sheath holding a weapon in a house crashed the house save (older than S13) | `44b82187b`: the house stores the sheath's weapons as its own objects |\n| P2 | Cryo and idle saves dropped the bag rows | `69ecda7a4`: both write the bags |\n| P2 | Rent, idle and cryo saves left the objects in memory after a failed save, to be dropped in the room | `4c54755ce`: one writer for the four player saves; a leaving save is written a second time, then the objects leave memory either way |\n| P2 | A deadlock's victim was not marked | `796f9a8a8`: error 1213 marks the transaction lost |\n| P2 | An unreadable read-back was taken for a rollback: event scored twice, pets guessed | `263f76864`: the event's finish is idempotent on its own row; the pet keeper chooses no state until `pets restore` reads the rows |\n| P3 | An incomplete save never set the crash flag | `5976699d8`: `PLR_CRASH` and `ROOM_HOUSE_CRASH` are set |\n| P3 | `log_hint_usage()` freed an uninitialized pointer (older than S13) | `9ea0d4f94`: `mysql_pool_query()` clears the result first |\n| P3 | `hedit` deleted another entry's keywords | `456000371`: a save under a tag the editor did not load is refused when that entry exists |\n| P3 | A plunder's bounty was announced though not recorded | `1b4363645`: one retry; announced and passed on only when recorded |\n\n`9a0e69438` brings the system documents in line, and the study document records the round.\n\nOne proposal was not taken: emptying a sheath on `remove`. The help entry `DRAW-WEAPONS`\ndocuments carrying several loaded sheaths, and the house now stores the weapons, so nothing is\nlost without it.\n\nVerified on the final source (`1b4363645`): `make test-all` with the database cases (2,020 CuTest\ncases, the protocol harness's 32, the Python suites; SQL interpolation within baseline); the local\nCI matrix, all 33 jobs, clang-tidy with 0 findings, changed lines covered at 95.93% in the\ndatabase layer and 93.79% in persistence; and live in the namespace harness, the events gate and a\n`quit` and login that kept a carried object and one sorted into a bag.\n\n## Not in this merge request\n\n- Freight acceptance's `COMMIT` without a reply is S14's (work item #12): its settlement row is\n  the marker to read back.\n- The hull's change of owner still takes a read-back that cannot run for a rollback: the owner in\n  memory is written again at shutdown and copyover, so the database converges on it.\n- Work items #15, #16 and #17: unrelated leaks found while writing the tests and the review fixes\n  (an arcane mark, bagged objects, a sheath's weapons off its wearer).",
+  "state": "merged",
+  "created_at": "2026-10-03T23:44:34.016Z",
+  "updated_at": "2026-10-04T08:32:54.574Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-04T08:32:55.127Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "feat/vessels-s13",
+  "user_notes_count": 20,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "14696f5b3fe2e888d8c0f2b3c9ae9685462262a5",
+  "merge_commit_sha": "9eb7239139ae735128c048f009feeb99d6bc67c2",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": false,
+  "prepared_at": "2026-10-03T23:44:36.401Z",
+  "reference": "!20",
+  "references": {
+    "short": "!20",
+    "relative": "!20",
+    "full": "max757/Luminari-Source!20"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/20",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "29",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "ec8f55b26847372f5ac07f2e9615d69d0944edf7",
+    "head_sha": "14696f5b3fe2e888d8c0f2b3c9ae9685462262a5",
+    "start_sha": "ec8f55b26847372f5ac07f2e9615d69d0944edf7"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}

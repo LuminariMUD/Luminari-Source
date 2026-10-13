@@ -1,0 +1,97 @@
+{
+  "id": 205408813,
+  "iid": 21,
+  "project_id": 86882182,
+  "title": "Vessel scale gate has no current threshold or measurement",
+  "description": "## Problem\n\nThe vessel release requirements ask for the complete vessel subsystem to stay within 25 ms per\ngame tick at 500 vessels (`docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md`, section 6\n\"Performance\" and release acceptance item 5). That gate has no current measurement and no\ncurrent threshold:\n\n- `scripts/vessels/run_vessel_scale_benchmark.sh start` refuses to run: \"The fleet-heartbeat\n  benchmark is retired. Measure native vessel owner events before defining new scale\n  thresholds.\"\n- `docs/testing/VESSEL_BENCHMARKS.md` (\"Current Verdict\") says the native 500-hull measurement\n  taken on the S2 momentum model is the new scale baseline, and that \"a native per-tick\n  threshold replacing the retired runner's 25 ms p95 gate is not yet defined\".\n- That measurement (section \"S2 Momentum Re-baseline\": 500 hulls, mean 1.34 ms per 500-hull\n  tick) was taken on 2026-09-29, before the damage model, gunnery, crew stamina, crew repairs,\n  and raider AI were added to the per-tick work. Nothing was measured afterwards, and the ferry\n  soak was not rerun either.\n- `docs/systems/VESSEL_SYSTEM.md` (\"Performance Characteristics\") says the final preflight must\n  repeat the full scale gate on the release candidate.\n- The gate table's \"Development mechanics and final preflight\" row is marked Complete on the\n  strength of the older 500-vessel run.\n\n## Completion criteria\n\n- A native per-tick threshold is defined from the vessel owner-event profiler (the measurement\n  procedure is in `VESSEL_BENCHMARKS.md`, \"S2 Momentum Re-baseline\").\n- The 500-hull measurement is repeated on current master and recorded in\n  `VESSEL_BENCHMARKS.md` against that threshold.\n- `run_vessel_scale_benchmark.sh` either runs the native measurement or is removed, with its\n  parser test.\n- The gate table row and the `VESSEL_SYSTEM.md` performance section state the current evidence.\n\n## References\n\n- `docs/testing/VESSEL_BENCHMARKS.md`\n- `docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md`, \"Release Gate State\"\n- `src/vessels/vessel_periodic.c`",
+  "state": "closed",
+  "created_at": "2026-10-04T20:37:09.307Z",
+  "updated_at": "2026-10-04T21:15:59.098Z",
+  "closed_at": "2026-10-04T21:15:59.086Z",
+  "closed_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "labels": ["Feature"],
+  "milestone": null,
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "type": "ISSUE",
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "user_notes_count": 0,
+  "merge_requests_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "start_date": null,
+  "due_date": null,
+  "confidential": false,
+  "discussion_locked": null,
+  "issue_type": "issue",
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/work_items/21",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "blocking_issues_count": 0,
+  "has_tasks": true,
+  "task_status": "0 of 0 checklist items completed",
+  "_links": {
+    "self": "https://gitlab.com/api/v4/projects/86882182/issues/21",
+    "notes": "https://gitlab.com/api/v4/projects/86882182/issues/21/notes",
+    "award_emoji": "https://gitlab.com/api/v4/projects/86882182/issues/21/award_emoji",
+    "project": "https://gitlab.com/api/v4/projects/86882182",
+    "closed_as_duplicate_of": null
+  },
+  "references": {
+    "short": "#21",
+    "relative": "#21",
+    "full": "max757/Luminari-Source#21"
+  },
+  "severity": "UNKNOWN",
+  "subscribed": true,
+  "moved_to_id": null,
+  "imported": false,
+  "imported_from": "none",
+  "service_desk_reply_to": null
+}

@@ -1,0 +1,130 @@
+{
+  "id": 544993600,
+  "iid": 29,
+  "project_id": 86882182,
+  "title": "Price Extra Arms and the monk third hand after the arm count",
+  "description": "Closes #1\n\nPhase 6 of `docs/ongoing-projects/object-save-fixes-and-arm-pricing.md`. Handed to review at\nthe tag `object-save-fixes-p6` (`0a1ab3529`): one documentation commit and the plan's record of\nthe phase. No code changes: `docs/guides/PLAYER_RACES_REFERENCE.md` is the only place the\nprices live, and no race grants Extra Arms.\n\n## Audit of feat 1320 and 1321 grants\n\nProduction has run the arm count since the 2026-10-04 release (`d5cd6a735`), so the item's\npre-deploy check became an audit of live data, done read-only as the game user on 2026-10-08:\n\n| Where | Extra Arms (1320) | Four Arms (1321) |\n| -- | -- | -- |\n| World objects: `APPLY_FEAT` affects (33 in all, development and production alike, by the recipe in the plan) | none | none |\n| World mobiles: `Feat:` and `MFeat:` lines (1659) | none | none |\n| Production player files (7428), their `Feat:` sections | none | one, a level 30 Thri-Kreen: the race's own innate |\n| Production `player_save_objs` (509487 rows), `pet_save_objs` (1), `player_save_objs_sheathed` (0), `object_database_bonuses` | none | none |\n| Production `house_data` (7951 rows, 44 houses), the table `House_load()` reads | none | none |\n| Production `lib/house` and `lib/plrobjs` files, which the game opens only to see that a record exists | none | none |\n| The same on the development copy (7097 player files, 489375 rows, 9743 house rows) | none | none |\n\nNothing changed meaning for anyone: no character, pet, house or object carries Extra Arms, and\nFour Arms gave the same four arms before the count as after it.\n\n## Decisions\n\n- Price by the arm a rank adds: the third arm 9 RP, the fourth 6 RP, each arm past four 1 RP.\n  The split of Four Arms' 15 follows what each arm opens: the worn positions three to one (the\n  lost-slot row the other way), and the weapon hands by their swings in `plan_second_pair()`,\n  five candidates to four at level 30 with haste, the fourth hand's last three behind the\n  two-weapon feats, so the 11 RP of weapon hands split 6 to 5.\n- Mixed sources: a race is priced by the arm count it ends with, whatever mix of Four Arms,\n  Extra Arms ranks and `arm_adjust` produces it, since `arm_count()` is the only count the game\n  reads. A negative `arm_adjust` is a drawback by the lost-slot row (one arm or none: the cap).\n- The single-trait cap exemption stays Thri-Kreen's Four Arms alone (composition rule 2). A\n  third arm is over the cap in every tier but Epic quest, and four arms fit only there, so\n  another race taking arms records its own exemption in that rule.\n- The monk's empty third hand is the swing a weapon there makes: `plan_second_pair()` plans one\n  third-hand chain, set by either, and gives the monk no candidate of its own; the fourth hand\n  always needs a weapon. Class interaction, which the model does not price, so it is inside the\n  15 RP and Thri-Kreen stays at 20.0 RP.\n\n## Review\n\nTwo findings on the audit record, both fixed after the tag: `5b2917cd4` audits `house_data`,\nthe table the game loads houses from, and `f4c5c9624` makes the recorded world-file recipe take\ntwo-field and CR-terminated `A` records and says that a prototype's own affects never reach\n`serialized_obj`. Neither changes the result.\n\n## Verification\n\n- `pre-commit run mdformat` on the changed files passes.\n- `python3 scripts/ci/local/run.py --base gitlab/master`: 33 of 33 jobs pass (216 s) on\n  `429ce84b6` and again on `f4c5c9624` (218 s); the format, hygiene and secrets jobs pass\n  again on each record commit.",
+  "state": "merged",
+  "created_at": "2026-10-08T06:57:07.314Z",
+  "updated_at": "2026-10-08T09:34:45.990Z",
+  "merged_by": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merge_user": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "merged_at": "2026-10-08T09:32:46.464Z",
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "1-price-extra-arms-and-the-monk-third-hand-after-the-arm-count",
+  "user_notes_count": 7,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757",
+    "bot": false
+  },
+  "assignees": [
+    {
+      "id": 42759441,
+      "username": "max757",
+      "public_email": "",
+      "name": "Max aka Mosheh",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+      "web_url": "https://gitlab.com/max757"
+    }
+  ],
+  "assignee": {
+    "id": 42759441,
+    "username": "max757",
+    "public_email": "",
+    "name": "Max aka Mosheh",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/3c7c169343bd7d0f4575137ce8065aee7cb44024d447bbfe66d773133a81c43e?s=80&d=identicon",
+    "web_url": "https://gitlab.com/max757"
+  },
+  "reviewers": [],
+  "source_project_id": 86882182,
+  "target_project_id": 86882182,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_open",
+  "merge_after": null,
+  "sha": "e6c85bf50d552d2a58e12a645d74908d50ad1467",
+  "merge_commit_sha": "294d5f20f86a565d55059f97885c9b7f423fe45f",
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-10-08T06:57:09.234Z",
+  "reference": "!29",
+  "references": {
+    "short": "!29",
+    "relative": "!29",
+    "full": "max757/Luminari-Source!29"
+  },
+  "web_url": "https://gitlab.com/max757/Luminari-Source/-/merge_requests/29",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "2",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": null,
+  "diff_refs": {
+    "base_sha": "55c934d5c1aca704f662505321f3391d2ebc0686",
+    "head_sha": "e6c85bf50d552d2a58e12a645d74908d50ad1467",
+    "start_sha": "55c934d5c1aca704f662505321f3391d2ebc0686"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  }
+}
