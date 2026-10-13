@@ -340,6 +340,7 @@ void Crash_rentsave(struct char_data *ch, int cost);
 void Crash_cryosave(struct char_data *ch, int cost);
 obj_save_data *objsave_parse_objects(FILE *fl);
 obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum);
+void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long int idnum);
 int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fl, int location);
 int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum,
                                FILE *fl, int location);
@@ -419,6 +420,7 @@ void autoproc_registry_reset_for_test(void);
 void clear_object(struct obj_data *obj);
 void free_obj(struct obj_data *obj);
 void free_obj_special_abilities(struct obj_special_ability *list);
+void give_obj_own_copies(struct obj_data *obj, const struct obj_data *proto);
 struct obj_data *read_object(obj_vnum nr, int type);
 struct obj_data *read_object_reason(obj_vnum nr, int type, enum perf_entity_reason reason);
 int vnum_object(char *searchname, struct char_data *ch);

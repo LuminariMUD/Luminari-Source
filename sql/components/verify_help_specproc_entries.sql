@@ -6,7 +6,7 @@ SELECT
   1 AS expected,
   IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
 FROM help_entries
-WHERE BINARY tag = 'spec-proc'
+WHERE tag = 'spec-proc'
   AND min_level = 31
   AND auto_generated = FALSE
   AND INSTR(entry, 'Z) SpecProc') > 0
@@ -19,7 +19,7 @@ SELECT
   1 AS expected,
   IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
 FROM help_entries
-WHERE BINARY tag = 'spec-proc'
+WHERE tag = 'spec-proc'
   AND INSTR(entry, 'canonical names only') > 0
   AND INSTR(entry, 'Explicit aliases remain load-compatible') > 0
   AND INSTR(entry, 'MOB_SPEC') > 0
@@ -153,4 +153,4 @@ FROM help_keywords
 WHERE UPPER(keyword) IN (
   '<SPEC>', 'SPEC', 'SPEC-PROC', 'SPECIAL-PROCEDURE', 'SPECIALS', 'SPECBIND', 'SPECPROC', 'SPECIAL-PROCEDURES', 'SPEC_PROC'
 )
-AND BINARY help_tag <> 'spec-proc';
+AND help_tag <> 'spec-proc';

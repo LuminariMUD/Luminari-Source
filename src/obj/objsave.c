@@ -104,28 +104,42 @@ static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long
 static void log_pet_object_failure(const char *operation, struct char_data *owner,
                                    long int pet_idnum, int obj_vnum, unsigned int error_code,
                                    const char *detail);
-void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long int idnum);
 obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum, int sheath_slot,
                                                struct obj_data *sheath);
 
+/* The writers store seven numbers and the command word, which is empty for an
+ * ability that has none. They store the first ability only: it replaces the
+ * ability of its kind, or else the first one, and the rest of the list the
+ * prototype gave the object stays. */
 static bool objsave_replace_special_ability(struct obj_data *obj, const char *line)
 {
   struct obj_special_ability *ability;
   int values[7];
   char command[128];
+  int fields = 0;
 
-  if (obj == NULL || line == NULL ||
-      strict_sscanf(line, "%d %d %d %d %d %d %d %127s", &values[0], &values[1], &values[2],
-                    &values[3], &values[4], &values[5], &values[6], command) != 8)
+  if (obj != NULL && line != NULL)
+    fields = strict_sscanf(line, "%d %d %d %d %d %d %d %127s", &values[0], &values[1], &values[2],
+                           &values[3], &values[4], &values[5], &values[6], command);
+  if (fields < 7)
   {
     log("SYSERR: Invalid SpAb record in object save data: %s", line ? line : "(null)");
     return false;
   }
 
-  free_obj_special_abilities(obj->special_abilities);
-  obj->special_abilities = NULL;
+  for (ability = obj->special_abilities; ability != NULL; ability = ability->next)
+    if (ability->ability == values[0])
+      break;
+  if (ability == NULL)
+    ability = obj->special_abilities;
+  if (ability == NULL)
+  {
+    CREATE(ability, struct obj_special_ability, 1);
+    obj->special_abilities = ability;
+  }
+  else if (ability->command_word != NULL)
+    free(ability->command_word);
 
-  CREATE(ability, struct obj_special_ability, 1);
   ability->ability = values[0];
   ability->level = values[1];
   ability->activation_method = values[2];
@@ -133,9 +147,7 @@ static bool objsave_replace_special_ability(struct obj_data *obj, const char *li
   ability->value[1] = values[4];
   ability->value[2] = values[5];
   ability->value[3] = values[6];
-  ability->command_word = strdup(command);
-  ability->next = NULL;
-  obj->special_abilities = ability;
+  ability->command_word = fields == 8 ? strdup(command) : NULL;
 
   return true;
 }
@@ -1181,6 +1193,19 @@ static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct cha
     if (result && !objsave_save_obj_record_db_pet(obj, ch, owner, pet_idnum, location))
       result = FALSE;
 
+    /* A sheath's weapons are stored under their owner's name, and a pet has
+     * no rows there: they are the pet's own objects, beside the sheath, as a
+     * house's are. A worn sheath's go to the inventory, since the validator
+     * refuses two records on one wear position. */
+    if (result && obj->sheath_primary &&
+        !objsave_save_obj_record_db_pet(obj->sheath_primary, ch, owner, pet_idnum,
+                                        MIN(0, location)))
+      result = FALSE;
+    if (result && obj->sheath_secondary &&
+        !objsave_save_obj_record_db_pet(obj->sheath_secondary, ch, owner, pet_idnum,
+                                        MIN(0, location)))
+      result = FALSE;
+
     for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
       GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
   }
@@ -1439,6 +1464,8 @@ static void objsave_save_and_extract(struct char_data *ch, int rentcode, int cos
   for (j = 0; j < NUM_WEARS; j++)
     if (GET_EQ(ch, j))
       Crash_extract_objs(GET_EQ(ch, j));
+  for (j = 1; j <= MAX_BAGS; j++)
+    Crash_extract_objs(get_char_bag(ch, j));
   Crash_extract_objs(ch->carrying);
 }
 
@@ -4993,12 +5020,12 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         if (sheath_slot == 1)
         {
           log("SHEATH2e");
-          sheath->sheath_primary = temp;
+          obj_to_sheath(temp, sheath, 1);
         }
         else if (sheath_slot == 2)
         {
           log("SHEATH2f");
-          sheath->sheath_secondary = temp;
+          obj_to_sheath(temp, sheath, 2);
         }
         log("SHEATH2g");
       }
@@ -5039,21 +5066,4 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
   mysql_free_result(result);
   objsave_sync_loaded_objects(head);
   return head;
-}
-
-void objs_from_sheath(struct char_data *ch, struct obj_data *sheath)
-{
-  if (!sheath)
-    return;
-
-  if (sheath->sheath_primary)
-  {
-    obj_to_char(sheath->sheath_primary, ch);
-    sheath->sheath_primary = NULL;
-  }
-  if (sheath->sheath_secondary)
-  {
-    obj_to_char(sheath->sheath_secondary, ch);
-    sheath->sheath_secondary = NULL;
-  }
 }

@@ -48,5 +48,5 @@ JOIN (
   UNION ALL SELECT 'ROL-SPELL-KITS', 'content-only'
   UNION ALL SELECT 'SHAMAN', 'summoning unlocks at Cleric level'
   UNION ALL SELECT 'SONG-OF-TRAVEL', 'Access: Bard level 16'
-) AS expected_content ON BINARY h.tag = expected_content.tag
+) AS expected_content ON h.tag = expected_content.tag
 WHERE INSTR(h.entry, expected_content.text) > 0;

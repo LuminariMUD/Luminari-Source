@@ -236,7 +236,7 @@ JOIN (
   UNION ALL SELECT 'PLUNDER', 'A payment the admiralty cannot record is returned'
   UNION ALL SELECT 'CONTRACTS', 'the delivery is undone and the freight[[:space:]]+stays aboard'
   UNION ALL SELECT 'SHIPFIRE', 'order is paid like other yard work'
-) AS expected_content ON BINARY h.tag = expected_content.tag
+) AS expected_content ON h.tag = expected_content.tag
 WHERE h.entry REGEXP expected_content.required_pattern;
 
 SELECT
@@ -246,16 +246,16 @@ SELECT
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE
-  (BINARY help_tag = 'board_hostile' AND UPPER(keyword) = 'BOARD_HOSTILE')
-  OR (BINARY help_tag = 'disembark' AND UPPER(keyword) = 'DISEMBARK')
-  OR (BINARY help_tag = 'dock' AND UPPER(keyword) = 'DOCK')
-  OR (BINARY help_tag = 'look_outside' AND UPPER(keyword) = 'LOOK_OUTSIDE')
-  OR (BINARY help_tag = 'ship_rooms' AND UPPER(keyword) = 'SHIP_ROOMS')
-  OR (BINARY help_tag = 'speed' AND UPPER(keyword) = 'SPEED')
-  OR (BINARY help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPWAGES')
-  OR (BINARY help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPINSURE')
-  OR (BINARY help_tag = 'undock' AND UPPER(keyword) = 'UNDOCK')
-  OR (BINARY help_tag = 'boats' AND UPPER(keyword) IN ('SHIPS', 'TRANSPORTSS'));
+  (help_tag = 'board_hostile' AND UPPER(keyword) = 'BOARD_HOSTILE')
+  OR (help_tag = 'disembark' AND UPPER(keyword) = 'DISEMBARK')
+  OR (help_tag = 'dock' AND UPPER(keyword) = 'DOCK')
+  OR (help_tag = 'look_outside' AND UPPER(keyword) = 'LOOK_OUTSIDE')
+  OR (help_tag = 'ship_rooms' AND UPPER(keyword) = 'SHIP_ROOMS')
+  OR (help_tag = 'speed' AND UPPER(keyword) = 'SPEED')
+  OR (help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPWAGES')
+  OR (help_tag = 'SHIPHIRE' AND UPPER(keyword) = 'SHIPINSURE')
+  OR (help_tag = 'undock' AND UPPER(keyword) = 'UNDOCK')
+  OR (help_tag = 'boats' AND UPPER(keyword) IN ('SHIPS', 'TRANSPORTSS'));
 
 SELECT
   'retired_aliases' AS check_name,
@@ -263,4 +263,4 @@ SELECT
   0 AS expected,
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_entries
-WHERE BINARY tag = 'boats' AND COALESCE(alternate_keywords, '') <> '';
+WHERE tag = 'boats' AND COALESCE(alternate_keywords, '') <> '';

@@ -358,6 +358,9 @@ static OCMD(do_otransform)
     tmpobj.script = obj->script;
     tmpobj.next_content = obj->next_content;
     tmpobj.next = obj->next;
+    tmpobj.sheath_primary = obj->sheath_primary;
+    tmpobj.sheath_secondary = obj->sheath_secondary;
+    tmpobj.sheathed_in = obj->sheathed_in;
     memcpy(obj, &tmpobj, sizeof(*obj));
 
     if (wearer)

@@ -25,22 +25,31 @@
 #include "spec/spec_registry.h"
 #include "spec/spec_effective_binding.h"
 #include "events/point_update_periodic.h"
+#include "events/domain_event_world.h"
 
 /* local functions */
-static int update_all_objects(struct obj_data *obj);
+static int update_all_objects(const struct obj_data *proto, const struct obj_data *old);
 static void copy_object_strings(struct obj_data *to, struct obj_data *from);
+static void overwrite_object(struct obj_data *to, const struct obj_data *from);
+static int contents_weight(const struct obj_data *obj);
+static void change_holder_weight(struct obj_data *obj, int change);
 
 obj_rnum add_object(struct obj_data *newobj, obj_vnum ovnum)
 {
   int found = NOTHING;
   zone_rnum rznum = real_zone_by_thing(ovnum);
+  struct obj_data old;
 
   /* Write object to internal tables. */
   if ((newobj->item_number = real_object(ovnum)) != NOTHING)
   {
-    free_object_strings(&obj_proto[newobj->item_number]);
+    /* The live objects are compared with the old prototype, whose strings are
+     * freed after them. Its trigger list is oedit_save_internally()'s to free. */
+    old = obj_proto[newobj->item_number];
     copy_object_main(&obj_proto[newobj->item_number], newobj, TRUE);
-    update_all_objects(&obj_proto[newobj->item_number]);
+    obj_proto[newobj->item_number].proto_script = old.proto_script;
+    update_all_objects(&obj_proto[newobj->item_number], &old);
+    free_object_strings(&old);
     add_to_save_list(zone_table[rznum].number, SL_OBJ);
     return newobj->item_number;
   }
@@ -51,55 +60,153 @@ obj_rnum add_object(struct obj_data *newobj, obj_vnum ovnum)
   return found;
 }
 
-/* Fix all existing objects to have these values. We need to run through each
- * and every object currently in the game to see which ones are pointing to
- * this prototype. If object is pointing to this prototype, then we need to
- * replace it with the new one. */
-static int update_all_objects(struct obj_data *refobj)
+static bool same_text(const char *a, const char *b)
 {
-  struct obj_data *obj, swap;
+  return a == b || (a != NULL && b != NULL && !strcmp(a, b));
+}
+
+static bool same_pages(const struct obj_spellbook_spell *a, const struct obj_spellbook_spell *b)
+{
+  int i;
+
+  if (a == NULL || b == NULL)
+    return a == b;
+  for (i = 0; i < SPELLBOOK_SIZE; i++)
+    if (a[i].spellname != b[i].spellname || a[i].pages != b[i].pages)
+      return false;
+  return true;
+}
+
+/* The same abilities in any order: read_object() copies a list back to front. */
+static bool same_abilities(const struct obj_special_ability *a, const struct obj_special_ability *b)
+{
+  const struct obj_special_ability *x, *y;
+  int count = 0;
+
+  for (x = a; x != NULL; x = x->next, count++)
+  {
+    for (y = b; y != NULL; y = y->next)
+      if (x->ability == y->ability && x->level == y->level &&
+          x->activation_method == y->activation_method &&
+          !memcmp(x->value, y->value, sizeof(x->value)) &&
+          same_text(x->command_word, y->command_word))
+        break;
+    if (y == NULL)
+      return false;
+  }
+  for (y = b; y != NULL; y = y->next)
+    count--;
+  return count == 0;
+}
+
+/* A field of a live object that still holds what the old prototype held. */
+#define FOLLOW(field)                                                                              \
+  do                                                                                               \
+  {                                                                                                \
+    if (memcmp(&obj->field, &old->field, sizeof(obj->field)) == 0)                                 \
+      memcpy(&obj->field, &proto->field, sizeof(obj->field));                                      \
+  } while (0)
+#define FOLLOW_POINTER(field)                                                                      \
+  do                                                                                               \
+  {                                                                                                \
+    if (obj->field == old->field)                                                                  \
+      obj->field = proto->field;                                                                   \
+  } while (0)
+
+/* A live object takes the new prototype's definition where it still held the
+ * old prototype's, and keeps what it has of its own: a restring, the stats a
+ * generator or a crafter gave it, an arcane mark, spellbook pages. Its place
+ * in the world, its triggers and its runtime state are not definition. */
+static void follow_prototype(struct obj_data *obj, const struct obj_data *proto,
+                             const struct obj_data *old)
+{
+  struct obj_data fresh = *proto;
+  struct extra_descr_data *ed;
+  int own_weight = GET_OBJ_WEIGHT(obj) - contents_weight(obj);
+  int weight;
+
+  FOLLOW(obj_flags.value);
+  FOLLOW(obj_flags.type_flag);
+  FOLLOW(obj_flags.prof_flag);
+  FOLLOW(obj_flags.level);
+  FOLLOW(obj_flags.wear_flags);
+  FOLLOW(obj_flags.extra_flags);
+  FOLLOW(obj_flags.cost);
+  FOLLOW(obj_flags.cost_per_day);
+  FOLLOW(obj_flags.timer);
+  FOLLOW(obj_flags.bitvector);
+  FOLLOW(obj_flags.bitvector2);
+  FOLLOW(obj_flags.material);
+  FOLLOW(obj_flags.size);
+  FOLLOW(affected);
+  FOLLOW_POINTER(name);
+  FOLLOW_POINTER(description);
+  FOLLOW_POINTER(short_description);
+  FOLLOW_POINTER(action_description);
+  FOLLOW_POINTER(ex_description);
+  FOLLOW(has_spells);
+  FOLLOW(wpn_spells);
+  FOLLOW(channel_spells);
+  FOLLOW(mob_recepient);
+  FOLLOW(activate_spell);
+
+  /* A list of its own can end in the old prototype's, which is freed next. */
+  for (ed = obj->ex_description; ed != NULL && old->ex_description != NULL; ed = ed->next)
+    if (ed->next == old->ex_description)
+    {
+      ed->next = proto->ex_description;
+      break;
+    }
+
+  /* What free_obj() frees with the object: one that still matched the old
+   * prototype becomes a copy of the new one's. An open edit copy or a preview
+   * copy of the object can point at the spellbook or abilities it replaces,
+   * so those are given up, not freed. */
+  give_obj_own_copies(&fresh, proto);
+  free(fresh.arcane_mark);
+  if (same_text(obj->restring_identifier, old->restring_identifier))
+  {
+    free(obj->restring_identifier);
+    obj->restring_identifier = fresh.restring_identifier;
+  }
+  else
+    free(fresh.restring_identifier);
+  if (same_pages(obj->sbinfo, old->sbinfo))
+    obj->sbinfo = fresh.sbinfo;
+  else
+    free(fresh.sbinfo);
+  if (same_abilities(obj->special_abilities, old->special_abilities))
+    obj->special_abilities = fresh.special_abilities;
+  else
+    free_obj_special_abilities(fresh.special_abilities);
+
+  /* Its weight counts what it holds, by the capacity it has now. */
+  if (own_weight == GET_OBJ_WEIGHT(old))
+    own_weight = GET_OBJ_WEIGHT(proto);
+  weight = own_weight + contents_weight(obj);
+  change_holder_weight(obj, weight - GET_OBJ_WEIGHT(obj));
+  GET_OBJ_WEIGHT(obj) = weight;
+}
+
+#undef FOLLOW
+#undef FOLLOW_POINTER
+
+/* Give every live object of a prototype the prototype's new definition. */
+static int update_all_objects(const struct obj_data *proto, const struct obj_data *old)
+{
+  struct obj_data *obj;
   int count = 0;
 
   for (obj = object_list; obj; obj = obj->next)
   {
-    if (obj->item_number != refobj->item_number)
+    if (obj->item_number != proto->item_number)
       continue;
 
     count++;
 
-    /* Update the existing object but save a copy for private information. */
     autoproc_registry_remove(obj);
-    swap = *obj;
-    *obj = *refobj;
-
-    /* Copy game-time dependent variables over. */
-    GET_ID(obj) = swap.id;
-    IN_ROOM(obj) = swap.in_room;
-    obj->carried_by = swap.carried_by;
-    obj->worn_by = swap.worn_by;
-    obj->worn_on = swap.worn_on;
-    obj->in_obj = swap.in_obj;
-    obj->contains = swap.contains;
-    obj->next_content = swap.next_content;
-    obj->next = swap.next;
-    obj->object_list_member = swap.object_list_member;
-    obj->sitting_here = swap.sitting_here;
-    obj->events = swap.events;
-    obj->event_owner_generation = swap.event_owner_generation;
-    obj->transfer_source = swap.transfer_source;
-    obj->transfer_bag = swap.transfer_bag;
-    obj->transfer_pending = swap.transfer_pending;
-    obj->transfer_extracting = swap.transfer_extracting;
-    obj->transfer_disposed = swap.transfer_disposed;
-    obj->periodic_event_generation = swap.periodic_event_generation;
-    obj->autoproc_next = NULL;
-    obj->autoproc_prev = NULL;
-    obj->autoproc_registered = false;
-    obj->autoproc_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+    follow_prototype(obj, proto, old);
     autoproc_registry_sync(obj);
-    obj->point_update_next = swap.point_update_next;
-    obj->point_update_prev = swap.point_update_prev;
-    obj->point_update_registered = swap.point_update_registered;
     point_update_object_sync(obj);
   }
 
@@ -122,9 +229,14 @@ obj_rnum adjust_objects(obj_rnum refpt)
 #endif
     return NOTHING;
 
-  /* Renumber live objects. */
+  /* Renumber live objects, each onto the hash chain of its new rnum. */
   for (obj = object_list; obj; obj = obj->next)
-    GET_OBJ_RNUM(obj) += (GET_OBJ_RNUM(obj) != NOTHING && GET_OBJ_RNUM(obj) >= refpt);
+    if (GET_OBJ_RNUM(obj) != NOTHING && GET_OBJ_RNUM(obj) >= refpt)
+    {
+      remove_obj_from_rnum_hash(obj);
+      GET_OBJ_RNUM(obj)++;
+      add_obj_to_rnum_hash(obj);
+    }
 
   /* Renumber zone table. */
   for (zone = 0; zone <= top_of_zone_table; zone++)
@@ -152,7 +264,7 @@ obj_rnum adjust_objects(obj_rnum refpt)
 
   /* Renumber notice boards. */
   for (i = 0; i < NUM_OF_BOARDS; i++)
-    BOARD_RNUM(i) += (BOARD_RNUM(i) >= refpt);
+    BOARD_RNUM(i) += (BOARD_RNUM(i) != NOTHING && BOARD_RNUM(i) >= refpt);
 
   /* Renumber shop produce. */
   for (shop = 0; shop <= top_shop; shop++)
@@ -221,6 +333,9 @@ obj_rnum index_object(struct obj_data *obj, obj_vnum ovnum, obj_rnum ornum)
   obj_index[ornum].spec_binding = NULL;
   obj_index[ornum].effective_binding = NULL;
 
+  /* The slot holds what insert_object() left there: a prototype that moved
+   * up, or nothing yet. The copy keeps the target's runtime fields. */
+  clear_object(&obj_proto[ornum]);
   copy_object_preserve(&obj_proto[ornum], obj);
   obj_proto[ornum].in_room = NOWHERE;
 
@@ -481,6 +596,8 @@ void free_object_strings(struct obj_data *obj)
   /* Free corpse-specific fields */
   if (obj->char_sdesc)
     free(obj->char_sdesc);
+  if (obj->arcane_mark)
+    free(obj->arcane_mark);
   if (obj->restring_identifier)
     free(obj->restring_identifier);
 }
@@ -557,6 +674,7 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
   to->description = from->description ? strdup(from->description) : NULL;
   to->short_description = from->short_description ? strdup(from->short_description) : NULL;
   to->action_description = from->action_description ? strdup(from->action_description) : NULL;
+  to->char_sdesc = from->char_sdesc ? strdup(from->char_sdesc) : NULL;
   to->arcane_mark = from->arcane_mark ? strdup(from->arcane_mark) : NULL;
   /* Ensure restring_identifier is deep-copied so prototypes don't share OLC buffers */
   to->restring_identifier = from->restring_identifier ? strdup(from->restring_identifier) : NULL;
@@ -569,8 +687,12 @@ static void copy_object_strings(struct obj_data *to, struct obj_data *from)
 
 int copy_object(struct obj_data *to, struct obj_data *from)
 {
-  /* Free strings safely for object instances that may share prototype strings. */
-  free_object_strings_proto(to);
+  /* An instance may share strings with its prototype. An object with no
+   * prototype owns every string it has, and has no entry to compare them with. */
+  if (GET_OBJ_RNUM(to) == NOTHING)
+    free_object_strings(to);
+  else
+    free_object_strings_proto(to);
   return copy_object_main(to, from, TRUE);
 }
 
@@ -579,66 +701,132 @@ int copy_object_preserve(struct obj_data *to, struct obj_data *from)
   return copy_object_main(to, from, FALSE);
 }
 
+/* The weight obj_to_obj() adds to a container for what it holds. */
+static int contents_weight(const struct obj_data *obj)
+{
+  const struct obj_data *content;
+  int weight = 0;
+
+  if (GET_OBJ_VAL(obj, 0) > 0)
+    for (content = obj->contains; content != NULL; content = content->next_content)
+      weight += GET_OBJ_WEIGHT(content);
+  return weight;
+}
+
+/* Carry a change in an object's weight to what holds it, as obj_to_obj(),
+ * obj_to_char() and obj_to_bag() count it. Equipment counts for nothing. */
+static void change_holder_weight(struct obj_data *obj, int change)
+{
+  struct obj_data *container;
+  struct char_data *ch = NULL;
+
+  if (change == 0)
+    return;
+  if (obj->in_obj != NULL)
+  {
+    if (GET_OBJ_VAL(obj->in_obj, 0) <= 0)
+      return;
+    for (container = obj->in_obj; container != NULL; container = container->in_obj)
+    {
+      GET_OBJ_WEIGHT(container) += change;
+      ch = container->carried_by;
+    }
+  }
+  else if (obj->carried_by != NULL)
+    ch = obj->carried_by;
+  else if (obj->transfer_bag.kind == DOMAIN_HOLDER_BAG)
+    ch = domain_event_world_resolve_character(obj->transfer_bag.entity);
+  if (ch != NULL)
+    IS_CARRYING_W(ch) += change;
+}
+
+/* Write one object over another. The target stays where it is in the world
+ * and keeps what only the running game gave it: what holds it and what it
+ * holds, its list, hash and registry links, its script, events and transfer
+ * state. A live target keeps its rnum, the key of its hash chain. Its weight
+ * is the source's own and what the target holds. Strings and lists the
+ * objects own are the caller's to settle. */
+static void overwrite_object(struct obj_data *to, const struct obj_data *from)
+{
+  struct obj_data kept = *to;
+  int weight = GET_OBJ_WEIGHT(from) - contents_weight(from);
+
+  *to = *from;
+  if (kept.object_list_member)
+    to->item_number = kept.item_number;
+  GET_ID(to) = kept.id;
+  IN_ROOM(to) = kept.in_room;
+  to->carried_by = kept.carried_by;
+  to->worn_by = kept.worn_by;
+  to->worn_on = kept.worn_on;
+  to->in_obj = kept.in_obj;
+  to->contains = kept.contains;
+  to->next_content = kept.next_content;
+  to->next_gitem = kept.next_gitem;
+  to->next = kept.next;
+  to->object_list_member = kept.object_list_member;
+  to->next_in_hash = kept.next_in_hash;
+  to->prev_in_hash = kept.prev_in_hash;
+  to->sitting_here = kept.sitting_here;
+  SCRIPT(to) = kept.script;
+  to->sheath_primary = kept.sheath_primary;
+  to->sheath_secondary = kept.sheath_secondary;
+  to->sheathed_in = kept.sheathed_in;
+  to->trap = kept.trap;
+  to->events = kept.events;
+  to->event_owner_generation = kept.event_owner_generation;
+  to->periodic_event_generation = kept.periodic_event_generation;
+  to->transfer_source = kept.transfer_source;
+  to->transfer_bag = kept.transfer_bag;
+  to->transfer_pending = kept.transfer_pending;
+  to->transfer_extracting = kept.transfer_extracting;
+  to->transfer_disposed = kept.transfer_disposed;
+  to->limb_restore_slot = kept.limb_restore_slot;
+  MISSILE_ID(to) = kept.missile_id;
+  to->autoproc_next = kept.autoproc_next;
+  to->autoproc_prev = kept.autoproc_prev;
+  to->autoproc_registered = kept.autoproc_registered;
+  to->autoproc_event_handle = kept.autoproc_event_handle;
+  to->point_update_next = kept.point_update_next;
+  to->point_update_prev = kept.point_update_prev;
+  to->point_update_registered = kept.point_update_registered;
+  to->rol_loot_sweep_at = kept.rol_loot_sweep_at;
+  to->rol_drow_decay_initialized = kept.rol_drow_decay_initialized;
+  to->rol_deaths_head_seed_initialized = kept.rol_deaths_head_seed_initialized;
+  to->perf_origin_zone_vnum = kept.perf_origin_zone_vnum;
+  to->perf_create_reason = kept.perf_create_reason;
+  GET_OBJ_WEIGHT(to) = weight + contents_weight(to);
+  change_holder_weight(to, GET_OBJ_WEIGHT(to) - GET_OBJ_WEIGHT(&kept));
+}
+
 int copy_object_main(struct obj_data *to, struct obj_data *from,
                      int free_object __attribute__((unused)))
 {
-  struct obj_data *autoproc_next;
-  struct obj_data *autoproc_prev;
-  struct event_runtime_handle autoproc_event_handle;
-  struct obj_data *point_update_next;
-  struct obj_data *point_update_prev;
-  struct list_data *events;
-  uint64_t event_owner_generation;
-  uint64_t periodic_event_generation;
-  bool autoproc_registered;
-  bool point_update_registered;
-  bool object_list_member;
-  struct domain_object_holder transfer_source, transfer_bag;
-  bool transfer_pending, transfer_extracting, transfer_disposed;
-
-  autoproc_next = to->autoproc_next;
-  autoproc_prev = to->autoproc_prev;
-  autoproc_event_handle = to->autoproc_event_handle;
-  events = to->events;
-  event_owner_generation = to->event_owner_generation;
-  periodic_event_generation = to->periodic_event_generation;
-  autoproc_registered = to->autoproc_registered;
-  point_update_next = to->point_update_next;
-  point_update_prev = to->point_update_prev;
-  point_update_registered = to->point_update_registered;
-  object_list_member = to->object_list_member;
-  transfer_source = to->transfer_source;
-  transfer_bag = to->transfer_bag;
-  transfer_pending = to->transfer_pending;
-  transfer_extracting = to->transfer_extracting;
-  transfer_disposed = to->transfer_disposed;
-  *to = *from;
-  to->transfer_source = transfer_source;
-  to->transfer_bag = transfer_bag;
-  to->transfer_pending = transfer_pending;
-  to->transfer_extracting = transfer_extracting;
-  to->transfer_disposed = transfer_disposed;
-  to->autoproc_next = autoproc_next;
-  to->autoproc_prev = autoproc_prev;
-  to->autoproc_event_handle = autoproc_event_handle;
-  to->events = events;
-  to->event_owner_generation = event_owner_generation;
-  to->periodic_event_generation = periodic_event_generation;
-  to->autoproc_registered = autoproc_registered;
-  to->point_update_next = point_update_next;
-  to->point_update_prev = point_update_prev;
-  to->point_update_registered = point_update_registered;
-  to->object_list_member = object_list_member;
+  overwrite_object(to, from);
   copy_object_strings(to, from);
   point_update_object_sync(to);
   return TRUE;
+}
+
+/* Give what a deleted instance holds to its room, its wearer or carrier, or
+ * the object around it: the places its holder looks. */
+static void delete_object_hand_over(struct obj_data *held, struct obj_data *from,
+                                    struct char_data *holder)
+{
+  if (IN_ROOM(from) != NOWHERE)
+    obj_to_room(held, IN_ROOM(from));
+  else if (holder != NULL)
+    obj_to_char(held, holder);
+  else
+    obj_to_obj(held, from->in_obj);
 }
 
 int delete_object(obj_rnum rnum)
 {
   obj_rnum i;
   zone_rnum zone, zrnum;
-  struct obj_data *obj, *tmp, *next_obj;
+  struct obj_data *obj, *tmp, *next_obj, *held;
+  struct char_data *holder;
   int shop, j, cmd_no;
 
   if (rnum == NOTHING || rnum > top_of_objt)
@@ -658,31 +846,27 @@ int delete_object(obj_rnum rnum)
     if (tmp->item_number != obj->item_number)
       continue;
 
-    /* extract_obj() will just axe contents. */
-    if (tmp->contains)
+    /* What the instance holds, its contents and its sheathed weapons, goes
+     * where the instance is: extract_obj() takes it along, as it does from
+     * an instance that is nowhere. */
+    holder = tmp->worn_by != NULL ? tmp->worn_by : tmp->carried_by;
+    if (IN_ROOM(tmp) != NOWHERE || holder != NULL || tmp->in_obj != NULL)
     {
-      struct obj_data *this_content, *next_content;
-      for (this_content = tmp->contains; this_content; this_content = next_content)
+      while (tmp->contains != NULL)
       {
-        next_content = this_content->next_content;
-        if (IN_ROOM(tmp) != NOWHERE)
-        {
-          /* Transfer stuff from object to room. */
-          obj_from_obj(this_content);
-          obj_to_room(this_content, IN_ROOM(tmp));
-        }
-        else if (tmp->worn_by || tmp->carried_by)
-        {
-          /* Transfer stuff from object to person inventory. */
-          obj_from_obj(this_content);
-          obj_to_char(this_content, tmp->worn_by ? tmp->worn_by : tmp->carried_by);
-        }
-        else if (tmp->in_obj)
-        {
-          /* Transfer stuff from object to containing object. */
-          obj_from_obj(this_content);
-          obj_to_obj(this_content, tmp->in_obj);
-        }
+        held = tmp->contains;
+        obj_from_obj(held);
+        delete_object_hand_over(held, tmp, holder);
+      }
+      if ((held = tmp->sheath_primary) != NULL)
+      {
+        obj_from_sheath(held);
+        delete_object_hand_over(held, tmp, holder);
+      }
+      if ((held = tmp->sheath_secondary) != NULL)
+      {
+        obj_from_sheath(held);
+        delete_object_hand_over(held, tmp, holder);
       }
     }
     /* Remove from object_list, etc. - handles weightchanges, and similar. */
@@ -694,11 +878,19 @@ int delete_object(obj_rnum rnum)
   spec_binding_free(&obj_index[rnum].spec_binding);
   spec_effective_binding_free(&obj_index[rnum].effective_binding);
 
-  /* Adjust rnums of all other objects. */
+  /* The prototype's strings and triggers go with it. An edit copy can point
+   * at its spellbook and abilities, so those are given up, not freed. */
+  free_object_strings(obj);
+  free_proto_script(&obj->proto_script);
+
+  /* Adjust rnums of all other objects, each onto the hash chain of its new rnum. */
   for (tmp = object_list; tmp; tmp = tmp->next)
-  {
-    GET_OBJ_RNUM(tmp) -= (GET_OBJ_RNUM(tmp) > rnum);
-  }
+    if (GET_OBJ_RNUM(tmp) != NOTHING && GET_OBJ_RNUM(tmp) > rnum)
+    {
+      remove_obj_from_rnum_hash(tmp);
+      GET_OBJ_RNUM(tmp)--;
+      add_obj_to_rnum_hash(tmp);
+    }
 
   for (i = rnum; i < top_of_objt; i++)
   {
@@ -713,7 +905,7 @@ int delete_object(obj_rnum rnum)
 
   /* Renumber notice boards. */
   for (j = 0; j < NUM_OF_BOARDS; j++)
-    BOARD_RNUM(j) -= (BOARD_RNUM(j) > rnum);
+    BOARD_RNUM(j) -= (BOARD_RNUM(j) != NOTHING && BOARD_RNUM(j) > rnum);
 
   /* Renumber shop produce. */
   for (shop = 0; shop <= top_shop; shop++)

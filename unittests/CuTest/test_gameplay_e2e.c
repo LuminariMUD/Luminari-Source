@@ -39,6 +39,9 @@
 #include "../../src/olc/oasis.h"
 #include "../../src/olc/prefedit.h"
 #include "../../src/olc/genobj.h"
+#include "../../src/olc/genolc.h"
+#include "../../src/comms/boards.h"
+#include "../../src/dgscript/dg_olc.h"
 #include "../../src/vessels/transport.h"
 #include "../../src/vessels/transport_jobs.h"
 #include "../../src/quest/staff_events.h"
@@ -4920,6 +4923,116 @@ void Test_gameplay_summoning_item_accepts_room_zero_and_charges_only_success(CuT
   verify_item_pet_acquisition(tc, false);
 }
 
+/* An ability can answer to a command word and have none set, as a prototype's
+ * or a saved object's seven-number record leaves it. An uttered word passes
+ * over it, on a wielded weapon and on worn armor. */
+void Test_gameplay_utter_passes_over_an_ability_with_no_command_word(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct obj_special_ability weapon_ability = {0}, armor_ability = {0};
+  struct obj_data weapon, armor;
+  int activated;
+
+  begin_gameplay_fixture(&fixture);
+  initialize_special_abilities();
+  clear_object(&weapon);
+  clear_object(&armor);
+  weapon_ability.ability = WEAPON_SPECAB_VAMPIRIC;
+  weapon_ability.activation_method = ACTMTD_COMMAND_WORD;
+  weapon.special_abilities = &weapon_ability;
+  armor_ability.ability = ARMOR_SPECAB_BLINDING;
+  armor_ability.activation_method = ACTMTD_COMMAND_WORD;
+  armor.special_abilities = &armor_ability;
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &weapon;
+  GET_EQ(&fixture.actor, WEAR_BODY) = &armor;
+
+  do_utter(&fixture.actor, "drain", 0, 0);
+  activated =
+      process_weapon_abilities(&weapon, &fixture.actor, NULL, ACTMTD_COMMAND_WORD, "drain") +
+      process_armor_abilities(&fixture.actor, NULL, ACTMTD_COMMAND_WORD, "drain");
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  GET_EQ(&fixture.actor, WEAR_BODY) = NULL;
+  end_gameplay_fixture(&fixture);
+  CuAssertIntEquals(tc, 0, activated);
+}
+
+/* A mobile has no bag storage. The bag commands, and put and get into a bag,
+ * tell it so and leave what it carries where it is. */
+void Test_gameplay_bag_commands_refuse_a_character_without_bags(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct descriptor_data descriptor = {0};
+  char output[MAX_STRING_LENGTH] = {'\0'};
+  struct obj_data *gem;
+  const char *told;
+  int refusals = 0;
+  bool carried;
+
+  begin_gameplay_fixture(&fixture);
+  gem = create_obj();
+  gem->name = strdup("gem");
+  gem->short_description = strdup("a gem");
+  obj_to_char(gem, &fixture.actor);
+  descriptor.character = &fixture.actor;
+  descriptor.connected = CON_PLAYING;
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  fixture.actor.desc = &descriptor;
+
+  do_sort(&fixture.actor, "gem bag1", 0, SCMD_SORTTO);
+  do_sort(&fixture.actor, "gem bag1", 0, SCMD_SORTFROM);
+  do_sort(&fixture.actor, "all bag1", 0, SCMD_SORTFROM);
+  do_put(&fixture.actor, "gem bag1", 0, 0);
+  do_get(&fixture.actor, "gem bag1", 0, 0);
+  do_get(&fixture.actor, "all bag1", 0, 0);
+  do_bags(&fixture.actor, "", 0, 0);
+  do_bags(&fixture.actor, "1", 0, 0);
+  carried = gem->carried_by == &fixture.actor && fixture.actor.carrying == gem;
+  for (told = strstr(output, "You have no bags."); told != NULL;
+       told = strstr(told + 1, "You have no bags."))
+    refusals++;
+
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  extract_obj(gem);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, carried);
+  CuAssertIntEquals(tc, 8, refusals);
+}
+
+/* A player body built for a staff command, as stat file builds one for a
+ * player who is not online, has no bag storage. Extracting it drops nothing
+ * and leaves the room as it was. */
+void Test_gameplay_extraction_of_a_player_body_without_bags(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data *body;
+  struct char_data *saved_characters = character_list;
+
+  begin_gameplay_fixture(&fixture);
+  character_list = &fixture.actor;
+  fixture.actor.next = &fixture.victim;
+  CREATE(body, struct char_data, 1);
+  clear_char(body);
+  CREATE(body->player_specials, struct player_special_data, 1);
+  new_mobile_data(body);
+  body->player.name = strdup("Bodiless");
+  GET_LEVEL(body) = 10;
+  char_to_room(body, 0);
+  CuAssertPtrEquals(tc, body, fixture.rooms[0].people);
+  CuAssertPtrEquals(tc, NULL, get_char_bag(body, 1));
+
+  extract_char_final(body);
+
+  character_list = saved_characters;
+  fixture.actor.next = NULL;
+  CuAssertPtrEquals(tc, &fixture.actor, fixture.rooms[0].people);
+  CuAssertPtrEquals(tc, NULL, fixture.rooms[0].contents);
+  end_gameplay_fixture(&fixture);
+}
+
 void Test_gameplay_retainer_call_preserves_cooldown_and_rejects_remote_duplicate(CuTest *tc)
 {
   struct gameplay_fixture fixture;
@@ -7320,6 +7433,662 @@ void Test_gameplay_object_editor_copy_preserves_live_transfer_state(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_HOLDER_BAG, live.transfer_bag.kind);
   CuAssertIntEquals(tc, 2, live.transfer_bag.slot);
   CuAssertTrue(tc, !live.transfer_disposed && !live.transfer_extracting);
+}
+
+/* The editor copy frees what the live object held. An object with no
+ * prototype owns every string it has, and no prototype entry is read for it:
+ * here there is no prototype table at all. A corpse's description of the
+ * fallen is a string of each object's own, like the rest. */
+void Test_gameplay_object_editor_copy_frees_an_object_with_no_prototype(CuTest *tc)
+{
+  struct obj_data *saved_proto = obj_proto;
+  struct obj_data source, live;
+
+  clear_object(&source);
+  clear_object(&live);
+  source.name = strdup("edited blade");
+  source.char_sdesc = strdup("the fallen");
+  live.name = strdup("live blade");
+  live.char_sdesc = strdup("the forgotten");
+  live.arcane_mark = strdup("Maker's mark");
+  obj_proto = NULL;
+  copy_object(&live, &source);
+  obj_proto = saved_proto;
+
+  CuAssertStrEquals(tc, "edited blade", live.name);
+  CuAssertStrEquals(tc, "the fallen", live.char_sdesc);
+  CuAssertTrue(tc, live.char_sdesc != source.char_sdesc);
+  CuAssertPtrEquals(tc, NULL, live.arcane_mark);
+  free(live.name);
+  free(live.char_sdesc);
+  free(source.name);
+  free(source.char_sdesc);
+}
+
+/* An edit copy takes an object's definition, not its place in the world, and
+ * the commit leaves the live object the links it has by then: here its hash
+ * chain moved on and its sheath was emptied while the edit was open. A
+ * corpse's description of the fallen is a string of each object's own. */
+void Test_gameplay_object_editor_copy_leaves_each_object_its_own_links(CuTest *tc)
+{
+  struct obj_data live, edit, neighbour, weapon;
+  bool edit_is_apart, live_kept_its_links;
+
+  clear_object(&live);
+  clear_object(&edit);
+  clear_object(&neighbour);
+  clear_object(&weapon);
+  live.name = strdup("corpse fallen");
+  live.char_sdesc = strdup("the fallen");
+  live.next_in_hash = &neighbour;
+  live.sheath_primary = &weapon;
+  live.carried_by = (struct char_data *)&weapon;
+
+  copy_object(&edit, &live);
+  edit_is_apart = edit.next_in_hash == NULL && edit.sheath_primary == NULL &&
+                  edit.carried_by == NULL && edit.char_sdesc != NULL &&
+                  edit.char_sdesc != live.char_sdesc && !strcmp(edit.char_sdesc, "the fallen");
+
+  live.next_in_hash = NULL;
+  live.prev_in_hash = &neighbour;
+  live.sheath_primary = NULL;
+  GET_OBJ_COST(&edit) = 77;
+  copy_object(&live, &edit);
+  live_kept_its_links =
+      live.next_in_hash == NULL && live.prev_in_hash == &neighbour && live.sheath_primary == NULL &&
+      live.carried_by == (struct char_data *)&weapon && GET_OBJ_COST(&live) == 77 &&
+      live.char_sdesc != NULL && live.char_sdesc != edit.char_sdesc &&
+      !strcmp(live.char_sdesc, "the fallen");
+
+  free_object_strings(&edit);
+  free_object_strings(&live);
+  CuAssertTrue(tc, edit_is_apart);
+  CuAssertTrue(tc, live_kept_its_links);
+}
+
+/* A new prototype goes into the slot insert_object() opened, which holds a
+ * prototype that moved up or nothing yet. The new prototype takes none of it. */
+void Test_gameplay_object_new_prototype_takes_nothing_from_its_slot(CuTest *tc)
+{
+  struct obj_data slot, *edit;
+  struct index_data index = {0};
+  struct obj_data *saved_proto = obj_proto;
+  struct index_data *saved_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  bool clean;
+
+  memset(&slot, 0xA5, sizeof(slot));
+  CREATE(edit, struct obj_data, 1);
+  clear_object(edit);
+  edit->name = strdup("unfinished object");
+  obj_proto = &slot;
+  obj_index = &index;
+  top_of_objt = 0;
+
+  clean = index_object(edit, 91001, 0) == 0 && GET_OBJ_RNUM(&slot) == 0 &&
+          IN_ROOM(&slot) == NOWHERE && slot.next == NULL && slot.next_in_hash == NULL &&
+          slot.contains == NULL && slot.sheath_primary == NULL && slot.trap == NULL &&
+          slot.events == NULL && !slot.object_list_member && !slot.autoproc_registered &&
+          !slot.point_update_registered && slot.name != NULL && slot.name != edit->name &&
+          !strcmp(slot.name, "unfinished object");
+
+  if (clean)
+    free_object_strings(&slot);
+  free_object_strings(edit);
+  free(edit);
+  obj_proto = saved_proto;
+  obj_index = saved_index;
+  top_of_objt = saved_top;
+  CuAssertTrue(tc, clean);
+}
+
+/* An OLC save of a prototype gives each live object of it the new definition.
+ * The object stays where it is and keeps what the running game gave it and
+ * what it made its own, here a restring and an arcane mark, and the lists
+ * free_obj() frees with it are copies of its own: extracting one live object
+ * leaves the prototype and the other object whole. Here the builder adds an
+ * ability and a spellbook page. */
+void Test_gameplay_object_prototype_save_leaves_live_objects_whole(CuTest *tc)
+{
+  struct obj_data prototype, weapon;
+  struct obj_data *edit, *first, *second;
+  struct index_data index = {.vnum = 91001};
+  struct zone_data zone = {.number = 910, .bot = 91000, .top = 91099};
+  struct obj_data *saved_proto = obj_proto;
+  struct index_data *saved_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  struct zone_data *saved_zones = zone_table;
+  zone_rnum saved_top_zone = top_of_zone_table;
+  bool own_lists, kept_links, took_definition, prototype_whole = false;
+
+  clear_object(&weapon);
+  clear_object(&prototype);
+  prototype.item_number = 0;
+  prototype.name = strdup("longsword black");
+  prototype.short_description = strdup("a black longsword");
+  prototype.description = strdup("A black longsword lies here.");
+  prototype.arcane_mark = strdup("Forge mark");
+  prototype.restring_identifier = strdup("forge");
+  obj_proto = &prototype;
+  obj_index = &index;
+  top_of_objt = 0;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+
+  /* The first object is restrung and marked, and has a weapon in its sheath. */
+  first = read_object(index.vnum, VIRTUAL);
+  second = read_object(index.vnum, VIRTUAL);
+  first->name = strdup("blade restrung");
+  free(first->arcane_mark);
+  first->arcane_mark = strdup("Maker's mark");
+  first->sheath_primary = &weapon;
+  first->limb_restore_slot = 3;
+
+  /* The builder's edit copy, as oedit_setup_existing() makes it. */
+  CREATE(edit, struct obj_data, 1);
+  clear_object(edit);
+  copy_object(edit, &prototype);
+  GET_OBJ_COST(edit) = 77;
+  CREATE(edit->special_abilities, struct obj_special_ability, 1);
+  edit->special_abilities->ability = WEAPON_SPECAB_FLAMING_BURST;
+  edit->special_abilities->command_word = strdup("ignitus");
+  CREATE(edit->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+  edit->sbinfo[0].spellname = SPELL_MAGIC_MISSILE;
+  edit->sbinfo[0].pages = 1;
+
+  took_definition = add_object(edit, index.vnum) == 0 && GET_OBJ_COST(&prototype) == 77 &&
+                    GET_OBJ_COST(first) == 77 && GET_OBJ_COST(second) == 77 &&
+                    !strcmp(first->name, "blade restrung") &&
+                    !strcmp(first->arcane_mark, "Maker's mark") && second->name == prototype.name &&
+                    second->arcane_mark != prototype.arcane_mark &&
+                    !strcmp(second->arcane_mark, "Forge mark");
+  own_lists = prototype.special_abilities != NULL && first->special_abilities != NULL &&
+              second->special_abilities != NULL &&
+              first->special_abilities != prototype.special_abilities &&
+              second->special_abilities != prototype.special_abilities &&
+              first->special_abilities != second->special_abilities &&
+              first->special_abilities->ability == WEAPON_SPECAB_FLAMING_BURST &&
+              first->special_abilities->command_word != NULL &&
+              first->special_abilities->command_word != prototype.special_abilities->command_word &&
+              !strcmp(first->special_abilities->command_word, "ignitus") &&
+              prototype.sbinfo != NULL && first->sbinfo != NULL && second->sbinfo != NULL &&
+              first->sbinfo != prototype.sbinfo && second->sbinfo != prototype.sbinfo &&
+              first->sbinfo != second->sbinfo &&
+              first->sbinfo[0].spellname == SPELL_MAGIC_MISSILE &&
+              first->arcane_mark != prototype.arcane_mark && first->restring_identifier != NULL &&
+              first->restring_identifier != prototype.restring_identifier;
+  kept_links = second->next_in_hash == first && first->prev_in_hash == second &&
+               get_obj_num(0) == second && first->sheath_primary == &weapon &&
+               first->limb_restore_slot == 3 && first->object_list_member &&
+               second->next == first && object_list == second;
+
+  /* Lists shared with the prototype would be freed here, under it. */
+  first->sheath_primary = NULL;
+  if (own_lists)
+  {
+    extract_obj(first);
+    prototype_whole = prototype.special_abilities->ability == WEAPON_SPECAB_FLAMING_BURST &&
+                      !strcmp(prototype.special_abilities->command_word, "ignitus") &&
+                      prototype.sbinfo[0].spellname == SPELL_MAGIC_MISSILE &&
+                      second->special_abilities->ability == WEAPON_SPECAB_FLAMING_BURST &&
+                      get_obj_num(0) == second;
+    extract_obj(second);
+  }
+
+  /* The prototype took the edit copy's lists, as it does in the editor. */
+  remove_from_save_list(zone.number, SL_OBJ);
+  free_object_strings(edit);
+  free(edit);
+  free_object_strings(&prototype);
+  free_obj_special_abilities(prototype.special_abilities);
+  free(prototype.sbinfo);
+  obj_proto = saved_proto;
+  obj_index = saved_index;
+  top_of_objt = saved_top;
+  zone_table = saved_zones;
+  top_of_zone_table = saved_top_zone;
+  CuAssertTrue(tc, took_definition);
+  CuAssertTrue(tc, own_lists);
+  CuAssertTrue(tc, kept_links);
+  CuAssertTrue(tc, prototype_whole);
+}
+
+/* A prototype table of the test's own, vnums 91001 and up four apart, in a
+ * zone with no reset commands. OLC can grow and shrink it. */
+struct object_table_fixture
+{
+  struct zone_data zone;
+  struct reset_com zone_end;
+  struct obj_data *saved_proto;
+  struct index_data *saved_index;
+  obj_rnum saved_top;
+  struct zone_data *saved_zones;
+  zone_rnum saved_top_zone;
+};
+
+static void begin_object_table(struct object_table_fixture *f, int count)
+{
+  int i;
+
+  memset(f, 0, sizeof(*f));
+  f->saved_proto = obj_proto;
+  f->saved_index = obj_index;
+  f->saved_top = top_of_objt;
+  f->saved_zones = zone_table;
+  f->saved_top_zone = top_of_zone_table;
+  f->zone.number = 910;
+  f->zone.bot = 91000;
+  f->zone.top = 91099;
+  f->zone_end.command = 'S';
+  f->zone.cmd = &f->zone_end;
+  CREATE(obj_proto, struct obj_data, count);
+  CREATE(obj_index, struct index_data, count);
+  for (i = 0; i < count; i++)
+  {
+    clear_object(&obj_proto[i]);
+    obj_proto[i].item_number = i;
+    obj_index[i].vnum = 91001 + 4 * i;
+  }
+  top_of_objt = count - 1;
+  zone_table = &f->zone;
+  top_of_zone_table = 0;
+}
+
+static void end_object_table(struct object_table_fixture *f)
+{
+  obj_rnum i;
+
+  for (i = 0; i <= top_of_objt; i++)
+  {
+    free_object_strings(&obj_proto[i]);
+    free_obj_special_abilities(obj_proto[i].special_abilities);
+    free(obj_proto[i].sbinfo);
+    free_proto_script(&obj_proto[i].proto_script);
+  }
+  free(obj_proto);
+  free(obj_index);
+  remove_from_save_list(f->zone.number, SL_OBJ);
+  obj_proto = f->saved_proto;
+  obj_index = f->saved_index;
+  top_of_objt = f->saved_top;
+  zone_table = f->saved_zones;
+  top_of_zone_table = f->saved_top_zone;
+}
+
+/* A builder's edit copy of a prototype, as oedit_setup_existing() makes it. */
+static struct obj_data *object_edit_copy(obj_rnum rnum)
+{
+  struct obj_data *edit;
+
+  CREATE(edit, struct obj_data, 1);
+  clear_object(edit);
+  copy_object(edit, &obj_proto[rnum]);
+  return edit;
+}
+
+/* The edit copy handed its lists to the prototype; its strings are its own. */
+static void free_object_edit_copy(struct obj_data *edit)
+{
+  free_object_strings(edit);
+  free(edit);
+}
+
+/* An OLC save leaves a live object what it made its own and gives it the rest
+ * of the new definition: a generated item keeps its name, dice, level, bonus,
+ * abilities and restring, an essence its level, a spellbook the page written
+ * into it, and each takes the new cost. An extra description of its own keeps
+ * its place in front of the prototype's. Strings, abilities and pages that
+ * still matched the old prototype become the new one's. */
+void Test_gameplay_object_prototype_save_keeps_what_each_object_made_its_own(CuTest *tc)
+{
+  struct object_table_fixture f;
+  struct obj_data *proto, *edit, *plain, *generated, *essence, *scribed;
+  struct obj_special_ability *added, *own_ability, *given_up[3];
+  struct obj_spellbook_spell *given_up_pages[3];
+  struct extra_descr_data *own_desc;
+  bool plain_follows, generated_kept, essence_kept, scribed_kept;
+  int i;
+
+  begin_object_table(&f, 1);
+  proto = &obj_proto[0];
+  proto->name = strdup("sword plain");
+  proto->short_description = strdup("a plain sword");
+  CREATE(proto->ex_description, struct extra_descr_data, 1);
+  proto->ex_description->keyword = strdup("sword");
+  proto->ex_description->description = strdup("A plain sword.\n");
+  GET_OBJ_TYPE(proto) = ITEM_WEAPON;
+  GET_OBJ_VAL(proto, 1) = 1;
+  GET_OBJ_VAL(proto, 2) = 6;
+  GET_OBJ_LEVEL(proto) = 5;
+  GET_OBJ_COST(proto) = 100;
+  GET_OBJ_WEIGHT(proto) = 4;
+  CREATE(proto->special_abilities, struct obj_special_ability, 1);
+  proto->special_abilities->ability = WEAPON_SPECAB_KEEN;
+  CREATE(proto->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+  proto->sbinfo[0].spellname = SPELL_MAGIC_MISSILE;
+  proto->sbinfo[0].pages = 1;
+
+  plain = read_object(0, REAL);
+  essence = read_object(0, REAL);
+  GET_OBJ_LEVEL(essence) = 12;
+  scribed = read_object(0, REAL);
+  scribed->sbinfo[1].spellname = SPELL_SHIELD;
+  scribed->sbinfo[1].pages = 1;
+
+  /* Made from the prototype as a carrier, as treasure and crafting do. */
+  generated = read_object(0, REAL);
+  generated->name = strdup("sword flaming");
+  generated->short_description = strdup("a flaming sword");
+  GET_OBJ_VAL(generated, 1) = 2;
+  GET_OBJ_VAL(generated, 2) = 8;
+  GET_OBJ_LEVEL(generated) = 20;
+  generated->affected[0].location = APPLY_STR;
+  generated->affected[0].modifier = 2;
+  generated->restring_identifier = strdup("flaming");
+  free_obj_special_abilities(generated->special_abilities);
+  CREATE(own_ability, struct obj_special_ability, 1);
+  own_ability->ability = WEAPON_SPECAB_FLAMING;
+  generated->special_abilities = own_ability;
+  CREATE(own_desc, struct extra_descr_data, 1);
+  own_desc->keyword = strdup("flaming");
+  own_desc->description = strdup("Flames lick the blade.\n");
+  own_desc->next = generated->ex_description;
+  generated->ex_description = own_desc;
+
+  edit = object_edit_copy(0);
+  free(edit->name);
+  edit->name = strdup("sword steel");
+  free(edit->ex_description->description);
+  edit->ex_description->description = strdup("A steel sword.\n");
+  GET_OBJ_VAL(edit, 2) = 8;
+  GET_OBJ_LEVEL(edit) = 6;
+  GET_OBJ_COST(edit) = 150;
+  GET_OBJ_WEIGHT(edit) = 5;
+  CREATE(added, struct obj_special_ability, 1);
+  added->ability = WEAPON_SPECAB_FLAMING_BURST;
+  added->next = edit->special_abilities;
+  edit->special_abilities = added;
+
+  /* An ability list or spellbook that still matched the old prototype's is
+   * replaced by a copy of the new one's and given up, not freed:
+   * follow_prototype(). */
+  given_up[0] = plain->special_abilities;
+  given_up[1] = essence->special_abilities;
+  given_up[2] = scribed->special_abilities;
+  given_up_pages[0] = plain->sbinfo;
+  given_up_pages[1] = essence->sbinfo;
+  given_up_pages[2] = generated->sbinfo;
+  CuAssertIntEquals(tc, 0, (int)add_object(edit, 91001));
+  plain_follows =
+      plain->name == proto->name && !strcmp(plain->name, "sword steel") &&
+      plain->ex_description == proto->ex_description && GET_OBJ_VAL(plain, 2) == 8 &&
+      GET_OBJ_LEVEL(plain) == 6 && GET_OBJ_COST(plain) == 150 && GET_OBJ_WEIGHT(plain) == 5 &&
+      plain->special_abilities != proto->special_abilities && plain->special_abilities != NULL &&
+      plain->special_abilities->next != NULL && plain->sbinfo != NULL &&
+      plain->sbinfo != given_up_pages[0] && plain->sbinfo != proto->sbinfo &&
+      plain->sbinfo[0].spellname == SPELL_MAGIC_MISSILE;
+  generated_kept = !strcmp(generated->name, "sword flaming") &&
+                   !strcmp(generated->short_description, "a flaming sword") &&
+                   GET_OBJ_VAL(generated, 1) == 2 && GET_OBJ_VAL(generated, 2) == 8 &&
+                   GET_OBJ_LEVEL(generated) == 20 && generated->affected[0].modifier == 2 &&
+                   generated->special_abilities == own_ability && own_ability->next == NULL &&
+                   !strcmp(generated->restring_identifier, "flaming") &&
+                   GET_OBJ_COST(generated) == 150 && generated->ex_description == own_desc &&
+                   own_desc->next == proto->ex_description;
+  essence_kept =
+      GET_OBJ_LEVEL(essence) == 12 && essence->name == proto->name && GET_OBJ_COST(essence) == 150;
+  scribed_kept = scribed->sbinfo != NULL && scribed->sbinfo != proto->sbinfo &&
+                 scribed->sbinfo[1].spellname == SPELL_SHIELD && scribed->name == proto->name &&
+                 GET_OBJ_COST(scribed) == 150;
+
+  extract_obj(plain);
+  extract_obj(generated);
+  extract_obj(essence);
+  extract_obj(scribed);
+  for (i = 0; i < 3; i++)
+  {
+    free_obj_special_abilities(given_up[i]);
+    free(given_up_pages[i]);
+  }
+  free_object_edit_copy(edit);
+  end_object_table(&f);
+  CuAssertTrue(tc, plain_follows);
+  CuAssertTrue(tc, generated_kept);
+  CuAssertTrue(tc, essence_kept);
+  CuAssertTrue(tc, scribed_kept);
+}
+
+/* A container's weight counts what it holds, and so does its carrier's. An
+ * OLC save or an editor commit that changes a weight or a capacity carries
+ * the change to them, as obj_to_obj() would, and takes nothing back that the
+ * container no longer holds. */
+void Test_gameplay_object_overwrite_keeps_weight_totals(CuTest *tc)
+{
+  struct object_table_fixture f;
+  struct char_data carrier;
+  struct obj_data *bag, *item, *edit;
+  int weights[12], n = 0;
+
+  begin_object_table(&f, 2);
+  GET_OBJ_TYPE(&obj_proto[0]) = ITEM_CONTAINER;
+  GET_OBJ_VAL(&obj_proto[0], 0) = 50;
+  GET_OBJ_WEIGHT(&obj_proto[0]) = 2;
+  GET_OBJ_WEIGHT(&obj_proto[1]) = 5;
+  memset(&carrier, 0, sizeof(carrier));
+  bag = read_object(0, REAL);
+  bag->carried_by = &carrier;
+  carrier.carrying = bag;
+  IS_CARRYING_W(&carrier) = GET_OBJ_WEIGHT(bag);
+  item = read_object(1, REAL);
+  obj_to_obj(item, bag);
+
+  /* The item gets heavier, then the bag. */
+  edit = object_edit_copy(1);
+  GET_OBJ_WEIGHT(edit) = 8;
+  add_object(edit, 91005);
+  free_object_edit_copy(edit);
+  weights[n++] = GET_OBJ_WEIGHT(bag);
+  weights[n++] = IS_CARRYING_W(&carrier);
+  edit = object_edit_copy(0);
+  GET_OBJ_WEIGHT(edit) = 3;
+  add_object(edit, 91001);
+  free_object_edit_copy(edit);
+  weights[n++] = GET_OBJ_WEIGHT(bag);
+  weights[n++] = IS_CARRYING_W(&carrier);
+
+  /* The bag is emptied while an editor holds a copy of it. */
+  edit = object_edit_copy(0);
+  copy_object(edit, bag);
+  obj_from_obj(item);
+  GET_OBJ_COST(edit) = 9;
+  copy_object(bag, edit);
+  free_object_edit_copy(edit);
+  weights[n++] = GET_OBJ_WEIGHT(bag);
+  weights[n++] = IS_CARRYING_W(&carrier);
+
+  /* Its capacity becomes unlimited, which counts nothing it holds. */
+  obj_to_obj(item, bag);
+  edit = object_edit_copy(0);
+  GET_OBJ_VAL(edit, 0) = 0;
+  add_object(edit, 91001);
+  free_object_edit_copy(edit);
+  weights[n++] = GET_OBJ_WEIGHT(bag);
+  weights[n++] = IS_CARRYING_W(&carrier);
+  edit = object_edit_copy(1);
+  GET_OBJ_WEIGHT(edit) = 6;
+  add_object(edit, 91005);
+  free_object_edit_copy(edit);
+  obj_from_obj(item);
+  weights[n++] = GET_OBJ_WEIGHT(bag);
+  weights[n++] = IS_CARRYING_W(&carrier);
+
+  extract_obj(item);
+  bag->carried_by = NULL;
+  carrier.carrying = NULL;
+  extract_obj(bag);
+  end_object_table(&f);
+  CuAssertIntEquals(tc, 10, weights[0]);
+  CuAssertIntEquals(tc, 10, weights[1]);
+  CuAssertIntEquals(tc, 11, weights[2]);
+  CuAssertIntEquals(tc, 11, weights[3]);
+  CuAssertIntEquals(tc, 3, weights[4]);
+  CuAssertIntEquals(tc, 3, weights[5]);
+  CuAssertIntEquals(tc, 3, weights[6]);
+  CuAssertIntEquals(tc, 3, weights[7]);
+  CuAssertIntEquals(tc, 3, weights[8]);
+  CuAssertIntEquals(tc, 3, weights[9]);
+}
+
+/* An OLC save replaces the triggers of each live object: oedit_save_internally()
+ * extracts the script the object runs, which leaves the random-trigger
+ * registry, and frees the trigger lists of the object and the old prototype.
+ * Here the builder removed the prototype's triggers. */
+void Test_gameplay_object_prototype_save_extracts_live_scripts(CuTest *tc)
+{
+  struct object_table_fixture f;
+  struct descriptor_data descriptor;
+  struct oasis_olc_data olc;
+  struct obj_data *live;
+  struct script_data *script;
+  size_t registered;
+
+  begin_object_table(&f, 1);
+  obj_proto[0].name = strdup("lantern brass");
+  CREATE(obj_proto[0].proto_script, struct trig_proto_list, 1);
+  obj_proto[0].proto_script->vnum = 91099;
+  dg_random_registry_reset_for_test();
+  live = read_object(0, REAL);
+  CREATE(script, struct script_data, 1);
+  script->types = OTRIG_RANDOM;
+  SCRIPT(live) = script;
+  dg_script_bind_owner(script, live, OBJ_TRIGGER);
+  registered = dg_random_registry_count(OBJ_TRIGGER);
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&olc, 0, sizeof(olc));
+  descriptor.olc = &olc;
+  OLC_NUM(&descriptor) = 91001;
+  oedit_setup_existing(&descriptor, 0, 0);
+  free_proto_script(&OLC_SCRIPT(&descriptor));
+  GET_OBJ_COST(OLC_OBJ(&descriptor)) = 12;
+  oedit_save_internally(&descriptor);
+
+  CuAssertIntEquals(tc, 1, (int)registered);
+  CuAssertIntEquals(tc, 0, (int)dg_random_registry_count(OBJ_TRIGGER));
+  CuAssertPtrEquals(tc, NULL, SCRIPT(live));
+  CuAssertPtrEquals(tc, NULL, live->proto_script);
+  CuAssertIntEquals(tc, 12, GET_OBJ_COST(live));
+  extract_obj(live);
+  free_object_edit_copy(OLC_OBJ(&descriptor));
+  end_object_table(&f);
+  dg_random_registry_reset_for_test();
+}
+
+/* A copy written over a live object leaves it the rnum its hash chain and
+ * object count go by, and the script it runs. Here a preview copy is a
+ * carrier's instance, and an editor commits a copy taken before a new
+ * prototype moved the rnums up. */
+void Test_gameplay_object_copy_keeps_a_live_targets_rnum(CuTest *tc)
+{
+  struct object_table_fixture f;
+  struct obj_data *player, *preview, *again, *edit, *added;
+  struct script_data preview_script = {0}, player_script = {0};
+  bool preview_kept, carrier_whole, commit_kept;
+
+  begin_object_table(&f, 2);
+  obj_proto[0].name = strdup("carrier");
+  obj_proto[1].name = strdup("cloak grey");
+  player = read_object(1, REAL);
+  preview = read_object(0, REAL);
+  SCRIPT(player) = &player_script;
+  SCRIPT(preview) = &preview_script;
+  copy_object(preview, player);
+  preview_kept = GET_OBJ_RNUM(preview) == 0 && obj_index[0].number == 1 &&
+                 obj_index[1].number == 1 && !strcmp(preview->name, "cloak grey") &&
+                 SCRIPT(preview) == &preview_script;
+  SCRIPT(player) = NULL;
+  SCRIPT(preview) = NULL;
+  extract_obj(preview);
+  again = read_object(0, REAL);
+  carrier_whole = get_obj_num(1) == player && get_obj_num(0) == again && obj_index[0].number == 1;
+
+  edit = object_edit_copy(1);
+  copy_object(edit, player);
+  CREATE(added, struct obj_data, 1);
+  clear_object(added);
+  added->name = strdup("sash red");
+  add_object(added, 91000);
+  GET_OBJ_COST(edit) = 40;
+  copy_object(player, edit);
+  commit_kept = GET_OBJ_RNUM(player) == 2 && GET_OBJ_VNUM(player) == 91005 &&
+                get_obj_num(2) == player && GET_OBJ_COST(player) == 40;
+
+  extract_obj(player);
+  extract_obj(again);
+  free_object_edit_copy(edit);
+  free_object_edit_copy(added);
+  end_object_table(&f);
+  CuAssertTrue(tc, preview_kept);
+  CuAssertTrue(tc, carrier_whole);
+  CuAssertTrue(tc, commit_kept);
+}
+
+/* A new prototype below others moves their live objects up an rnum, and a
+ * deleted one moves them back down. Each moves to the hash chain of its new
+ * rnum, and an object with no prototype keeps NOTHING. So does a notice
+ * board with no object, and a letter numbered without read_object(), which
+ * is on no chain, leaves the chain it was counted on alone. */
+void Test_gameplay_object_renumber_keeps_the_hash_and_unnumbered_objects(CuTest *tc)
+{
+  struct object_table_fixture f;
+  struct obj_data *first, *second, *loose, *letter, *added, *reloaded;
+  obj_rnum boards[NUM_OF_BOARDS];
+  bool inserted, deleted, boards_kept = true;
+  int i;
+
+  for (i = 0; i < NUM_OF_BOARDS; i++)
+  {
+    boards[i] = BOARD_RNUM(i);
+    BOARD_RNUM(i) = NOTHING;
+  }
+  begin_object_table(&f, 2);
+  /* The letter comes after the others in object_list, so it is renumbered
+   * after the first object has moved onto the chain of rnum 1. */
+  letter = create_obj();
+  letter->item_number = 1;
+  first = read_object(0, REAL);
+  second = read_object(1, REAL);
+  loose = create_obj();
+
+  CREATE(added, struct obj_data, 1);
+  clear_object(added);
+  added->name = strdup("sash red");
+  inserted = add_object(added, 91000) == 0 && GET_OBJ_RNUM(first) == 1 &&
+             GET_OBJ_RNUM(second) == 2 && get_obj_num(1) == first && GET_OBJ_RNUM(letter) == 2 &&
+             GET_OBJ_RNUM(loose) == NOTHING;
+  deleted = delete_object(0) == 0 && GET_OBJ_RNUM(first) == 0 && GET_OBJ_RNUM(second) == 1 &&
+            get_obj_num(0) == first && GET_OBJ_RNUM(letter) == 1 && GET_OBJ_RNUM(loose) == NOTHING;
+  for (i = 0; i < NUM_OF_BOARDS; i++)
+  {
+    boards_kept = boards_kept && BOARD_RNUM(i) == NOTHING;
+    BOARD_RNUM(i) = boards[i];
+  }
+
+  /* Freed objects left at the head of a chain would be written to here. */
+  extract_obj(first);
+  extract_obj(letter);
+  reloaded = read_object(0, REAL);
+  extract_obj(reloaded);
+  extract_obj(second);
+  reloaded = read_object(1, REAL);
+  extract_obj(reloaded);
+  extract_obj(loose);
+  free_object_edit_copy(added);
+  remove_from_save_list(f.zone.number, SL_ZON);
+  end_object_table(&f);
+  CuAssertTrue(tc, inserted);
+  CuAssertTrue(tc, deleted);
+  CuAssertTrue(tc, boards_kept);
 }
 
 static void verify_native_transport(CuTest *tc, int mode)
@@ -14541,4 +15310,93 @@ void Test_spatial_audio_words_distant_and_immediate_sounds(CuTest *tc)
                     distant);
   CuAssertStrEquals(tc, "the immediate north", spatial_direction_to_string(SPATIAL_DIR_NORTH, 0.5));
   CuAssertStrEquals(tc, "the north", spatial_direction_to_string(SPATIAL_DIR_NORTH, 2.0));
+}
+
+/* A sheathed weapon can be extracted on its own: a deleted prototype or a
+ * timer takes it while only the sheath's slot points at it. It leaves the
+ * slot, so the sheath's extraction does not follow it into freed memory.
+ * Before, the slot kept the address. */
+void Test_gameplay_sheathed_weapon_extracted_alone_leaves_its_slot(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct obj_data *saved_objects = object_list;
+  struct obj_data *sheath, *blade, *shield;
+  bool sheathed, left;
+
+  begin_gameplay_fixture(&f);
+  sheath = attack_test_object("a sheath", ITEM_ARMOR, 0);
+  SET_BIT_AR(GET_OBJ_WEAR(sheath), ITEM_WEAR_SHEATH);
+  blade = attack_test_object("a blade", ITEM_WEAPON, WEAPON_TYPE_LONG_SWORD);
+  shield = attack_test_object("a shield", ITEM_ARMOR, 0);
+  SET_BIT_AR(GET_OBJ_WEAR(shield), ITEM_WEAR_SHIELD);
+  equip_char(&f.actor, sheath, WEAR_SHEATH);
+  equip_char(&f.actor, blade, WEAR_WIELD_1);
+  equip_char(&f.actor, shield, WEAR_SHIELD);
+  do_sheath(&f.actor, "", 0, 0);
+  sheathed = sheath->sheath_primary == blade && sheath->sheath_secondary == shield &&
+             GET_EQ(&f.actor, WEAR_WIELD_1) == NULL && GET_EQ(&f.actor, WEAR_SHIELD) == NULL;
+
+  extract_obj(blade);
+  left = sheath->sheath_primary == NULL && sheath->sheath_secondary == shield;
+
+  /* The sheath's extraction takes the shield. */
+  extract_obj(unequip_char(&f.actor, WEAR_SHEATH));
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, sheathed);
+  CuAssertTrue(tc, left);
+  CuAssertPtrEquals(tc, saved_objects, object_list);
+}
+
+/* Deleting a sheath's prototype hands its weapons to the wearer, as it hands
+ * a container's contents over, and the walk over the instances does not
+ * resume on a weapon the sheath took with it. Before, the weapons were
+ * destroyed with the sheath, and the walk read the freed weapon created just
+ * before the sheath, its next in object_list. */
+void Test_gameplay_object_delete_hands_a_sheaths_weapons_to_its_wearer(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct object_table_fixture t;
+  struct obj_data *saved_objects = object_list;
+  struct obj_data *sheath, *blade, *off, *obj;
+  bool sheathed, deleted, handed, renumbered;
+  int carried = 0;
+
+  begin_gameplay_fixture(&f);
+  begin_object_table(&t, 2);
+  obj_proto[0].short_description = strdup("a sheath");
+  SET_BIT_AR(GET_OBJ_WEAR(&obj_proto[0]), ITEM_WEAR_SHEATH);
+  obj_proto[1].short_description = strdup("a dagger");
+  GET_OBJ_TYPE(&obj_proto[1]) = ITEM_WEAPON;
+  GET_OBJ_VAL(&obj_proto[1], 0) = WEAPON_TYPE_DAGGER;
+
+  /* The weapons come before the sheath: object_list is prepended, so the
+   * sheath's next is the off-hand dagger. */
+  blade = read_object(1, REAL);
+  off = read_object(1, REAL);
+  sheath = read_object(0, REAL);
+  equip_char(&f.actor, sheath, WEAR_SHEATH);
+  equip_char(&f.actor, blade, WEAR_WIELD_1);
+  equip_char(&f.actor, off, WEAR_WIELD_OFFHAND);
+  do_sheath(&f.actor, "", 0, 0);
+  sheathed = sheath->next == off && sheath->sheath_primary == blade &&
+             sheath->sheath_secondary == off && f.actor.carrying == NULL;
+
+  deleted = delete_object(0) == 0;
+  for (obj = f.actor.carrying; obj != NULL; obj = obj->next_content)
+    carried++;
+  handed = carried == 2 && blade->carried_by == &f.actor && off->carried_by == &f.actor &&
+           blade->sheathed_in == NULL && off->sheathed_in == NULL &&
+           GET_EQ(&f.actor, WEAR_SHEATH) == NULL;
+  renumbered = GET_OBJ_RNUM(blade) == 0 && GET_OBJ_RNUM(off) == 0 && obj_index[0].number == 2 &&
+               (get_obj_num(0) == blade || get_obj_num(0) == off);
+
+  while (f.actor.carrying != NULL)
+    extract_obj(f.actor.carrying);
+  end_object_table(&t);
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, sheathed);
+  CuAssertTrue(tc, deleted);
+  CuAssertTrue(tc, handed);
+  CuAssertTrue(tc, renumbered);
+  CuAssertPtrEquals(tc, saved_objects, object_list);
 }

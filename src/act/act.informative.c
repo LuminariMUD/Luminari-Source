@@ -7284,6 +7284,12 @@ ACMD(do_bags)
   // char bagname[MEDIUM_STRING] = {'\0'};
   int bagnum = 0, i = 0;
 
+  if (ch->bags == NULL) /* a mobile has no bags */
+  {
+    send_to_char(ch, "You have no bags.\r\n");
+    return;
+  }
+
   one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)

@@ -3072,6 +3072,51 @@ void Test_artifact_integration_zone_reset_never_makes_a_second_instance(CuTest *
   CuAssertIntEquals(tc, TRUE, allowed_after_release);
 }
 
+/* A sheathed artifact has no holder but its sheath. Its destruction, with the
+ * sheath junked or sold, releases the ownership as a carried one's does, and
+ * a zone reset may put the artifact back. Before, the ledger took it for a
+ * temporary clone and kept the owner with no instance anywhere. */
+void Test_artifact_integration_sheathed_instance_destruction_releases_ownership(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj, sheath;
+  struct artifact_data *art = NULL;
+  obj_rnum rnum = NOTHING;
+  int owned_while_sheathed = FALSE, released = FALSE, reset_allowed = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  rnum = artint_rnum_of(ART_VNUM_TRORXEK);
+  artint_instance(&fixture, &obj, ART_VNUM_TRORXEK);
+  artint_carry(&fixture, &obj);
+  artifact_obj_to_char(&obj, &fixture.actor);
+  art = artifact_by_vnum(ART_VNUM_TRORXEK);
+
+  /* Sheathed: out of the actor's hands, held by the sheath alone. */
+  artint_uncarry(&fixture, &obj);
+  clear_object(&sheath);
+  obj_to_sheath(&obj, &sheath, 1);
+  owned_while_sheathed = art && artifact_is_owned(ART_VNUM_TRORXEK) && art->instance_persisted &&
+                         artifact_block_zone_load(rnum);
+
+  /* The sheath is destroyed, and the artifact with it. */
+  artifact_on_extract(&obj);
+  released = art && !artifact_is_owned(ART_VNUM_TRORXEK) && !art->instance_persisted &&
+             art->destroy_count == 1;
+  reset_allowed = !artifact_block_zone_load(rnum);
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, owned_while_sheathed);
+  CuAssertIntEquals(tc, TRUE, released);
+  CuAssertIntEquals(tc, TRUE, reset_allowed);
+}
+
 void Test_artifact_integration_ownership_survives_a_reboot(CuTest *tc)
 {
   struct artint_fixture fixture;
