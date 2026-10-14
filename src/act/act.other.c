@@ -9091,7 +9091,7 @@ ACMD(do_gen_tog)
       {"GUI Mode disabled.\r\n",
        "GUI Mode enabled, make sure you have MSDP enabled in your client.\r\n"},
       /*38*/
-      {"You will now see approximately every 5 minutes a in-game hint.\r\n",
+      {"You will now see an in-game hint approximately every 5 minutes.\r\n",
        "You will no longer see in-game hints.\r\n"},
       /*39*/
       {"You will no longer automatically collect your ammo after combat.\r\n",
@@ -9708,9 +9708,9 @@ ACMD(do_happyhour)
 
 static const char *const hints[] = {
     /* 1*/ "\tR[HINT]:\tn \ty"
-           "Different spell casting classes use different commands "
+           "Different spellcasting classes use different commands "
            "to cast their spells.  Typing score will show you the appropriate "
-           "commands.  For helpful information see: HELP CAST and HELP MEMORIZE.  "
+           "commands.  For helpful information, see HELP CAST and HELP MEMORIZE.  "
            "You will also need to PREPARE spells either after or before using them. "
            "You can also use the command 'class info (your class)' for more casting info."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
@@ -9730,154 +9730,154 @@ static const char *const hints[] = {
     /* 4*/
     "\tR[HINT]:\tn \ty"
     "Once you have enough experience to advance, you can type GAIN "
-    "<class choice> to level up, you can gain in any class you qualify for. "
+    "<class choice> to level up. You can gain in any class you qualify for. "
     "Leveling up will result in an increase in "
     "training points for skills, more hit points, and possibly more feat points, "
-    "movement points, boosts, PSP points.  To spend your feat points, you will "
+    "movement points, boosts, and PSP points.  To spend your feat points, you will "
     "use the STUDY menu.  To spend boosts and skill points, you will use a trainer.  "
-    "If you make a mistake in choices when you advance, you can always RESPEC. If you "
+    "If you make a mistake in your choices when you advance, you can always RESPEC. If you "
     "used a premade build, you will not need to use STUDY for most or all of your class options."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 5*/
     "\tR[HINT]:\tn \ty"
     "The combination of races, classes (MULTICLASS), stat boosts "
-    "and feat selection make for nearly limitless choices.  Do not be afraid "
+    "and feat selection makes for nearly limitless choices.  Do not be afraid "
     "to experiment!  Have fun reading up on feats using the FEATS command with no "
     "argument. It will show your current feats and show you a bunch of other command "
-    "options on the bottom section."
+    "options in the bottom section."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 6*/
     "\tR[HINT]:\tn \ty"
     "Worried about missing messages while in a menu system such "
-    "as STUDY?  Do not fret, we have a HISTORY command so you can view "
+    "as STUDY?  Do not fret! We have a HISTORY command so you can view "
     "what was said on all the channels while you were away!  You can "
     "type HISTORY ALL to view everything!"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 7*/
     "\tR[HINT]:\tn \ty"
     "QUEST PROGRESS and QUEST HISTORY are your best friends when "
-    "working on a quest, they can help remind you exactly what you have done "
+    "working on a quest. They can help remind you exactly what you have done "
     "and what you need to do.  You can also view details of each individual quest "
     "you have completed by typing QUEST HISTORY <number>.  Some quests are "
-    "initiated with the ASK command, commonly ASK HI will initiate conversation."
+    "initiated with the ASK command; commonly, ASK HI will initiate a conversation."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 8*/
     "\tR[HINT]:\tn \ty"
-    "If you have an idea for a hint, please let us know on the Discord Server. Type MOTD "
+    "If you have an idea for a hint, please let us know on the Discord server. Type MOTD "
     "to see the Discord invite link. "
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 9*/
     "\tR[HINT]:\tn \ty"
     "LuminariMUD is considered a 'younger' MUD and is under heavy "
     "and constant development.  If you run into a bug, our policy is to simply "
-    "report the bug using the BUG command.  Example, BUG SUBMIT <header>, then "
-    "use the in-game text editor that pops up to write details about the bug, then "
-    "you can type /s to save the submission."
+    "report the bug using the BUG command.  For example, type BUG SUBMIT <header>, then "
+    "use the in-game text editor that pops up to write details about the bug. Finally, "
+    "type /s to save the submission."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*10*/
-    "\tR[HINT]:\tn \tyThe beginning of your adventure will be focused in on the Ashenport "
-    "Region of the world.  The region is relatively fairly small, maybe 1/10th of the "
-    "surface space of Lumia, yet expands thousands of rooms in our WILDERNESS.  At the "
-    "current time you are able to get between zones quickly using a TELEPORTER.  To use "
+    "\tR[HINT]:\tn \tyThe beginning of your adventure will focus on the Ashenport "
+    "Region of the world.  The region is relatively small, maybe 1/10th of the "
+    "surface area of Lumia, yet spans thousands of rooms in our WILDERNESS.  At the "
+    "current time, you are able to get between zones quickly using a TELEPORTER.  To use "
     "the teleporter, just type: TELEPORT <target>.  To get a list of target zones, you can "
     "type: HELP ZONES."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*11*/
     "\tR[HINT]:\tn \tyYou can find a lot of gear in various shops throughout the "
-    "world.  Some shops even include special powerful magic items that can "
+    "world.  Some shops even include special, powerful magic items that can "
     "be purchased with quest points.  In addition to finding normal loot "
-    "that are on your foes, you may also find 'random treasure' on them "
-    "as well with every victory, there is a slight chance you will find "
+    "on your foes, you may also find 'random treasure' on them. "
+    "With every victory, there is a slight chance you will find "
     "this bonus loot.  Also, there is a special BAZAAR in Ashenport where "
     "you can purchase magic items to fill your missing equipment slots."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*12*/
     "\tR[HINT]:\tn \tyIf you find items of value that you do not want to deal with, "
     "you can always DONATE them.  This will cause them to appear in a "
-    "donation pit throughout the realm.  Alternatively if you find an item "
+    "donation pit in the realm.  Alternatively, if you find an item "
     "that is of no value, you can JUNK it to permanently get rid of it.  "
-    "Although not necessary since corpses decompose after a short time, you "
+    "Although this is not necessary since corpses decompose after a short time, you "
     "can SACrifice corpses to get rid of them."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*13*/
     "\tR[HINT]:\tn \tyBe aware during combat!  Enemies can do various things "
     "to try and disable you, including knocking you down! You can check AFF "
-    "to see affections both negative and positive that are affecting you."
+    "to see the negative and positive effects currently affecting you."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*14*/
     "\tR[HINT]:\tn \tyLuminariMUD has a 'main' quest line for the Ashenport Region "
-    "that starts with the Mosswood Elder, in Mossswood.  The quest line is "
-    "important for telling fun and informative details about the lore of the "
-    "Realm, and leading the adventurers to various zones throughout the region. "
-    "In addition some of the rewards of the various quests in the chain have "
+    "that starts with the Mosswood Elder in Mosswood.  The quest line "
+    "reveals fun and informative details about the lore of the "
+    "Realm and leads adventurers to various zones throughout the region. "
+    "In addition, some of the rewards for quests in the chain include "
     "very powerful items."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*15*/
     "\tR[HINT]:\tn \ty"
     "Have a great idea for features or changes to LuminariMUD?  Please "
-    "use the IDEA command, IDEA SUBMIT <title of submission>, you will then "
-    "enter our text editor, type out the details of the idea, and then "
+    "use the IDEA command: IDEA SUBMIT <title of submission>. You will then "
+    "enter our text editor. Type out the details of the idea, and then "
     "type /s to save the submission."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*16*/
     "\tR[HINT]:\tn \ty"
     "We have a lot of end-game content, including building a player treasure "
-    "horde (HELP HOUSE), which allows you to create a corner of the world "
+    "hoard (HELP HOUSE), which allows you to create a corner of the world "
     "to call home and store your treasure.  You can add 'guests' to your home "
     "to allow your friends or other characters to enter."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*17*/
     "\tR[HINT]:\tn \ty"
-    "Reached level 30?  There are a lot of exciting end-game content here "
+    "Reached level 30?  There is a lot of exciting end-game content here "
     "at LuminariMUD.  We have multiple planes of existence that can be accessed "
-    "through various portals throughout the wilderness and magic.  Epic zones "
-    "with extremely challenging group content with powerful magical items.  "
-    "Hard to find epic quests litter the Realm as well, so explore!"
+    "through various portals in the wilderness or by using magic.  Epic zones "
+    "offer extremely challenging group content and powerful magical items.  "
+    "Hard-to-find epic quests litter the Realm as well, so explore!"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*18*/
     "\tR[HINT]:\tn \ty"
-    "LuminariMUD has an account system.  Through the account system you "
-    "can manage multiple characters.  In addition you share 'account exp' "
+    "LuminariMUD has an account system.  Through the account system, you "
+    "can manage multiple characters.  In addition, you share 'account exp' "
     "between your characters, which can be spent on various account-wide "
-    "benefits, such as unlocking advanced or epic races, and prestige classes. "
+    "benefits, such as unlocking advanced or epic races and prestige classes. "
     "Type ACCOUNT to view your account details and ACCEXP to unlock various "
-    "benefits spending account experience."
+    "benefits by spending account experience."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*19*/
     "\tR[HINT]:\tn \ty"
     "Did you know that some weapons and armor have very special enchantments "
     "on them that can offer a variety of benefits?  Some of the more powerful "
-    "gear in the Realm can cast their own spells, and act on their own.  "
-    "Some will benefit your feats, stats, imbue you with affections while "
+    "gear in the Realm can cast its own spells and act on its own.  "
+    "Some will improve your feats and stats or grant you effects while "
     "equipped.  Some gear responds to special command words that can be "
-    "discovered either by examining the gear, through quest lines or other "
-    "interesting ways.  Some gear respond to combat maneuvers, such as weapons "
+    "discovered by examining the gear, through quest lines, or in other "
+    "interesting ways.  Some gear responds to combat maneuvers, such as weapons "
     "that will help you trip, spikes on a shield when shield-punching, or even "
     "armor / shields that will cast a heal spell on you when they deflect a blow."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*20*/
     "\tR[HINT]:\tn \ty"
     "LuminariMUD's crafting system allows you to CREATE, RESTRING (rename), "
-    "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
+    "and RESIZE gear.  You will need a crafting kit and the appropriate molds.  If you "
     "travel to Sanctus, there is a work area for buying molds.  If you add a "
     "crafting crystal while creating a new item, you will enchant it.  You "
-    "can acquire crystals from treasure, DISENCHANTing magic items and you can "
-    "even use AUGMENT to combine crystals to make them more powerful.  In addition "
+    "can acquire crystals from treasure or by DISENCHANTing magic items, and you can "
+    "even use AUGMENT to combine crystals to make them more powerful.  In addition, "
     "you can do SUPPLYORDERs (basic crafting quests) in Sanctus for rewards "
     "including quest points. "
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*21*/
     "\tR[HINT]:\tn \ty"
-    "We have a CLAN system that offers the ability to coordinate communcation and resources. There "
-    "there are several premade clans, and you can start your own if you have the gold "
+    "We have a CLAN system that offers the ability to coordinate communication and resources. "
+    "There are several premade clans, and you can start your own if you have the gold "
     "(500k) "
     "and enough people to join (two or more other players). See HELP CLAN and CLAN LIST for more "
     "info. "
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*22*/
     "\tR[HINT]:\tn \ty"
-    "Overwhelmed by all the class and feat choices?  We started a community "
-    "built thread on the FORUM.  We then transfer those submissions to "
+    "Overwhelmed by all the class and feat choices?  We started a community-built "
+    "thread on the FORUM.  We then transfer those submissions to "
     "help files under the heading HELP CLASS-BUILD.  The forum link is:  "
     "http://www.luminarimud.com/forums/topic/class-builds/"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
@@ -9885,36 +9885,36 @@ static const char *const hints[] = {
     "\tR[HINT]:\tn \ty"
     "Help files are critical!  We try our best to anticipate all the subjects "
     "that are needed, but we rely heavily on contributions from players - "
-    "with emphasis on new ones.  Please take the time to post it on the forum at "
-    "http://www.luminarimud.com/forums/topic/help-files/ you can also "
-    "post it as an IDEA in-game.  You can also help the staff workload by writing "
-    "helpfiles via the forum!"
+    "with an emphasis on new ones.  Please take the time to post your suggestions on the forum at "
+    "http://www.luminarimud.com/forums/topic/help-files/ or "
+    "submit them as an IDEA in-game.  You can also reduce the staff's workload by writing "
+    "help files via the forum!"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*24*/
     "\tR[HINT]:\tn \ty"
-    "LuminariMUD has a forum at: https://www.luminarimud.com/forums/ the public "
-    "registration may be closed due to beloved spam-bots, but any staff can make "
-    "you an account manually, just contact us via in-game mail, or email: "
+    "Visit the LuminariMUD forum (https://www.luminarimud.com/forums/). Public "
+    "registration may be closed due to beloved spam-bots, but any staff member can make "
+    "you an account manually. Just contact us via in-game mail or email: "
     "Zusuk@@LuminariMUD.com or Ornir@@LuminariMUD.com"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*25*/
     "\tR[HINT]:\tn \ty"
-    "Voting keeps new players coming! (may require creating an account):\r\n"
+    "Voting keeps new players coming! Voting may require creating an account:\r\n"
     "http://www.topmudsites.com/vote-luminarimud.html \r\n"
     "http://www.mudconnect.com/cgi-bin/vote_rank.cgi?mud=LuminariMUD \r\n"
-    "Also the MUD community on Reddit is a great way to promote us:\r\n"
+    "Also, the MUD community on Reddit is a great way to promote us:\r\n"
     "https://www.reddit.com/r/MUD/ \r\n"
     " [use nohint or prefedit to deactivate this]\tn\r\n",
     /*26*/
     "\tR[HINT]:\tn \ty"
-    "Lore, story-telling, immersion...  Critical elements of a text based "
-    "world.  View our background story here including an audio version!: "
+    "Lore, storytelling and immersion are critical elements of a text-based "
+    "world.  View our background story, including an audio version, here: "
     "https://www.luminarimud.com/lumina-voiced-stu-cook/"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*27*/
     "\tR[HINT]:\tn \ty"
     "Come visit the LuminariMUD website: https://www.luminarimud.com/ for "
-    "our forums, lore entries, related links, articles, updates.. the works!"
+    "our forums, lore entries, related links, articles, updates... the works!"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*28*/
     "\tR[HINT]:\tn \ty"
@@ -9923,10 +9923,10 @@ static const char *const hints[] = {
     /*29*/
     "\tR[HINT]:\tn \ty"
     "Archery is a great way to rain death from afar!  Archery automatically "
-    "gets a bonus attack, and has a huge variety of feats to put her on par "
-    "with melee attacks.  To initiate combat with a ranged weapon use the "
+    "gets a bonus attack and has a huge variety of feats to put it on par "
+    "with melee attacks.  To initiate combat with a ranged weapon, use the "
     "FIRE command.  To gather your ammo and make sure it does not get mixed "
-    "up with other archers, just type COLLECT.  You can even toggle AUTOCOLLECT "
+    "up with other archers' ammo, just type COLLECT.  You can even toggle AUTOCOLLECT "
     "to make sure you automatically collect your ammo after each battle."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*30*/
@@ -9934,18 +9934,18 @@ static const char *const hints[] = {
     "Are you using our Mudlet GUI "
     "(http://www.luminarimud.com/forums/topic/official-luminari-gui/)?  "
 
-    "If so, you may want to view our help file: HELP GUI-MAP to get an idea how to use "
+    "If so, you may want to view our help file: HELP GUI-MAP to get an idea of how to use "
     "the mapper properly!"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*31*/
     "\tR[HINT]:\tn \ty"
     "Spot a typo?  Just use the command: TYPO SUBMIT <title> to enter our "
-    "text editor.  From there you can type out what you found, then type /s to "
+    "text editor.  From there, you can type out what you found and then type /s to "
     "save your submission.  This creates a record for the staff to work off of!"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*32*/
     "\tR[HINT]:\tn \ty"
-    "Crafting is a critical and important part of the game, we have help files "
+    "Crafting is a critical and important part of the game. We have help files "
     "such as HELP CRAFTING - but we also have a great guide you can "
     "view on our forums: http://www.luminarimud.com/forums/topic/crafting-101-2018/"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
@@ -9953,66 +9953,69 @@ static const char *const hints[] = {
     "\tR[HINT]:\tn \ty"
     "You may notice MOBILEs with an (!) exclamation point in front of them.  If the "
     "(!) is yellow, then this is an AUTOQUEST quest master, and you can type 'quest list' to "
-    "view his/her quests.  If the (!) is red, then this is a HLQUEST mobile and you "
-    "can try asking the mobile 'hi' or other keywords based on clues whereas you may "
-    "also then get directions for a special quest."
+    "view their quests.  If the (!) is red, then this is an HLQUEST mobile and you "
+    "can try the ASK command with 'hi' or other keywords based on clues. "
+    "You may then get directions for a special quest."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*34*/
     "\tR[HINT]:\tn \ty"
-    "Stores within the realm will allow you to buy pets, mounts and hire mercenaries.  "
-    "HELP PET, HELP CHARMEE, HELP ORDER for more info.  "
-    "Once hired, they are your obedient servants.  As such you will be able to order them "
+    "Stores within the realm will allow you to buy pets and mounts and hire mercenaries.  "
+    "See HELP PET, HELP CHARMEE and HELP ORDER for more info.  "
+    "Once hired, they are your obedient servants.  As such, you will be able to order them "
     "to do as you wish.  They will also automatically assist you in combat to the best of their "
-    "abilties (determined by their level, race and class).  If they are groupped, you will get "
+    "abilities (determined by their level, race and class).  If they are grouped, you will get "
     "full credit for their kills as well.  "
     "(group new, order followers group join <your name>)"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*35*/
     "\tR[HINT]:\tn \ty"
-    "Got coin to spare and ready to build up a source of steady reliable income?  Set up a shop "
-    "to the rest of the players!  HELP PLAYER-SHOP"
+    "Got coin to spare and ready to build up a source of steady, reliable income?  Set up a shop "
+    "to sell to the rest of the players!  HELP PLAYER-SHOP"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*36*/
     "\tR[HINT]:\tn \ty"
-    "donation rooms.  In Mosswood, from the elder: north, east to the armor shop; directly "
+    "Looking for shops or donation rooms?  In Mosswood, from the elder: north, east to the "
+    "armor shop; directly "
     "east for the general shop; south, west for the donation pit.  There are plenty more shops "
     "to be found throughout the realms."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*37*/
     "\tR[HINT]:\tn \ty"
-    "Helpful commands for finding secrets/hidden aspects of a zone include: 'look around' - "
-    "this will help identify oustanding visual descriptions in the room you are in, 2) 'push' "
+    "Helpful commands for finding secrets/hidden aspects of a zone include: 1) 'look around' - "
+    "this will help identify outstanding visual descriptions in the room you are in; 2) 'push' "
     "or 'pull' - these are common keywords for interacting with objects in a room that "
-    "activate secrets, 3) 'enter' - sometimes hidden portals/entrances are in weird places, "
-    "you can find them with this command, 4) and finally bare in mind not all zones will map "
+    "activate secrets; 3) 'enter' - sometimes hidden portals/entrances are in weird places, "
+    "and you can find them with this command. Finally, bear in mind that not all zones will map "
     "out onto a 2-dimensional map."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*38*/
     "\tR[HINT]:\tn \ty"
-    "Want to know your Actions from your Maneuvers ? Don't worry combat in Luminari can be deep "
-    "and complex, but that' s part of what makes it so much fun.Make sure you check out HELP "
+    "Want to know your Actions from your Maneuvers? Don't worry! Combat in Luminari can be deep "
+    "and complex, but that's part of what makes it so much fun. Make sure you check out HELP "
     "ACTIONS, "
     "COMBAT and QUEUE to become a combat pro!"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*39*/
     "\tR[HINT]:\tn \ty"
-    "To help navigate the massively expansiave surface wilderness, there is a CARRIAGE system "
+    "To help navigate the massively expansive surface wilderness, there is a CARRIAGE system "
     "that can quickly and safely get you between major locations in the wilderness (help "
     "carriage).  "
-    "There are also plenty of zone connections in the wilderness that you can not reach via "
+    "There are also plenty of zone connections in the wilderness that you cannot reach via "
     "carriages, "
     "but a strategy is to use the SURVEY (help survey) command to identify the locations and use "
     "the "
-    "carriage system to try to get near to your destination then hike the rest."
+    "carriage system to try to get near to your destination, then hike the rest of the way."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*40*/
     "\tR[HINT]:\tn \ty"
     "'ENCOUNTERS' is a system whereby parties and individuals exploring or roaming the wilderness "
     "will randomly encounter level-appropriate mobs to fight.  Encounter mob types are pulled from "
-    "an ever-growing list that currently numbers over 100+. Encounters can be dealt with in a "
+    "an ever-growing list that currently numbers over 100. Encounters can be dealt with in a "
     "number "
-    "of ways, such as defeating it in combat, escaping, intimidating, bluffing or using diplomacy, "
-    "and even bribing in some cases.  In addition to combat encounters, we will soon be adding "
+    "of ways, such as defeating foes in combat, escaping, using intimidation, bluffing or "
+    "diplomacy, "
+    "and even offering bribes in some cases.  In addition to combat encounters, we will soon be "
+    "adding "
     "other "
     "types of encounters, such as treasure caches, wandering vendors that sell special items, "
     "mysterious entities that grant your character bonuses, and more.  (help encounters)"
@@ -10022,45 +10025,48 @@ static const char *const hints[] = {
     "'HUNTS' is a system that allows for individuals or parties to search out special boss "
     "mobs in the wilderness of Lumia.  These hunt targets, when defeated, award the entire party "
     "quest points, gold and some nice experience.  In addition to the party-wide rewards, each "
-    "hunt mob also drops hunt trophies of various types: some are enhanced crafting materials, "
-    "others can be exchanged for rings, pendants or bracers that give special affects when worn "
-    "(eg. infravision, detect invis, haste, etc.), as well as weapon oils that can be applied to "
-    "a weapon to give it a permanent special affect (eg. flaming, defending, vorpal, vampiric, "
+    "hunt mob also drops hunt trophies of various types: some are enhanced crafting materials; "
+    "others can be exchanged for rings, pendants or bracers that give special effects when worn "
+    "(e.g., infravision, detect invis, haste, etc.), as well as weapon oils that can be applied to "
+    "a weapon to give it a permanent special effect (e.g., flaming, defending, vorpal, vampiric, "
     "etc.).  (help hunts)"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*42*/
     "\tR[HINT]:\tn \ty"
-    "Insidious rumors have begun that Caltursar the Dead Walker, a necrophant that resides in the "
-    "Skull Gorge has discovered the dark art of becoming a LICH.  Perhaps one could ASK him about "
-    "'undeath' to reveal what sort of necormantic madness he has tapped into.  (note: the quest "
-    "line to become a lich is extremely difficult and designed for elite groups to conquer)"
+    "Insidious rumors have begun to spread that Caltursar the Dead Walker, a necrophant who "
+    "resides in "
+    "Skull Gorge, has discovered the dark art of becoming a LICH.  Perhaps one could ASK him about "
+    "'undeath' to reveal what sort of necromantic madness he has tapped into.  (Note: the quest "
+    "line to become a lich is extremely difficult and designed for elite groups to conquer.)"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*43*/
     "\tR[HINT]:\tn \ty"
-    "We have a MISSION system that allows players to take on bounties on targets througout the "
-    "realm based on your level and specified difficulty.  Missions produce general rewards "
+    "We have a MISSION system that allows players to take on bounties on targets throughout the "
+    "realm based on their level and specified difficulty.  Missions produce general rewards "
     "including experience, gold, quest points and random treasure.  (help missions)"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*44*/
     "\tR[HINT]:\tn \ty"
     "Curious what our rules of conduct are for the game?  Type POLICY to view the rules!  "
     "Generally "
-    "speaking we are not strict at all about enforcing rules outside of harassing your fellow "
+    "speaking, we are not strict at all about enforcing rules except those against harassing "
+    "your fellow "
     "players "
-    "(AKA the golden rule - do unto others as you would have done to yourself and do not do unto "
+    "(AKA the golden rule - do unto others as you would have them do unto you and do not do unto "
     "others "
     "that which you would not want done to you) and "
-    "abusing bugs before reporting them (if you report a bug then abuse it, we are generally not "
+    "abusing bugs before reporting them (if you report a bug and then abuse it, we are generally "
+    "not "
     "strict "
-    "about that since it puts pressure on the developres to fix critical bugs quickly)."
+    "about that since it puts pressure on the developers to fix critical bugs quickly)."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*45*/
     "\tR[HINT]:\tn \ty"
     "Although our normal POLICY does not allow multi-playing, due to a need for thorough game "
     "testing "
-    "and limited player base, we -DO- CURRENTLY -PERMIT- multi-playing up to 4 characters at the "
+    "and a limited player base, we -DO- CURRENTLY -PERMIT- multi-playing up to 4 characters at the "
     "same time.  "
-    "You can also create as many storage-characters as you like to dump all your treasure and "
+    "You can also create as many storage characters as you like to store all your treasure and "
     "crafting "
     "resources.  "
     "We only ask that you please take the time and effort to report bugs/issues you find to us in "
@@ -10068,29 +10074,31 @@ static const char *const hints[] = {
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*46*/
     "\tR[HINT]:\tn \ty"
-    "The henchmen, mercenaries, mounts and PETs that are spread throughout the realms not only can "
-    "be "
-    "hired with gold, but some of them can be acquired through mini quest lines.  A henchment "
+    "The henchmen, mercenaries, mounts and PETs that are spread throughout the realms can be "
+    "hired with gold, and some of them can be acquired through mini quest lines.  A henchmen's "
     "guild has "
     "been opened in Ashenport's Jade Jug Inn to help adventurers."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*47*/
     "\tR[HINT]:\tn \ty"
-    "Per our POLICY entry, we do not normally allow BOTS.  The exception is automating tasks but "
+    "Per our POLICY entry, we do not normally allow BOTS.  The exception is automating tasks while "
     "being present "
-    "(at keys - the MUDding app should be visible and attended to the player).  An example would "
+    "(at the keyboard - the MUDding app should be visible and attended to by the player). "
+    "An example would "
     "be creating an "
-    "automated hunting route for experience, etc where your scripts (in MUDLET for example) would "
+    "automated hunting route for experience, etc., where your scripts (in MUDLET, for example) "
+    "would "
     "do all the work "
     "for you.  As long as your MUDLET window is visible and you are at your computer, this is "
     "completely acceptable.  "
-    "Further, currently and until a notice of a POLICY change, you are allowed to fully (even "
-    "unattended) BOT AUTOCRAFTing.  "
+    "Further, until notice of a POLICY change, you are allowed to use BOTS for AUTOCRAFTing, even "
+    "while unattended.  "
     "This policy is in effect to help test the crafting system and can be changed at any time."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*48*/
     "\tR[HINT]:\tn \ty"
-    "SUPPLYORDERs / AUTOCRAFTing is the safest and easiest way to increase your crafting skills!"
+    "SUPPLYORDERs and AUTOCRAFTing are the safest and easiest ways to increase your crafting "
+    "skills!"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*49*/
     "\tR[HINT]:\tn \ty"
@@ -10101,7 +10109,7 @@ static const char *const hints[] = {
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*50*/
     "\tR[HINT]:\tn \ty"
-    "More than a dozen zones form the outter planes of existence!  Visit our website to view the "
+    "More than a dozen zones form the outer planes of existence!  Visit our website to view the "
     "connections between the "
     "planes...  https://luminarimud.com/planes-of-existence/"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
@@ -10113,52 +10121,53 @@ static const char *const hints[] = {
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*52*/
     "\tR[HINT]:\tn \ty"
-    "There are 'dot' 'dash' and 'all' commands to help you manipulate targets.  Examples include:  "
-    "To get all the 'bread' items from all the bags in your inventory you'd type 'take all.bread "
+    "There are 'dot', 'dash' and 'all' commands to help you manipulate targets. "
+    "Examples include: "
+    "To get all the 'bread' items from all the bags in your inventory, you'd type 'take all.bread "
     "all.bag' | "
-    "To loot the 2nd corpse on the ground you'd type 'take all 2.corpse' | "
-    "To attack the blue dragon instead of the white dragon you'd type 'kill blue-dragon'"
+    "To loot the 2nd corpse on the ground, you'd type 'take all 2.corpse' | "
+    "To attack the blue dragon instead of the white dragon, you'd type 'kill blue-dragon'."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*53*/
     "\tR[HINT]:\tn \ty"
-    "Want to see a full list of all implement spells and skills in the game?  Type respectively "
-    "'masterlist spells' or 'masterlist skills'"
+    "Want to see a full list of all implemented spells and skills in the game?  Type "
+    "'masterlist spells' for spells or 'masterlist skills' for skills."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*54*/
     "\tR[HINT]:\tn \ty"
     "There is a shop that offers a service that will enlighten your mind as to the basic "
     "enchantments found on all of your worn equipment.  It is one west of 'recall.'  The "
-    "cost varies by the skill of the requester, beginning at 100 gold coins for a complete "
-    "novice and up to 3000 gold coins for the most skilled of heroes.  To receive this "
-    "enlightenment, simply use (type) the word: \tReqstats\ty"
+    "cost varies by the skill of the requester, ranging from 100 gold coins for a complete "
+    "novice to 3000 gold coins for the most skilled of heroes.  To receive this "
+    "enlightenment, simply type: \tReqstats\ty."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*55*/
     "\tR[HINT]:\tn \ty"
-    "There is a player-owned shop in Sanctus, where you can buy very powerful end-game gear."
+    "There is a player-owned shop in Sanctus, where you can buy very powerful end-game gear. "
     "From the Center of Sanctus, head 3 south, 1 east, then 1 south.  "
-    "You will find 'A Shopper's Paradise' owned by Melaw and ran by Onat."
+    "You will find 'A Shopper's Paradise' owned by Melaw and run by Onat."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*56*/
     "\tR[HINT]:\tn \ty"
     "There is a player-owned shop in Sanctus, where you can buy some different gear.  "
     "From the Center of Sanctus, head 3 south, 1 east, then 1 north.  You will find "
-    "'Weaver and Fagn's' owned by Ellyanor and ran by Kyrt."
+    "'Weaver and Fagn's' owned by Ellyanor and run by Kyrt."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*57*/
     "\tR[HINT]:\tn \ty"
     "There is a player-owned shop in Sanctus, where you can buy some different gear.  "
     "From the Center of Sanctus, head 3 south, 1 west, then 1 north.  You will find "
-    "'The Kobold's Den' owned by Thimblethorp and ran by Ickthak."
+    "'The Kobold's Den' owned by Thimblethorp and run by Ickthak."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*58*/
     "\tR[HINT]:\tn \ty"
     "There is a player-owned shop in Ashenport, where you can buy very powerful end-game gear.  "
     "From Inside the Northern Gates of Ashenport, head 1 south, 1 west, then 1 north.  You will "
-    "find 'Brondo's Bar and Grill' owned by Brondo and ran by The Towering Woman."
+    "find 'Brondo's Bar and Grill' owned by Brondo and run by The Towering Woman."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*59*/
     "\tR[HINT]:\tn \ty"
-    "Whispers of a horrific vampire attack southwest of Beregost have attracted the eyes of "
+    "Whispers of a horrific vampire attack southwest of Beregost have attracted the attention of "
     "powerful entities...  (Level 30 Group Content)\r\n"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*60*/
@@ -10166,7 +10175,7 @@ static const char *const hints[] = {
     "Combat modes allow you to adjust your combat strategy on the fly without using an "
     "action! Modes like Power Attack and Deadly Aim trade accuracy for extra damage, Combat "
     "Expertise trades attack bonus for increased Armor Class, Total Defense bolsters your "
-    "defenses, and Flurry of Blows or Rapid Shot grant extra attacks per round. Type "
+    "defenses, and Flurry of Blows or Rapid Shot grants extra attacks per round. Type "
     "HELP COMBAT-MODES for a full overview."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*61*/
@@ -10181,13 +10190,13 @@ static const char *const hints[] = {
     "Spellcasters with metamagic feats can enhance their spells with powerful modifications! "
     "Feats like Empower Spell, Maximize Spell, Quicken Spell, Extend Spell, Silent Spell, and "
     "Still Spell modify damage, duration, or casting time in exchange for preparing the spell "
-    "in a higher circle. You can prepare them directly (e.g. MEMORIZE 'EMPOWERED MAXIMIZED "
+    "in a higher circle. You can prepare them directly (e.g., MEMORIZE 'EMPOWERED MAXIMIZED "
     "FIREBALL') or manage them via the SPELLPREP menu. See HELP METAMAGIC."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*63*/
     "\tR[HINT]:\tn \ty"
     "Did you know divine casters have spontaneous spell conversion? Good-aligned Clerics can "
-    "spontaneously convert any prepared divine spell into a Cure Wounds spell of equal circle "
+    "spontaneously convert any prepared divine spell into a Cure Wounds spell of the same circle "
     "on the fly, while evil Clerics can convert spells into Inflict Wounds. Druids can "
     "spontaneously convert their prepared spells into Summon Nature's Ally. See "
     "HELP SPONTANEOUS-CASTING."
@@ -10204,7 +10213,8 @@ static const char *const hints[] = {
     "\tR[HINT]:\tn \ty"
     "Psionicists harness the power of the mind using Power Points (PSP) instead of traditional "
     "spell slots! Use the POWERS command to view known psionic powers and MANIFEST to perform "
-    "them. Many powers can be AUGMENTED with extra PSP to increase damage, duration, or targets. "
+    "them. Many powers can be AUGMENTED with extra PSP to increase damage, duration, or the number "
+    "of targets. "
     "Maintaining PSIONIC FOCUS grants additional manifestation speed and DC bonuses. See "
     "HELP PSIONICS and HELP MANIFEST."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
@@ -10249,7 +10259,7 @@ static const char *const hints[] = {
     /*71*/
     "\tR[HINT]:\tn \ty"
     "Monks channel an inner reservoir of mystical energy called the Ki pool! Spend Ki points "
-    "with the KI command to gain bonus attacks, burst movement speed, or dodge bonuses. "
+    "with the KI command to gain bonus attacks, bursts of movement speed, or dodge bonuses. "
     "Combine your Ki with feats like Stunning Fist, Flurry of Blows, and Wholeness of Body to "
     "become a versatile martial artist. See HELP KI and HELP MONK."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
@@ -10257,8 +10267,8 @@ static const char *const hints[] = {
     "\tR[HINT]:\tn \ty"
     "Paladins are beacons of righteous power on the battlefield! Deliver crushing blows "
     "against evil foes using SMITEEVIL, heal yourself as a swift action or allies as a "
-    "standard action with LAYONHANDS, and attach MERCIES to cure status effects like "
-    "diseased, blinded, or paralyzed. You can also CHANNEL positive energy to heal living "
+    "standard action with LAYONHANDS, and attach MERCIES to cure conditions like "
+    "disease, blindness, or paralysis. You can also CHANNEL positive energy to heal living "
     "allies or damage undead. See HELP PALADIN, HELP SMITE-EVIL, and HELP CHANNEL."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*73*/
@@ -10351,7 +10361,7 @@ static const char *const hints[] = {
     "\tR[HINT]:\tn \ty"
     "Dungeon doors and treasure chests may be protected by deadly mechanical and magical traps! "
     "Characters with good Perception can SEARCH rooms and objects to detect hidden traps and "
-    "secret doors. Once detected, skilled adventurers can use DISARMTRAP to safely disarm "
+    "secret doors. After detecting a trap, skilled adventurers can use DISARMTRAP to safely disarm "
     "mechanisms before they trigger. See HELP TRAPS and HELP SEARCH."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*85*/
@@ -10365,7 +10375,7 @@ static const char *const hints[] = {
     /*86*/
     "\tR[HINT]:\tn \ty"
     "Keep your inventory neat and organized! You can assign specific containers for gear, "
-    "loot, and reagents using SORTTO and STORE commands. When looting or sorting, use "
+    "loot, and reagents using the SORTTO and STORE commands. When looting or sorting, use "
     "multi-item targeting like 'put all.gem bag' or 'get all.potion chest' to handle items in "
     "bulk effortlessly. See HELP CONTAINERS and HELP SORTTO."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
@@ -10386,7 +10396,7 @@ static const char *const hints[] = {
     "\tR[HINT]:\tn \ty"
     "Your prompt can provide valuable real-time combat and survival information! Use the "
     "PROMPT command to customize your status line with placeholders showing your current HP, "
-    "Mana, Moves, PSP, target health percentage, active affections, and ability cooldowns. "
+    "Mana, Moves, PSP, target health percentage, active effects, and ability cooldowns. "
     "Type PROMPT HELP to view all available tokens. See HELP PROMPT."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*90*/
@@ -10426,8 +10436,8 @@ static const char *const hints[] = {
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*95*/
     "\tR[HINT]:\tn \ty"
-    "High-tier monsters often possess Damage Reduction (DR) which subtracts damage from "
-    "non-matching weapons (e.g. DR 10/silver or DR 15/magic), as well as Energy Resistance "
+    "High-tier monsters often possess Damage Reduction (DR), which subtracts damage from "
+    "non-matching weapons (e.g., DR 10/silver or DR 15/magic), as well as Energy Resistance "
     "against elements like fire, cold, or electricity. Type RESISTANCE to inspect your own "
     "resistances or observe combat messages to choose the right weapons and spells! See "
     "HELP DAMAGE-REDUCTION and HELP RESISTANCE."
