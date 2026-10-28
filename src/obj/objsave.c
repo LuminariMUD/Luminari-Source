@@ -3135,7 +3135,6 @@ static int crash_restore_records(struct char_data *ch, obj_save_data *loaded,
     num_objs += handle_obj(current->obj, ch, current->locate, cont_row);
     if (load_sheaths && CAN_WEAR(current->obj, ITEM_WEAR_SHEATH))
     {
-      log("SHEATH1");
       load_sheath_contents(ch, current->obj, current->db_idnum);
     }
   }
@@ -4600,11 +4599,7 @@ void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long in
 {
   obj_save_data *loaded, *current;
 
-  log("SHEATH2");
-
   loaded = objsave_parse_objects_db_sheath(GET_NAME(ch), idnum, 1, sheath);
-
-  log("SHEATH3");
 
   while (loaded != NULL)
   {
@@ -4612,20 +4607,15 @@ void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long in
     loaded = loaded->next;
     free(current);
   }
-
-  log("SHEATH4");
 
   loaded = objsave_parse_objects_db_sheath(GET_NAME(ch), idnum, 2, sheath);
 
-  log("SHEATH5");
-
   while (loaded != NULL)
   {
     current = loaded;
     loaded = loaded->next;
     free(current);
   }
-  log("SHEATH6");
 }
 
 obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum, int sheath_slot,
@@ -4666,9 +4656,6 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
     exit(1);
   }
 
-  log("SHEATH2a");
-  log("%s", buf);
-
   head = NULL;
   current = NULL;
 
@@ -4690,8 +4677,6 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
 
     locate = 0;
     temp = NULL;
-
-    log("SHEATH2b");
 
     for (line = lines; line && *line; ++line)
     {
@@ -5013,21 +4998,16 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
      * Create space for it and add it to the list.  */
     if (temp)
     {
-      log("SHEATH2c");
       if (sheath)
       {
-        log("SHEATH2d");
         if (sheath_slot == 1)
         {
-          log("SHEATH2e");
           obj_to_sheath(temp, sheath, 1);
         }
         else if (sheath_slot == 2)
         {
-          log("SHEATH2f");
           obj_to_sheath(temp, sheath, 2);
         }
-        log("SHEATH2g");
       }
 
       /* no longer allowing untyped gear affection -zusuk */
