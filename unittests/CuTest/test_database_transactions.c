@@ -1748,7 +1748,7 @@ void Test_hedit_import_and_delete_stop_when_sync_lock_is_lost(CuTest *tc)
   char *keywords[] = {alpha, NULL};
   struct transactions_world w;
   struct descriptor_data *d;
-  FILE *help;
+  FILE *help_file;
   const char *heard;
   char yes[] = "y";
 
@@ -1761,10 +1761,10 @@ void Test_hedit_import_and_delete_stop_when_sync_lock_is_lost(CuTest *tc)
 
   CuAssertIntEquals(tc, 0, mkdir("text", 0700));
   CuAssertIntEquals(tc, 0, mkdir("text/help", 0700));
-  help = fopen("text/help/help.hlp", "w");
-  CuAssertPtrNotNull(tc, help);
-  fputs("STHIRTEENALPHA\nImported text.\n#0\n$~\n", help);
-  fclose(help);
+  help_file = fopen("text/help/help.hlp", "w");
+  CuAssertPtrNotNull(tc, help_file);
+  fputs("STHIRTEENALPHA\nImported text.\n#0\n$~\n", help_file);
+  fclose(help_file);
   mysql_test_drop_connection_at("START TRANSACTION", 1, FALSE);
   do_helpgen(&w.staff, "import force", 0, 0);
   heard = transactions_staff_heard(&w);

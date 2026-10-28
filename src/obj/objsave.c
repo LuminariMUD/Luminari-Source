@@ -136,7 +136,9 @@ static bool objsave_read_special_ability(struct obj_data *obj, const char *line,
   {
     /* Old records used %127s, so preserve their one-word interpretation. */
     word += strspn(word, " \t\r\n");
-    word_length = MIN(strcspn(word, " \t\r\n"), (size_t)127);
+    word_length = strcspn(word, " \t\r\n");
+    if (word_length > 127)
+      word_length = 127;
   }
 
   ability = NULL;
@@ -2094,7 +2096,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     {
       size_t length = strlen(line);
 
-      if (fgets(line + length, sizeof(line) - length, fl) != NULL)
+      if (fgets(line + length, (int)(sizeof(line) - length), fl) != NULL)
       {
         length = strlen(line);
         while (length > 0 && (line[length - 1] == '\n' || line[length - 1] == '\r'))
