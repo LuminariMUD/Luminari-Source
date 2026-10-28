@@ -20,12 +20,16 @@ the verified original rows. The rehearsal checked these outcomes before commit:
   affected tables matched the original snapshot after the transaction.
 - A delivered freight record was reopened as taken while its bulk manifest
   returned from 7 to the verified original 10 units in the same transaction.
+  This synthetic fixture had no later delivery or payment; the SQL does not
+  itself establish that fact for an actual incident.
 - A route and a waypoint with duplicate names were renamed by their IDs and
   creator; the other owner's names and their route-waypoint link stayed intact.
 
 The production-linked `Test_vessel_recovery_sets_offline_gold_to_a_verified_balance`
 sets a saved captain's gold to an absolute balance twice and checks that the
-player file contains one adjustment. `Test_vessel_recovery_reopened_freight_pays_once`
+player file contains one adjustment. It also checks that a saved zero omits
+the `Gold:` field, loads as zero, and can be corrected to a verified balance.
+`Test_vessel_recovery_reopened_freight_pays_once`
 restores a manifest, reloads it through the game's cargo loader, delivers the
 reopened contract and confirms a second delivery cannot pay again.
 `Test_vessel_recovery_restored_hull_rows_reload_into_the_ship` reloads restored

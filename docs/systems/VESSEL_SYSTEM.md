@@ -2918,7 +2918,8 @@ absolute balance including the logged charge exactly once. As an
 implementor-level staff member, inspect the `Gold:` line in the offline
 player file and use `set file <captain> gold <absolute-balance>`, keeping the
 captain offline. Check the saved `Gold:` line again and record the before and
-after values. Player files are `lib/plrfiles/<initial-group>/<lowercase-name>.plr`;
+after values. A missing `Gold:` line means the saved default of zero, not an
+unknown balance. Player files are `lib/plrfiles/<initial-group>/<lowercase-name>.plr`;
 the initial groups are `A-E`, `F-J`, `K-O`, `P-T`, `U-Z` and `ZZZ`. `set gold`
 clamps to 100,000,000, even though the game balance limit is higher: do not
 use it if the intended balance exceeds that bound. Investigate a safe payout
@@ -2930,13 +2931,21 @@ recalculation from an already corrected balance would be.
 2 is delivered), the ship's bulk manifest (`cargo_room = 0`), and any
 `vessel_settlements` for that ship or captain. The logged failure occurs before
 the payout is attempted, but later activity may have changed the records.
-If status is taken and the verified freight is aboard, leave the records and
-have the captain deliver normally after restart. If status is delivered, use a
-verified pre-delivery snapshot to restore the bulk manifest and mark this
-contract taken in the *same* transaction. This lets the normal delivery path
-pay once; do not also make a manual payout. Only do this when the snapshot
-contains the exact original freight and there were no later cargo changes or
-unresolved settlements.
+Before allowing delivery or reopening the contract, reconcile the incident
+ledger, player-file history and subsequent logs to establish that no later
+successful delivery, retry, manual payment or other settlement already paid
+this contract. The original error proves only that its own attempt stopped
+before payout: the current contract and manifest can look identical after a
+later successful delivery. If whether the payout was made remains uncertain,
+stop for investigation; do not reopen or pay.
+
+Once nonpayment is established, if status is taken and the verified freight
+is aboard, leave the records and have the captain deliver normally after
+restart. If status is delivered, use a verified pre-delivery snapshot to
+restore the bulk manifest and mark this contract taken in the *same*
+transaction. This lets the normal delivery path pay once; do not also make a
+manual payout. Only do this when the snapshot contains the exact original
+freight and there were no later cargo changes or unresolved settlements.
 
 ```sql
 SET @ship_id = NULL, @contract_id = NULL, @captain = NULL;

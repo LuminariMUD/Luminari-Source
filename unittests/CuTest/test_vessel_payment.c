@@ -143,8 +143,12 @@ void Test_vessel_recovery_sets_offline_gold_to_a_verified_balance(CuTest *tc)
 {
   struct payment_berth berth;
   struct char_data *staff;
-  int before, after, repeated;
+  FILE *player_file;
+  char filename[MAX_FILEPATH], line[256];
+  bool zero_omits_gold = false;
+  int before, after, repeated, saved_zero, zero_refund;
   char command[] = "file Vane gold 200500";
+  char clear_gold[] = "file Vane gold 0", refund_zero[] = "file Vane gold 500";
 
   if (!payment_begin(tc, &berth))
     return;
@@ -156,11 +160,27 @@ void Test_vessel_recovery_sets_offline_gold_to_a_verified_balance(CuTest *tc)
   after = vessel_test_file_gold(tc, &berth.stores);
   do_set(staff, command, 0, 0);
   repeated = vessel_test_file_gold(tc, &berth.stores);
+  do_set(staff, clear_gold, 0, 0);
+  saved_zero = vessel_test_file_gold(tc, &berth.stores);
+  if (get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(&berth.captain)) &&
+      (player_file = fopen(filename, "r")) != NULL)
+  {
+    zero_omits_gold = true;
+    while (fgets(line, sizeof(line), player_file) != NULL)
+      if (strncmp(line, "Gold:", 5) == 0)
+        zero_omits_gold = false;
+    fclose(player_file);
+  }
+  do_set(staff, refund_zero, 0, 0);
+  zero_refund = vessel_test_file_gold(tc, &berth.stores);
   free_char(staff);
   payment_end(tc, &berth);
   CuAssertIntEquals(tc, 200000, before);
   CuAssertIntEquals(tc, 200500, after);
   CuAssertIntEquals(tc, 200500, repeated);
+  CuAssertIntEquals(tc, 0, saved_zero);
+  CuAssertTrue(tc, zero_omits_gold);
+  CuAssertIntEquals(tc, 500, zero_refund);
 }
 
 void Test_vessel_recovery_restored_hull_rows_reload_into_the_ship(CuTest *tc)
