@@ -13,6 +13,7 @@
 #include "../../src/core/comm.h"
 #include "../../src/core/db.h"
 #include "../../src/core/handler.h"
+#include "../../src/act/act.h"
 #include "../../src/database/mysql.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
@@ -136,6 +137,92 @@ static void payment_end(CuTest *tc, struct payment_berth *berth)
   vessel_test_stores_end(tc, &berth->stores);
 }
 
+/* Staff settle a verified amount on an offline player with an absolute balance.
+ * Repeating the same command must not apply the payment a second time. */
+void Test_vessel_recovery_sets_offline_gold_to_a_verified_balance(CuTest *tc)
+{
+  struct payment_berth berth;
+  struct char_data *staff;
+  int before, after, repeated;
+  char command[] = "file Vane gold 200500";
+
+  if (!payment_begin(tc, &berth))
+    return;
+  staff = new_char();
+  staff->player.name = strdup("RecoveryStaff");
+  GET_LEVEL(staff) = LVL_IMPL;
+  before = vessel_test_file_gold(tc, &berth.stores);
+  do_set(staff, command, 0, 0);
+  after = vessel_test_file_gold(tc, &berth.stores);
+  do_set(staff, command, 0, 0);
+  repeated = vessel_test_file_gold(tc, &berth.stores);
+  free_char(staff);
+  payment_end(tc, &berth);
+  CuAssertIntEquals(tc, 200000, before);
+  CuAssertIntEquals(tc, 200500, after);
+  CuAssertIntEquals(tc, 200500, repeated);
+}
+
+void Test_vessel_recovery_restored_hull_rows_reload_into_the_ship(CuTest *tc)
+{
+  struct payment_berth berth;
+  int armor, speed, ammo;
+
+  if (!payment_begin(tc, &berth))
+    return;
+  armor = berth.ship->farmor;
+  speed = berth.ship->maxspeed;
+  ammo = berth.ship->slot[0].ammo;
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "CREATE TEMPORARY TABLE recovery_runtime LIKE "
+                                "ship_runtime_state"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "CREATE TEMPORARY TABLE recovery_weapons LIKE ship_weapons"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "INSERT INTO recovery_runtime SELECT * FROM "
+                                "ship_runtime_state WHERE ship_id = 487"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "INSERT INTO recovery_weapons SELECT * FROM ship_weapons "
+                                "WHERE ship_id = 487"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "UPDATE ship_runtime_state SET farmor = 1, maxspeed = 1 "
+                                "WHERE ship_id = 487"));
+  CuAssertIntEquals(
+      tc, 0,
+      mysql_query(berth.stores.connection, "UPDATE ship_weapons SET ammo = 0 WHERE ship_id = 487"));
+  CuAssertIntEquals(tc, 0, mysql_query(berth.stores.connection, "START TRANSACTION"));
+  CuAssertIntEquals(
+      tc, 0,
+      mysql_query(berth.stores.connection, "DELETE FROM ship_runtime_state WHERE ship_id = 487"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "INSERT INTO ship_runtime_state SELECT * FROM "
+                                "recovery_runtime WHERE ship_id = 487"));
+  CuAssertIntEquals(
+      tc, 0, mysql_query(berth.stores.connection, "DELETE FROM ship_weapons WHERE ship_id = 487"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "INSERT INTO ship_weapons SELECT * FROM recovery_weapons "
+                                "WHERE ship_id = 487"));
+  CuAssertIntEquals(tc, 0, mysql_query(berth.stores.connection, "COMMIT"));
+  berth.ship->farmor = 1;
+  berth.ship->maxspeed = 1;
+  berth.ship->slot[0].ammo = 0;
+  CuAssertTrue(tc, vessel_db_load_runtime(berth.ship));
+  CuAssertTrue(tc, vessel_db_load_weapons(berth.ship));
+  CuAssertIntEquals(tc, armor, berth.ship->farmor);
+  CuAssertIntEquals(tc, speed, berth.ship->maxspeed);
+  CuAssertIntEquals(tc, ammo, berth.ship->slot[0].ammo);
+  mysql_query(berth.stores.connection, "DROP TEMPORARY TABLE recovery_runtime");
+  mysql_query(berth.stores.connection, "DROP TEMPORARY TABLE recovery_weapons");
+  payment_end(tc, &berth);
+}
+
 /* Run a command as Vane and return what it printed. */
 static const char *payment_command(struct payment_berth *berth, ACMD_DECL((*command)),
                                    const char *argument)
@@ -145,6 +232,69 @@ static const char *payment_command(struct payment_berth *berth, ACMD_DECL((*comm
   berth->descriptor.bufspace = sizeof(berth->output) - 1;
   command(&berth->captain, argument, 0, 0);
   return berth->output;
+}
+
+/* Reopen an uncertain delivery with its saved manifest, reload the hold as at
+ * boot, and exercise the real delivery and duplicate-delivery paths. */
+void Test_vessel_recovery_reopened_freight_pays_once(CuTest *tc)
+{
+  struct payment_berth berth;
+  const char *output;
+  char query[256], deliver[32];
+  int salt, contract, gold;
+
+  if (!payment_begin(tc, &berth))
+    return;
+  salt = (int)vessel_test_number(tc, &berth.stores,
+                                 "SELECT commodity_id FROM trade_commodities WHERE name = 'salt'");
+  berth.ship->cargo[0].commodity_id = salt;
+  berth.ship->cargo[0].quantity = 20;
+  CuAssertTrue(tc, vessel_db_save_cargo(berth.ship));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "CREATE TEMPORARY TABLE recovery_manifest LIKE "
+                                "ship_cargo_manifest"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "INSERT INTO recovery_manifest SELECT * FROM "
+                                "ship_cargo_manifest WHERE ship_id = 487 AND cargo_room = 0"));
+  snprintf(query, sizeof(query),
+           "INSERT INTO freight_contracts (origin_vnum, destination_vnum, commodity_id, quantity, "
+           "payout, status, taken_by) VALUES (%d, %d, %d, 10, 300, %d, 'Vane')",
+           PAYMENT_ORIGIN, PAYMENT_PORT, salt, CONTRACT_STATUS_DONE);
+  CuAssertIntEquals(tc, 0, mysql_query(berth.stores.connection, query));
+  contract = (int)mysql_insert_id(berth.stores.connection);
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "UPDATE ship_cargo_manifest SET item_count = 10 "
+                                "WHERE ship_id = 487 AND cargo_room = 0"));
+  CuAssertIntEquals(tc, 0, mysql_query(berth.stores.connection, "START TRANSACTION"));
+  snprintf(query, sizeof(query),
+           "UPDATE freight_contracts SET status = 1 "
+           "WHERE contract_id = %d AND taken_by = 'Vane' AND status = 2",
+           contract);
+  CuAssertIntEquals(tc, 0, mysql_query(berth.stores.connection, query));
+  CuAssertIntEquals(tc, 1, (int)mysql_affected_rows(berth.stores.connection));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection, "DELETE FROM ship_cargo_manifest "
+                                                         "WHERE ship_id = 487 AND cargo_room = 0"));
+  CuAssertIntEquals(tc, 0,
+                    mysql_query(berth.stores.connection,
+                                "INSERT INTO ship_cargo_manifest SELECT * FROM "
+                                "recovery_manifest WHERE ship_id = 487 AND cargo_room = 0"));
+  CuAssertIntEquals(tc, 0, mysql_query(berth.stores.connection, "COMMIT"));
+  memset(berth.ship->cargo, 0, sizeof(berth.ship->cargo));
+  vessel_db_load_cargo(berth.ship);
+  gold = GET_GOLD(&berth.captain);
+  snprintf(deliver, sizeof(deliver), "%d", contract);
+  output = payment_command(&berth, do_contractdeliver, deliver);
+  CuAssertTrue(tc, strstr(output, "Freight delivered. The consignee pays 300 gold.") != NULL);
+  CuAssertIntEquals(tc, gold + 300, vessel_test_file_gold(tc, &berth.stores));
+  output = payment_command(&berth, do_contractdeliver, deliver);
+  CuAssertTrue(tc, strstr(output, "That contract is not yours to deliver.") != NULL);
+  CuAssertIntEquals(tc, gold + 300, vessel_test_file_gold(tc, &berth.stores));
+  mysql_query(berth.stores.connection, "DROP TEMPORARY TABLE recovery_manifest");
+  payment_end(tc, &berth);
 }
 
 /* The same, with a player file that cannot be saved. */

@@ -2798,6 +2798,187 @@ and the trigger was removed.
 
 ## Troubleshooting
 
+### Staff recovery of uncertain vessel records
+
+These cases cross the live vessel cache, MariaDB and player files. The error
+does not prove whether a database write committed. Do not repeat a bounty,
+refund, or payout based on the error alone. Before changing anything, record
+the incident time, player, ship or contract ID, the logged amount, and the
+results of each step in an incident ledger. Establish the intended outcome
+from the pre-incident snapshot, logs and subsequent activity. If those sources
+do not settle an ambiguity, preserve the records for investigation instead of
+guessing.
+
+For database repairs, take a restorable snapshot of the current database and
+player files, prevent further player and ship activity, and shut the server
+down normally. Confirm that the process has stopped and inspect the shutdown
+save errors before working on the database. A shutdown can itself save an
+in-memory hull or manifest, so compare the stopped state again. Do not edit
+cached vessel or navigation rows while the server is running. Obtain a
+separately restored, read-only pre-incident database schema named
+`vessel_recovery_snapshot` when a procedure needs it. It must represent the
+verified state to restore, not merely an older arbitrary backup. Compare the
+column names, order and types of every affected table in both schemas before
+using `SELECT *` below. Ensure there were no later legitimate ship or cargo
+changes that the snapshot would overwrite.
+
+Run each transaction interactively. Set the session variables to values
+verified for this incident; the examples initialize them to NULL so they do
+not identify a real record. After each statement, check the affected-row count
+and resulting rows. If a statement fails or any result differs from the
+expected state, issue `ROLLBACK` and investigate; never continue to `COMMIT`.
+Restart the server only after the corrected rows have been checked. Keep the
+captain offline until the player-file step is complete, so an online character
+cannot overwrite it.
+
+**Unrecorded plunder bounty.** Inspect the exact player's `vessel_bounties`
+row, its `bounty`, `last_offense_at`, `marque_until`, the offense log, and any
+later offenses or payments. A lost reply can mean the offense was already
+written, including on a retry. Determine the correct absolute bounty and its
+offense timestamp, accounting for the decay rules in `vessel_bounty_after_decay()`;
+do not just add the logged amount. For an existing row, use the old values as
+guards. Preserve the marque:
+
+```sql
+SET @captain = NULL, @old_bounty = NULL, @old_time = NULL;
+SET @correct_bounty = NULL, @correct_time = NULL;
+START TRANSACTION;
+UPDATE vessel_bounties
+SET bounty = @correct_bounty, last_offense_at = @correct_time
+WHERE player_name = @captain AND bounty = @old_bounty
+  AND last_offense_at = @old_time;
+SELECT ROW_COUNT() AS changed_rows;
+```
+
+Require exactly one changed row and inspect it before `COMMIT`. If the row was
+absent, first verify it is still absent and insert one with the verified
+absolute bounty and timestamp, `marque_until = 0`; a duplicate-key error means
+stop. Record the committed values so the same offense is not applied again.
+
+**Trade-in failed and could not be undone.** Match the logged ship ID and
+captain to `ship_interiors.owner`; compare its interior, runtime, weapons,
+crew, permits, cargo and schedule against the last verified pre-trade hull.
+`ship_runtime_state.prototype_id` alone does not identify a complete hull.
+The undo may have failed while rebuilding rooms or writing several tables, and
+`vessel_save_one()` does not check every permit and cargo write. A successful
+shutdown message alone is insufficient proof that all rows match.
+
+If the stopped rows already match the verified old hull, leave them alone.
+Otherwise restore the *one* ship from its verified snapshot only after
+confirming no unresolved `vessel_settlements`, pending insurance claims,
+active event, docking, or later ship activity depends on the rows. In
+particular, do not restore an arbitrary old manifest or roster. The following
+transaction replaces only this ship's interior and the tables written by
+`vessel_save_one()`. It updates the parent in place: deleting it would cascade
+to other records. The snapshot and live schemas must have identical column
+order and types in all six tables.
+
+```sql
+SET @ship_id = NULL;
+SET SESSION group_concat_max_len = 1048576;
+SELECT GROUP_CONCAT(CONCAT('`', COLUMN_NAME, '`=VALUES(`', COLUMN_NAME, '`)')
+                    ORDER BY ORDINAL_POSITION SEPARATOR ', ')
+INTO @ship_columns
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ship_interiors'
+  AND COLUMN_NAME <> 'ship_id' AND EXTRA NOT LIKE '%GENERATED%';
+SET @restore_parent = CONCAT(
+  'INSERT INTO ship_interiors SELECT * FROM vessel_recovery_snapshot.ship_interiors ',
+  'WHERE ship_id = ? ON DUPLICATE KEY UPDATE ', @ship_columns);
+START TRANSACTION;
+PREPARE restore_parent FROM @restore_parent;
+EXECUTE restore_parent USING @ship_id;
+DEALLOCATE PREPARE restore_parent;
+DELETE FROM ship_runtime_state WHERE ship_id = @ship_id;
+INSERT INTO ship_runtime_state SELECT * FROM vessel_recovery_snapshot.ship_runtime_state
+WHERE ship_id = @ship_id;
+DELETE FROM ship_weapons WHERE ship_id = @ship_id;
+INSERT INTO ship_weapons SELECT * FROM vessel_recovery_snapshot.ship_weapons
+WHERE ship_id = @ship_id;
+DELETE FROM ship_crew_roster WHERE ship_id = @ship_id;
+INSERT INTO ship_crew_roster SELECT * FROM vessel_recovery_snapshot.ship_crew_roster
+WHERE ship_id = @ship_id;
+DELETE FROM ship_cargo_manifest WHERE ship_id = @ship_id;
+INSERT INTO ship_cargo_manifest SELECT * FROM vessel_recovery_snapshot.ship_cargo_manifest
+WHERE ship_id = @ship_id;
+DELETE FROM ship_schedules WHERE ship_id = @ship_id;
+INSERT INTO ship_schedules SELECT * FROM vessel_recovery_snapshot.ship_schedules
+WHERE ship_id = @ship_id;
+```
+
+Before committing, require exactly one snapshot interior and runtime row,
+verify the owner, and compare every restored row with the snapshot. A missing
+snapshot, incompatible schema, key conflict, or uncertain later activity is
+an investigation, not authorization to delete or guess. After `COMMIT`, boot
+and verify the hull, its rooms and fittings before settling the charge.
+
+The charge was saved before the trade was attempted. Once the old hull and
+the captain's current saved gold are independently verified, calculate the
+absolute balance including the logged charge exactly once. As an
+implementor-level staff member, inspect the `Gold:` line in the offline
+player file and use `set file <captain> gold <absolute-balance>`, keeping the
+captain offline. Check the saved `Gold:` line again and record the before and
+after values. Player files are `lib/plrfiles/<initial-group>/<lowercase-name>.plr`;
+the initial groups are `A-E`, `F-J`, `K-O`, `P-T`, `U-Z` and `ZZZ`. `set gold`
+clamps to 100,000,000, even though the game balance limit is higher: do not
+use it if the intended balance exceeds that bound. Investigate a safe payout
+for that case. A repeated absolute set is not an additional refund, but a
+recalculation from an already corrected balance would be.
+
+**Freight delivery outcome unknown.** Find the exact contract and captain in
+`freight_contracts`, its commodity, quantity, payout and status (1 is taken,
+2 is delivered), the ship's bulk manifest (`cargo_room = 0`), and any
+`vessel_settlements` for that ship or captain. The logged failure occurs before
+the payout is attempted, but later activity may have changed the records.
+If status is taken and the verified freight is aboard, leave the records and
+have the captain deliver normally after restart. If status is delivered, use a
+verified pre-delivery snapshot to restore the bulk manifest and mark this
+contract taken in the *same* transaction. This lets the normal delivery path
+pay once; do not also make a manual payout. Only do this when the snapshot
+contains the exact original freight and there were no later cargo changes or
+unresolved settlements.
+
+```sql
+SET @ship_id = NULL, @contract_id = NULL, @captain = NULL;
+START TRANSACTION;
+UPDATE freight_contracts SET status = 1
+WHERE contract_id = @contract_id AND taken_by = @captain AND status = 2;
+SELECT ROW_COUNT() AS changed_rows;
+DELETE FROM ship_cargo_manifest WHERE ship_id = @ship_id AND cargo_room = 0;
+INSERT INTO ship_cargo_manifest SELECT * FROM vessel_recovery_snapshot.ship_cargo_manifest
+WHERE ship_id = @ship_id AND cargo_room = 0;
+```
+
+Proceed past the status update only if it changed exactly one row. Before
+`COMMIT`, compare the restored bulk rows and contract with the snapshot and
+the incident ledger. After restart verify the ship and cargo, then have the
+captain use `contractdeliver <id>` at its destination. If the evidence or a
+matching snapshot is missing, do not invent cargo or issue a payout.
+
+**A same-named route or waypoint owned by someone else.** With the server
+stopped, inspect `ship_routes` or `ship_waypoints` by numeric ID and
+`creator_id`; creator 0 is harbor content. Also inspect `ship_route_waypoints`,
+`ship_schedules` and `ship_runtime_state.current_route_id` before altering a
+route. To make a specific record accessible without cascading deletes or
+breaking references, choose a single-word name of at most 63 characters that
+is unique across *all* records of that type:
+
+```sql
+SET @id = NULL, @creator = NULL, @old_name = NULL, @new_name = NULL;
+SELECT route_id, name, creator_id FROM ship_routes WHERE name = @new_name;
+START TRANSACTION;
+UPDATE ship_routes SET name = @new_name
+WHERE route_id = @id AND creator_id = @creator AND name = @old_name;
+SELECT ROW_COUNT() AS changed_rows;
+```
+
+For a waypoint use `ship_waypoints` and `waypoint_id` in the same statements.
+The new-name query must return no rows, and the update must change exactly one
+row; inspect it before `COMMIT`. Restart to reload navigation caches. Staff can
+then inspect or manage the uniquely named record through the normal commands;
+those commands still enforce their checks for routes, waypoints and schedules.
+Do not delete rows directly: link cascades and active references need review.
+
 ### Quick Reference
 
 | Issue | Check First | Solution |

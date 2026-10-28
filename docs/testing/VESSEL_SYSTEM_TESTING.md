@@ -6,6 +6,33 @@ regression. The durable quality gate and unresolved release-gate state are in
 the
 [Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
 
+## Staff recovery rehearsal (October 28, 2026)
+
+The four SQL procedures in the
+[staff recovery runbook](../systems/VESSEL_SYSTEM.md#staff-recovery-of-uncertain-vessel-records)
+were executed from that document against an isolated MariaDB made from the
+repository schema and vessel migrations. A separate snapshot schema contained
+the verified original rows. The rehearsal checked these outcomes before commit:
+
+- An absolute bounty correction changed 200 to 650 and retained the existing
+  marque. The test supplied the previously verified old and new values.
+- An inconsistent trade-in was restored for one ship: all rows in the six
+  affected tables matched the original snapshot after the transaction.
+- A delivered freight record was reopened as taken while its bulk manifest
+  returned from 7 to the verified original 10 units in the same transaction.
+- A route and a waypoint with duplicate names were renamed by their IDs and
+  creator; the other owner's names and their route-waypoint link stayed intact.
+
+The production-linked `Test_vessel_recovery_sets_offline_gold_to_a_verified_balance`
+sets a saved captain's gold to an absolute balance twice and checks that the
+player file contains one adjustment. `Test_vessel_recovery_reopened_freight_pays_once`
+restores a manifest, reloads it through the game's cargo loader, delivers the
+reopened contract and confirms a second delivery cannot pay again.
+`Test_vessel_recovery_restored_hull_rows_reload_into_the_ship` reloads restored
+runtime and weapon rows into a ship in a world fixture. These are isolated
+database and player-file tests; they do not claim a live production repair or
+a full server restart during the rehearsal.
+
 **Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
 the complete 500-vessel scale gate, the Vailand campaign shipping gate, the
 Blackwake derelict discovery gate, the wilderness frontier gate, the Phase 16
