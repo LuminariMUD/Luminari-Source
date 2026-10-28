@@ -149,6 +149,51 @@ static void run_device(struct artificer_fixture *f, const char *argument)
   do_device(&f->ch, argument, 0, 0);
 }
 
+void Test_artificer_device_rejects_object_and_argument_spells(CuTest *tc)
+{
+  struct artificer_fixture f;
+  const int shield[] = {SPELL_SHIELD};
+  const char *unsupported[] = {"enchant item",  "preserve",    "minor creation",
+                               "ventriloquate", "rock to mud", "mud to rock"};
+  struct player_invention *inv;
+  char argument[MAX_INPUT_LENGTH];
+  bool create_refused = true, add_refused = true, list_filtered, old_device_refused;
+  size_t i;
+
+  begin_artificer(&f, 20);
+  for (i = 0; i < sizeof(unsupported) / sizeof(unsupported[0]); i++)
+  {
+    snprintf(argument, sizeof(argument), "create \"%s\"", unsupported[i]);
+    run_device(&f, argument);
+    create_refused = create_refused &&
+                     strstr(f.descriptor.output, "cannot be used in a device") != NULL &&
+                     char_has_mud_event(&f.ch, eDEVICE_CREATION) == NULL;
+  }
+  inv = give_device(&f, shield, 1);
+  for (i = 0; i < sizeof(unsupported) / sizeof(unsupported[0]); i++)
+  {
+    snprintf(argument, sizeof(argument), "add 1 %s", unsupported[i]);
+    run_device(&f, argument);
+    add_refused = add_refused &&
+                  strstr(f.descriptor.output, "cannot be used in a device") != NULL &&
+                  inv->num_spells == 1;
+  }
+  run_device(&f, "spells arcane");
+  list_filtered = strstr(f.descriptor.output, "minor creation") == NULL &&
+                  strstr(f.descriptor.output, "ventriloquate") == NULL &&
+                  strstr(f.descriptor.output, "shield") != NULL;
+  inv->spell_effects[0] = SPELL_MINOR_CREATE;
+  run_device(&f, "use 1");
+  old_device_refused =
+      strstr(f.descriptor.output, "cannot be used in a device") != NULL && inv->uses == 0;
+  end_artificer(&f);
+
+  CuAssertTrue(tc, create_refused);
+  CuAssertTrue(tc, add_refused);
+  CuAssertTrue(tc, list_filtered);
+  CuAssertTrue(tc, old_device_refused);
+}
+
 /* The reported bug: a level 20 artificer could not add a 3rd- or 4th-circle spell to a device,
  * because device add compared a class spell level against the circle cap. */
 void Test_artificer_device_add_takes_third_and_fourth_circle_spells(CuTest *tc)
