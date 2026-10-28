@@ -1,0 +1,47 @@
+Familiar HP investigation - issue #270
+2026-10-28
+
+The supplied transcript uses summon and shows a level 9 hellhound at -8/101
+HP. summon calls char_pets_to_char_loc(): it transports existing charmed
+followers and does not create or heal them. An existing familiar can therefore
+arrive mortally wounded. call familiar also recalls the existing follower
+before considering creation or cooldowns. Saved pets retain their current HP;
+prepare_saved_pet_row() accepts -8 HP because it is mortally wounded, not dead.
+The report does not establish when or how this particular pet lost its HP.
+
+Local investigation used the authored lib/world/mob/0.mob prototypes and the
+real do_call()/perform_call()/read_mobile() path. All ten familiar selections,
+caster levels 1 through 30, and Improved Familiar ranks 0 through 5 were checked:
+1,800 fresh calls started at full, positive HP. This temporary investigation
+test was removed because the full world file is external game data, not a
+tracked dependency of the portable test suite.
+
+Damage remains persistent, including negative HP on a living pet. Recalling,
+logging in, or reclaiming a saved pet must not become a free heal. An injured
+arrival now tells its owner the current and maximum HP and that healing is
+needed. Nonpositive HP is reported as critically wounded. This applies to all
+pet types, including familiars. Healthy arrivals and automatic travel produce
+no injury message. New familiar creation still fills HP as before.
+
+Production-linked regression coverage:
+- Test_gameplay_familiar_recall_reports_injuries_without_changing_health
+  exercises summon, familiar recall, and automatic travel at 101, 17, 0, and
+  -8 HP out of 101. It checks HP, position, ownership, and injury feedback.
+- Test_gameplay_companion_creation_sets_bond_and_preserves_failed_call_cooldown
+  also checks that a freshly created familiar is at full, positive HP.
+- Test_pet_familiar_restore_reports_critical_injury_without_healing uses a
+  connection-local temporary pet schema to save and restore a familiar at
+  -8/101 HP and check the mortally wounded position and owner warning.
+
+The recall regression failed on missing feedback before the fix. These checks
+do not establish the original damage source or reproduce the player's complete
+prior combat/login sequence. No production server or player records were changed.
+
+Validation completed:
+- make -j8 test: passed, including all 2,061 CuTest cases and the required
+  build/static/Python gates. MariaDB tests were enabled against a separate,
+  disposable local database initialized from sql/master_schema.sql.
+- make -j8 install: passed; bin/luminari points to the rebuilt local binary,
+  and no luminari executable remains in the repository root.
+- pre-commit run --files <the changed files>: passed.
+- Build manifest parity, source hygiene, and git diff --check: passed.

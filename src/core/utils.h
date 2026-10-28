@@ -256,6 +256,7 @@ void auto_store_obj(struct char_data *ch, struct obj_data *obj);
 int get_bag_number_by_obj_type(struct obj_data *obj);
 const char *get_align_by_num_cnd(int align);
 bool char_pets_to_char_loc(struct char_data *ch, bool include_waiting);
+void report_injured_pet(struct char_data *owner, struct char_data *pet);
 bool pet_follows_automatically(struct char_data *pet);
 bool pet_assists_automatically(struct char_data *pet, struct char_data *ally);
 bool pet_guards_owner(struct char_data *pet, struct char_data *owner, struct char_data *attacker);
