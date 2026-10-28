@@ -874,8 +874,12 @@ static void verify_queued_action_prompt_transcript(CuTest *tc, bool screen_reade
 
   comm_process_descriptor_commands_for_test(&f.descriptor);
   unexpected_len = recv(f.sockets[1], unexpected, sizeof(unexpected), MSG_DONTWAIT);
-  waiting_quiet =
-      unexpected_len < 0 && (errno == EAGAIN || errno == EWOULDBLOCK) && f.descriptor.has_prompt;
+  waiting_quiet = unexpected_len < 0 && f.descriptor.has_prompt &&
+                  (errno == EAGAIN
+#if EWOULDBLOCK != EAGAIN
+                   || errno == EWOULDBLOCK
+#endif
+                  );
   pulse++;
   event_test_advance();
   pulse++;
