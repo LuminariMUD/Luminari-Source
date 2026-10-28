@@ -606,7 +606,8 @@ repair_disabled_harbor_merchant() {
   grep -Fq "Schedule set: Route 'harbor_ferry_loop' every $interval MUD hours." \
     <<<"$recovery_output" ||
     fail "the harbor merchant schedule is disabled and its route could not be scheduled; inspect the reported route obstruction and repair the route or hull position"
-  grep -Fq "Autopilot engaged on route 'harbor_ferry_loop'." <<<"$recovery_output" ||
+  grep -Eq "Autopilot (engaged on route 'harbor_ferry_loop'[.]|resumed[.]|is already active[.])" \
+    <<<"$recovery_output" ||
     fail "the harbor merchant schedule was reset but autopilot did not start; inspect the reported route or persistence error"
 }
 
