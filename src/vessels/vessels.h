@@ -2136,7 +2136,6 @@ struct waypoint *waypoint_get_next(struct greyhawk_ship_data *ship);
 struct ship_route *route_create(const char *name);
 void route_destroy(struct ship_route *route);
 int route_load(struct ship_route *route, int route_id);
-int route_save(struct ship_route *route);
 int route_activate(struct ship_route *route);
 int route_deactivate(struct ship_route *route);
 

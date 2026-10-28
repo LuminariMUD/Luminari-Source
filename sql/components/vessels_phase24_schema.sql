@@ -3,7 +3,7 @@
 -- Mirrors the runtime DDL in vessel_ownership_ensure_schema()
 -- (src/vessels/vessels_ownership.c).
 
--- The player who set a waypoint or created a route (player_data.player_idnum).
+-- The player who set a waypoint or created a route (player-file GET_IDNUM).
 -- Only that player or the staff may change or delete it. 0 is no player:
 -- content, and rows made before S12, which only the staff may change.
 ALTER TABLE ship_waypoints

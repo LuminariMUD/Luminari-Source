@@ -15,8 +15,8 @@ remaining real-player balance, human beta, and staged rollout gates.
 | Measure | Result | Status |
 | -- | -: | -- |
 | Configured fleet-array entries | 501 | Slot 0 is reserved; active maximum is 500 |
-| Base `greyhawk_ship_data` size | 5,120 bytes | At the 5 KiB budget |
-| Base storage for 501 array entries | 2,565,120 bytes (about 2.45 MiB) | Within about 3 MB budget |
+| Base `greyhawk_ship_data` size | 2,712 bytes | Within the 5 KiB budget |
+| Base storage for 501 array entries | 1,358,712 bytes (about 1.30 MiB) | Within about 3 MB budget |
 | Phase 7F event-refactor suite on August 31, 2026 | 987 of 987 passing | Current owner/lifecycle gate; repeat 500-ship scale preflight |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
@@ -61,35 +61,18 @@ microbenchmarks do not satisfy this target.
 
 ### Ship Structure
 
-The current measured `sizeof(struct greyhawk_ship_data)` is 5,120 bytes.
-
-| Component | Approximate bytes |
-| -- | -: |
-| Ten ship slots and description arrays | 2,680 |
-| Connection data | 640 |
-| Sail-crew and gun-crew data | 518 |
-| Room arrays | 160 |
-| Helm permits | 210 |
-| Cargo data | 80 |
-| Crew tiers | 16 |
-| Runtime counters, periodic ownership, movement state, other fields, and padding | 816 |
-| **Total** | **5,120** |
-
-The Phase 7F owner pointer, generation, registry links, and flag are included
-in this measurement, as are the S2 movement fields (floating-point speed and
-heading, the anchor flag, the cached position speed percent, and the departure
-and maneuver countdowns), which fit existing padding. The older measurements
-of 5,104 and 4,928 bytes and the still older 1,016-byte claim are obsolete for
-the current tree.
+The current `sizeof(struct greyhawk_ship_data)` is 2,712 bytes, measured
+with GDB on the development Linux build. Field sizes and alignment can vary by
+platform and build configuration.
 
 ### Fleet Projection
 
 | Ships | Base bytes | Approximate size |
 | -: | -: | -: |
-| 100 | 512,000 | 500.0 KiB |
-| 250 | 1,280,000 | 1.22 MiB |
-| 500 | 2,560,000 | 2.44 MiB |
-| Fixed 501-entry array | 2,565,120 | 2.45 MiB |
+| 100 | 271,200 | 264.8 KiB |
+| 250 | 678,000 | 0.65 MiB |
+| 500 | 1,356,000 | 1.29 MiB |
+| Fixed 501-entry array | 1,358,712 | 1.30 MiB |
 
 The separate vehicle array has a measured element size of 152 bytes. At 1,000
 vehicles, its base storage is 152,000 bytes, or about 148.4 KiB.
@@ -107,7 +90,7 @@ budget.
 
 | Structure | Size |
 | -- | -: |
-| `greyhawk_ship_data` | 5,120 bytes |
+| `greyhawk_ship_data` | 2,712 bytes |
 | `vehicle_data` | 152 bytes |
 | Autopilot state | 80 bytes |
 | Route data | 1,840 bytes |

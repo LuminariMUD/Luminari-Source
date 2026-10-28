@@ -422,7 +422,7 @@ struct ship_route *route_create(const char *name)
 {
   struct ship_route *route;
   /* Session-local IDs are negative so they can never collide with the
-   * positive AUTO_INCREMENT IDs assigned by ship_routes on route_save(). */
+   * positive AUTO_INCREMENT IDs assigned by ship_routes. */
   static int next_local_route_id = -1;
 
   CREATE(route, struct ship_route, 1);
@@ -518,89 +518,6 @@ int route_load(struct ship_route *route, int route_id)
     log("SYSERR: route_load - route %d has %d waypoints, truncated to %d", route_id,
         node->num_waypoints, MAX_WAYPOINTS_PER_ROUTE);
   }
-
-  return 1;
-}
-
-/**
- * Save a route to the database.
- *
- * @param route The route to save
- * @return 1 on success, 0 on failure
- */
-int route_save(struct ship_route *route)
-{
-  int *old_wp_ids = NULL;
-  int old_wp_count = 0;
-  int new_wp_ids[MAX_WAYPOINTS_PER_ROUTE];
-  int new_id;
-  int i;
-
-  if (route == NULL)
-  {
-    log("SYSERR: route_save called with NULL route");
-    return 0;
-  }
-
-  /* Create the DB record on first save (session-local IDs are negative),
-   * otherwise update it in place. */
-  if (route->route_id <= 0)
-  {
-    new_id = route_db_create(route->name, route->loop, 0);
-    if (new_id < 0)
-    {
-      log("SYSERR: route_save - failed to create route '%s' in database", route->name);
-      return 0;
-    }
-    route->route_id = new_id;
-  }
-  else
-  {
-    if (route_db_update(route->route_id, route->name, route->loop, route->active) != 1)
-    {
-      log("SYSERR: route_save - failed to update route %d", route->route_id);
-      return 0;
-    }
-    /* Remember previously linked waypoints so their rows can be removed
-     * after the links are replaced, keeping saves idempotent. */
-    route_get_waypoint_ids(route->route_id, &old_wp_ids, &old_wp_count);
-  }
-
-  /* Persist the inline waypoint array and relink in order. */
-  for (i = 0; i < route->num_waypoints; i++)
-  {
-    new_wp_ids[i] = waypoint_db_create(&route->waypoints[i], 0);
-    if (new_wp_ids[i] < 0)
-    {
-      log("SYSERR: route_save - failed to save waypoint %d of route %d", i, route->route_id);
-      if (old_wp_ids != NULL)
-        free(old_wp_ids);
-      return 0;
-    }
-  }
-
-  if (route->num_waypoints > 0)
-  {
-    if (route_reorder_waypoints_db(route->route_id, new_wp_ids, route->num_waypoints) != 1)
-    {
-      log("SYSERR: route_save - failed to link waypoints for route %d", route->route_id);
-      if (old_wp_ids != NULL)
-        free(old_wp_ids);
-      return 0;
-    }
-  }
-
-  /* Remove the superseded links and waypoint rows now that the links point
-   * at the freshly saved set (reorder already replaced the link rows when
-   * the new set is non-empty). */
-  for (i = 0; i < old_wp_count; i++)
-  {
-    if (route->num_waypoints == 0)
-      route_remove_waypoint_db(route->route_id, old_wp_ids[i]);
-    waypoint_db_delete(old_wp_ids[i]);
-  }
-  if (old_wp_ids != NULL)
-    free(old_wp_ids);
 
   return 1;
 }
@@ -850,10 +767,11 @@ static void route_cache_remove(int route_id)
  */
 int waypoint_db_create(const struct waypoint *wp, long creator_id)
 {
-  char query[MAX_STRING_LENGTH];
-  char escaped_name[AUTOPILOT_NAME_LENGTH * 2 + 1];
+  PREPARED_STMT *statement;
+  char coordinates[4][512];
   struct waypoint_node *node;
   int new_id;
+  bool inserted;
 
   if (wp == NULL)
   {
@@ -867,23 +785,33 @@ int waypoint_db_create(const struct waypoint *wp, long creator_id)
     return -1;
   }
 
-  /* Escape the name string */
-  mysql_real_escape_string(conn, escaped_name, wp->name, strlen(wp->name));
-
-  /* Build INSERT query */
-  snprintf(query, sizeof(query),
-           "INSERT INTO ship_waypoints (name, x, y, z, tolerance, wait_time, flags, creator_id) "
-           "VALUES ('%s', %.2f, %.2f, %.2f, %.2f, %d, %d, %ld)",
-           escaped_name, wp->x, wp->y, wp->z, wp->tolerance, wp->wait_time, wp->flags, creator_id);
-
-  if (mysql_query(conn, query))
+  /* Preserve the former two-decimal persistence precision. */
+  snprintf(coordinates[0], sizeof(coordinates[0]), "%.2f", wp->x);
+  snprintf(coordinates[1], sizeof(coordinates[1]), "%.2f", wp->y);
+  snprintf(coordinates[2], sizeof(coordinates[2]), "%.2f", wp->z);
+  snprintf(coordinates[3], sizeof(coordinates[3]), "%.2f", wp->tolerance);
+  statement = mysql_stmt_create(conn);
+  inserted = statement != NULL &&
+             mysql_stmt_prepare_query(statement,
+                                      "INSERT INTO ship_waypoints "
+                                      "(name, x, y, z, tolerance, wait_time, flags, creator_id) "
+                                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)") &&
+             mysql_stmt_bind_param_string(statement, 0, wp->name) &&
+             mysql_stmt_bind_param_string(statement, 1, coordinates[0]) &&
+             mysql_stmt_bind_param_string(statement, 2, coordinates[1]) &&
+             mysql_stmt_bind_param_string(statement, 3, coordinates[2]) &&
+             mysql_stmt_bind_param_string(statement, 4, coordinates[3]) &&
+             mysql_stmt_bind_param_int(statement, 5, wp->wait_time) &&
+             mysql_stmt_bind_param_int(statement, 6, wp->flags) &&
+             mysql_stmt_bind_param_long(statement, 7, creator_id) &&
+             mysql_stmt_execute_prepared(statement);
+  new_id = inserted ? (int)mysql_stmt_insert_id(statement->stmt) : -1;
+  mysql_stmt_cleanup(statement);
+  if (!inserted)
   {
-    log("SYSERR: waypoint_db_create failed: %s", mysql_error(conn));
+    log("SYSERR: waypoint_db_create failed");
     return -1;
   }
-
-  /* Get the auto-generated ID */
-  new_id = (int)mysql_insert_id(conn);
 
   /* Add to cache */
   CREATE(node, struct waypoint_node, 1);
@@ -1086,10 +1014,10 @@ int waypoint_db_delete(int waypoint_id)
  */
 int route_db_create(const char *name, bool loop_route, long creator_id)
 {
-  char query[MAX_STRING_LENGTH];
-  char escaped_name[AUTOPILOT_NAME_LENGTH * 2 + 1];
+  PREPARED_STMT *statement;
   struct route_node *node;
   int new_id;
+  bool inserted;
 
   if (name == NULL)
   {
@@ -1103,23 +1031,22 @@ int route_db_create(const char *name, bool loop_route, long creator_id)
     return -1;
   }
 
-  /* Escape the name string */
-  mysql_real_escape_string(conn, escaped_name, name, strlen(name));
-
-  /* Build INSERT query */
-  snprintf(query, sizeof(query),
-           "INSERT INTO ship_routes (name, loop_route, active, creator_id) "
-           "VALUES ('%s', %d, 1, %ld)",
-           escaped_name, loop_route ? 1 : 0, creator_id);
-
-  if (mysql_query(conn, query))
+  statement = mysql_stmt_create(conn);
+  inserted =
+      statement != NULL &&
+      mysql_stmt_prepare_query(statement, "INSERT INTO ship_routes (name, loop_route, active, "
+                                          "creator_id) VALUES (?, ?, 1, ?)") &&
+      mysql_stmt_bind_param_string(statement, 0, name) &&
+      mysql_stmt_bind_param_int(statement, 1, loop_route ? 1 : 0) &&
+      mysql_stmt_bind_param_long(statement, 2, creator_id) &&
+      mysql_stmt_execute_prepared(statement);
+  new_id = inserted ? (int)mysql_stmt_insert_id(statement->stmt) : -1;
+  mysql_stmt_cleanup(statement);
+  if (!inserted)
   {
-    log("SYSERR: route_db_create failed: %s", mysql_error(conn));
+    log("SYSERR: route_db_create failed");
     return -1;
   }
-
-  /* Get the auto-generated ID */
-  new_id = (int)mysql_insert_id(conn);
 
   /* Add to cache */
   CREATE(node, struct route_node, 1);

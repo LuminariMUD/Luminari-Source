@@ -1707,8 +1707,8 @@ bool vessel_save_one(struct greyhawk_ship_data *ship)
  * Save all vessel states to database.
  *
  * Iterates through the greyhawk_ships array and saves every valid ship and
- * every stowed hull, so a failed save is retried. Should be called at
- * shutdown and periodically during auto-save.
+ * every stowed hull, so a failed save is retried. Called at shutdown and
+ * copyover; there is no periodic fleet save.
  */
 bool save_all_vessels(void)
 {

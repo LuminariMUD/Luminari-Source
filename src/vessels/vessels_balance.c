@@ -335,7 +335,7 @@ bool vessel_balance_report(struct char_data *ch, int duel_count)
                minimum_tenths / 10, minimum_tenths % 10, median_tenths / 10, median_tenths % 10,
                p95_tenths / 10, p95_tenths % 10, maximum_tenths / 10, maximum_tenths % 10);
   send_to_char(ch, "  Model: default warships with three large ballistae a beam and a heavy "
-                   "beamcannon, NPC-crew gunnery (+5), holding the healthier beam at 6-9 "
+                   "beamcannon, NPC-crew gunnery (+5), holding the healthier beam at about 7.5 "
                    "rooms.\r\n");
   send_to_char(ch,
                "Economy: %d/%d trades, route %d trips/%lld gold, reversal "
