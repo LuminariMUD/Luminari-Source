@@ -849,8 +849,10 @@ gauges, a weapons panel, and a contact plot without polling.
 | `SHIP_WEAPONS` | One table per mounted weapon, in slot order: `SLOT`, `NAME`, `ARC`, `AMMO`, `READY` (1 when `shipstatus` says ready: undamaged, rounds left, reloaded), and `DAMAGE` (0-100: disabled from 1, destroyed at 100) |
 | `SHIP_CONTACTS` | The `contacts` list, the nearest 20 first: one table each with `ID`, `NAME`, `RANGE` (rooms, one decimal), `BEARING` (degrees), and `ARC` |
 
-An `ARC` value is one of the arc tables' keys, so a client can show the armor
-a weapon or contact faces. An empty array (an unarmed hull, an empty sea) is
+A weapon's `ARC` is one of the arc tables' keys. A contact at the same
+horizontal position instead has `ARC` set to `overlap` and `BEARING` set
+to `-1`, because it has no horizontal compass bearing. An empty array
+(an unarmed hull, an empty sea) is
 an empty string, as `GROUP` is. When a character leaves a vessel, the server
 sends an explicit empty state: every string, table, and array becomes empty
 and every number zero, so a client does not go on displaying a stale vessel.

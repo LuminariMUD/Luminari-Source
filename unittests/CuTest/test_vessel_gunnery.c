@@ -577,6 +577,77 @@ static void gunnery_deck_end(struct gunnery_deck *deck)
   gunnery_clear_ships();
 }
 
+void Test_vessel_overlapping_hulls_fire_and_report_all_arcs(CuTest *tc)
+{
+  static const int firing_arcs[] = {GREYHAWK_FORE, GREYHAWK_PORT, GREYHAWK_REAR,
+                                    GREYHAWK_STARBOARD};
+  static const int struck_arcs[] = {GREYHAWK_REAR, GREYHAWK_STARBOARD, GREYHAWK_FORE,
+                                    GREYHAWK_PORT};
+  struct gunnery_deck deck;
+  struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data *target = &greyhawk_ships[GUNNERY_SHIP_B];
+  struct vessel_contact contacts[2];
+  const char *output;
+  int initial_armor, dealt, i, arc;
+
+  ship = gunnery_deck_begin(tc, &deck);
+  ship->heading = 90.0;
+  target->heading = 90.0;
+  target->x = ship->x;
+  target->y = ship->y;
+  vessel_set_weapon(&ship->slot[3], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_REAR);
+
+  CuAssertIntEquals(tc, 1, vessel_collect_contacts(ship, contacts, 2));
+  CuAssertIntEquals(tc, -1, contacts[0].bearing);
+  output = gunnery_deck_command(&deck, do_greyhawk_contacts, "");
+  CuAssertTrue(tc, strstr(output, "overlap") != NULL);
+  vessel_msdp_update(&deck.gunner.ch);
+  CuAssertTrue(tc, strstr(deck.descriptor.pProtocol->pVariables[eMSDP_SHIP_CONTACTS]->pValueString,
+                          "\001BEARING\002-1\001ARC\002overlap") != NULL);
+
+  gunnery_deck_command(&deck, do_shiplock, "SB");
+  output = gunnery_deck_command(&deck, do_shipsight, "");
+  CuAssertTrue(tc, strstr(output, "overlapping all arcs") != NULL);
+  CuAssertPtrEquals(tc, NULL, strstr(output, "cannot bear"));
+  for (i = 0; i < 4; i++)
+  {
+    arc = firing_arcs[i];
+    output = gunnery_deck_command(&deck, do_shipfire, vessel_arc_name(arc));
+    CuAssertTrue(tc, strstr(output, "FIRES at the Tern") != NULL);
+  }
+
+  /* Direct hit resolution uses each mount's direction and both headings,
+   * independent of compass north. The narrow ballista spread stays on the
+   * expected side and an empty sail forces the damage onto the hull. */
+  for (i = 0; i < 4; i++)
+  {
+    vessel_initialize_condition(target, 100);
+    target->mainsail = 0;
+    vessel_set_weapon(&ship->slot[0], VESSEL_WEAPON_LARGE_BALLISTA, firing_arcs[i]);
+    initial_armor = *vessel_arc_armor(target, struck_arcs[i]);
+    dealt = vessel_resolve_hit(ship, target, &ship->slot[0], 0.0, FALSE);
+    CuAssertTrue(tc, dealt > 0);
+    CuAssertIntEquals(tc, initial_armor - dealt, *vessel_arc_armor(target, struck_arcs[i]));
+  }
+
+  /* The target's heading changes the side struck. */
+  target->heading = 180.0;
+  CuAssertIntEquals(
+      tc, GREYHAWK_STARBOARD,
+      vessel_arc_for_relative_bearing(
+          (int)(vessel_attack_bearing(ship, target, GREYHAWK_FORE) - target->heading)));
+
+  /* Overlap does not bypass minimum range, and a small horizontal offset
+   * restores normal bearing restrictions. */
+  vessel_set_weapon(&ship->slot[0], VESSEL_WEAPON_SMALL_CATAPULT, GREYHAWK_FORE);
+  CuAssertTrue(tc, strstr(vessel_weapon_fire_problem(ship, 0, target, FALSE), "outside") != NULL);
+  vessel_set_weapon(&ship->slot[0], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_PORT);
+  target->dx = 0.001;
+  CuAssertTrue(tc,
+               strstr(vessel_weapon_fire_problem(ship, 0, target, FALSE), "cannot bear") != NULL);
+  gunnery_deck_end(&deck);
+}
+
 void Test_vessel_arc_fire_answers_the_lock(CuTest *tc)
 {
   struct gunnery_deck deck;

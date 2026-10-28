@@ -297,6 +297,25 @@ void Test_vessel_raider_basic_ai_works_her_guns(CuTest *tc)
   raider_sea_end(&sea);
 }
 
+void Test_vessel_raider_keeps_course_when_a_broadside_bears_at_overlap(CuTest *tc)
+{
+  struct raider_sea sea;
+  struct greyhawk_ship_data *raider;
+  struct greyhawk_ship_data *quarry;
+
+  raider = raider_sea_begin(&sea, 0.0, 0.0, 90.0, 10.0);
+  quarry = &greyhawk_ships[QUARRY_SHIP];
+  raider->heading = 90.0;
+  vessel_set_weapon(&raider->slot[0], VESSEL_WEAPON_LARGE_BALLISTA, GREYHAWK_PORT);
+  vessel_raider_tick_one(raider);
+  CuAssertIntEquals(tc, 90, raider->setheading);
+  CuAssertIntEquals(
+      tc, GREYHAWK_STARBOARD,
+      vessel_arc_for_relative_bearing(
+          (int)(vessel_attack_bearing(raider, quarry, GREYHAWK_PORT) - quarry->heading)));
+  raider_sea_end(&sea);
+}
+
 void Test_vessel_raider_advanced_ai_works_round_to_the_weak_side(CuTest *tc)
 {
   struct raider_sea sea;
@@ -497,6 +516,28 @@ void Test_vessel_ram_strikes_and_waits(CuTest *tc)
   CuAssertTrue(tc, attempt < 50);
   CuAssertIntEquals(tc, VESSEL_RAM_MISS_TICKS, ship->ram_ticks);
 
+  raider_sea_end(&sea);
+}
+
+void Test_vessel_ram_at_overlap_uses_the_rammer_heading(CuTest *tc)
+{
+  struct raider_sea sea;
+  struct greyhawk_ship_data *ship;
+  struct greyhawk_ship_data *target;
+  int relative;
+
+  ship = raider_sea_begin(&sea, 0.0, 0.0, 90.0, 0.0);
+  sea.rooms[0].people = NULL;
+  target = &greyhawk_ships[QUARRY_SHIP];
+  ship->heading = 90.0;
+  ship->speed = 10.0;
+  target->heading = 90.0;
+  target->speed = 0.0;
+
+  relative = (int)(vessel_attack_bearing(ship, target, GREYHAWK_FORE) - target->heading);
+  CuAssertIntEquals(tc, GREYHAWK_REAR, vessel_arc_for_relative_bearing(relative));
+  vessel_ram(ship, target);
+  CuAssertTrue(tc, ship->ram_ticks > 0);
   raider_sea_end(&sea);
 }
 

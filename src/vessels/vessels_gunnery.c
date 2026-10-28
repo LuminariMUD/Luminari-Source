@@ -509,7 +509,8 @@ const char *vessel_weapon_fire_problem(struct greyhawk_ship_data *ship, int slot
     snprintf(problem, sizeof(problem), "The %s in slot %d is still reloading (%d seconds).",
              type->name, slot, (weapon->timer + 1) / 2);
   }
-  else if (weapon->position != vessel_arc_toward(ship, target))
+  else if (!vessel_positions_overlap(ship, target) &&
+           weapon->position != vessel_arc_toward(ship, target))
   {
     snprintf(problem, sizeof(problem), "The %s %s cannot bear - %s lies off your %s arc.",
              vessel_arc_name(weapon->position), type->name, target->name,
@@ -868,9 +869,13 @@ ACMD(do_shipsight)
     return;
   }
 
-  send_to_char(ch, "Sighting [%s] %s, %.1f rooms off your %s arc:\r\n", target->id, target->name,
-               vessel_range_between(ship, target),
-               vessel_arc_name(vessel_arc_toward(ship, target)));
+  if (vessel_positions_overlap(ship, target))
+    send_to_char(ch, "Sighting [%s] %s, %.1f rooms, overlapping all arcs:\r\n", target->id,
+                 target->name, vessel_range_between(ship, target));
+  else
+    send_to_char(ch, "Sighting [%s] %s, %.1f rooms off your %s arc:\r\n", target->id, target->name,
+                 vessel_range_between(ship, target),
+                 vessel_arc_name(vessel_arc_toward(ship, target)));
   for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
   {
     type = vessel_slot_weapon(&ship->slot[s]);

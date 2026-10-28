@@ -227,11 +227,17 @@ static void vessel_lookout_render_contacts(struct char_data *ch,
   {
     contact_ship = &greyhawk_ships[contacts[i].shipnum];
     name = contact_ship->name[0] ? contact_ship->name : "Unknown Vessel";
-    send_to_char(ch, "  [%s] %-24.24s %-9s %5.1fu %s (%d deg), dz %+d\r\n", contact_ship->id, name,
-                 vessel_status_name(vessel_status(contact_ship)), contacts[i].range,
-                 vessel_lookout_compass_direction(contacts[i].bearing), contacts[i].bearing,
-                 vessel_autopilot_grid_coordinate(contact_ship->z) -
-                     vessel_autopilot_grid_coordinate(ship->z));
+    if (contacts[i].bearing < 0)
+      send_to_char(ch, "  [%s] %-24.24s %-9s %5.1fu overlap, dz %+d\r\n", contact_ship->id, name,
+                   vessel_status_name(vessel_status(contact_ship)), contacts[i].range,
+                   vessel_autopilot_grid_coordinate(contact_ship->z) -
+                       vessel_autopilot_grid_coordinate(ship->z));
+    else
+      send_to_char(ch, "  [%s] %-24.24s %-9s %5.1fu %s (%d deg), dz %+d\r\n", contact_ship->id,
+                   name, vessel_status_name(vessel_status(contact_ship)), contacts[i].range,
+                   vessel_lookout_compass_direction(contacts[i].bearing), contacts[i].bearing,
+                   vessel_autopilot_grid_coordinate(contact_ship->z) -
+                       vessel_autopilot_grid_coordinate(ship->z));
     if (vessel_format_appearance(appearance, sizeof(appearance), contact_ship))
     {
       send_to_char(ch, "       %s\r\n", appearance);

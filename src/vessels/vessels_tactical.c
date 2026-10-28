@@ -457,9 +457,14 @@ static void vessel_tactical_render_contacts(struct char_data *ch,
     name = contact_ship->name[0] ? contact_ship->name : "Unknown Vessel";
     delta_z = vessel_autopilot_grid_coordinate(contact_ship->z) -
               vessel_autopilot_grid_coordinate(ship->z);
-    send_to_char(ch, "   %-4s %-24.24s %-9s %6.1f %4d %-3s %+4d\r\n", contact_ship->id, name,
-                 vessel_status_name(vessel_status(contact_ship)), contacts[i].range,
-                 contacts[i].bearing, vessel_tactical_direction(contacts[i].bearing), delta_z);
+    if (contacts[i].bearing < 0)
+      send_to_char(ch, "   %-4s %-24.24s %-9s %6.1f %4s %-3s %+4d\r\n", contact_ship->id, name,
+                   vessel_status_name(vessel_status(contact_ship)), contacts[i].range, "-", "-",
+                   delta_z);
+    else
+      send_to_char(ch, "   %-4s %-24.24s %-9s %6.1f %4d %-3s %+4d\r\n", contact_ship->id, name,
+                   vessel_status_name(vessel_status(contact_ship)), contacts[i].range,
+                   contacts[i].bearing, vessel_tactical_direction(contacts[i].bearing), delta_z);
   }
   send_to_char(ch, "   Detected: %d%s\r\n", contact_count,
                contact_count > shown ? " (nearest 20 shown)" : "");

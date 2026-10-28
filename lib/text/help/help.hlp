@@ -31959,8 +31959,10 @@ SHIPFIRE <slot | fore | port | rear | starboard> [<contact>]
   it first. A weapon fires only when its arc faces the target (arcs run
   from the bow: fore 320-40 degrees, starboard 40-140, rear 140-220, port
   220-320), the target lies inside its range band, and it is sound, loaded,
-  and reloaded. Your hull cannot fire in port, at anchor, submerged, while
-  going down, with her crew stunned, or while she reels from a ram. Every
+  and reloaded. Hulls at the same horizontal position overlap every arc;
+  each weapon's range band still applies, and its direction and the hulls'
+  headings determine the side hit. Your hull cannot fire in port, at anchor,
+  submerged, while going down, with her crew stunned, or while she reels from a ram. Every
   volley costs a combat round and each shot a round of ammunition; each
   weapon then reloads for 17 seconds (25 and a half for the capital
   weapons), a little faster with a better gunner and slower with a tired
@@ -41794,8 +41796,9 @@ SETSAIL <direction>
 CONTACTS
   List the vessels within your visibility, nearest first, with the
   two-letter ID that SHIPFIRE accepts, and the arc of your hull each one
-  lies off; the locked contact is marked. Fog closes the horizon and a
-  posted lookout extends it. The nearest 20 contacts are shown. Ranges
+  lies off; the locked contact is marked. Overlapping horizontal positions
+  show no compass bearing and report overlap for the arc. Fog closes the
+  horizon and a posted lookout extends it. The nearest 20 contacts are shown. Ranges
   count one room for every 10 of altitude or depth.
 
 DOCK [vessel]

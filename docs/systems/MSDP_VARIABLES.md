@@ -158,7 +158,7 @@ and every number zero. The formats are in
 | `SHIP_STAMINA`, `SHIP_STAMINA_MAX` | Number | Crew stamina |
 | `SHIP_TARGET` | String | ID of the locked contact, or empty |
 | `SHIP_WEAPONS` | Array | Mounted weapons: slot, name, arc, ammo, ready, damage |
-| `SHIP_CONTACTS` | Array | Nearest contacts: ID, name, range, bearing, arc |
+| `SHIP_CONTACTS` | Array | Nearest contacts: ID, name, range, bearing, arc; overlapping horizontal positions use bearing -1 and arc `overlap` |
 
 ### Client Configuration and Capabilities
 

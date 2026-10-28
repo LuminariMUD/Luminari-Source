@@ -1269,11 +1269,52 @@ double vessel_range_between(const struct greyhawk_ship_data *from,
                         to->y + to->dy, to->z);
 }
 
-/** Compass bearing from one hull to another, 0 <= bearing < 360, from exact positions. */
+/* Vertically separated hulls also have no horizontal bearing when their
+ * exact horizontal positions coincide. */
+bool vessel_positions_overlap(const struct greyhawk_ship_data *from,
+                              const struct greyhawk_ship_data *to)
+{
+  return fabs((from->x + from->dx) - (to->x + to->dx)) <= 0.0 &&
+         fabs((from->y + from->dy) - (to->y + to->dy)) <= 0.0;
+}
+
+/* Compass direction from the target back toward an incoming shot or ram. */
+double vessel_attack_bearing(const struct greyhawk_ship_data *attacker,
+                             const struct greyhawk_ship_data *target, int firing_arc)
+{
+  double offset;
+  double bearing;
+
+  if (!vessel_positions_overlap(attacker, target))
+    return vessel_bearing_between(target, attacker);
+  switch (firing_arc)
+  {
+  case GREYHAWK_PORT:
+    offset = 270.0;
+    break;
+  case GREYHAWK_REAR:
+    offset = 180.0;
+    break;
+  case GREYHAWK_STARBOARD:
+    offset = 90.0;
+    break;
+  default:
+    offset = 0.0;
+    break;
+  }
+  bearing = fmod(attacker->heading + offset + 180.0, 360.0);
+  return bearing < 0.0 ? bearing + 360.0 : bearing;
+}
+
+/* At an overlap there is no compass bearing; navigation uses the observer's
+ * heading as a stable forward reference. Contact displays mark it undefined. */
 double vessel_bearing_between(const struct greyhawk_ship_data *from,
                               const struct greyhawk_ship_data *to)
 {
   double bearing;
+
+  if (vessel_positions_overlap(from, to))
+    return fmod(fmod(from->heading, 360.0) + 360.0, 360.0);
 
   bearing =
       atan2((to->x + to->dx) - (from->x + from->dx), (to->y + to->dy) - (from->y + from->dy)) *
@@ -2213,7 +2254,9 @@ int vessel_collect_contacts(const struct greyhawk_ship_data *ship, struct vessel
     }
     entry.shipnum = i;
     entry.range = range;
-    entry.bearing = (int)lround(vessel_bearing_between(ship, other)) % 360;
+    entry.bearing = vessel_positions_overlap(ship, other)
+                        ? -1
+                        : (int)lround(vessel_bearing_between(ship, other)) % 360;
     position = stored < max_contacts ? stored++ : stored - 1;
     while (position > 0 && contacts[position - 1].range > range)
     {
@@ -2305,11 +2348,16 @@ ACMD(do_greyhawk_contacts)
   for (i = 0; i < shown; i++)
   {
     contact_ship = &greyhawk_ships[contacts[i].shipnum];
-    send_to_char(ch, "   %-3s %-20.20s  %6.1f u  %5d deg  %-4s  %s%s\r\n", contact_ship->id,
-                 contact_ship->name[0] ? contact_ship->name : "Unknown Vessel", contacts[i].range,
-                 contacts[i].bearing, bearing_direction_str(contacts[i].bearing),
-                 vessel_arc_name(vessel_arc_toward(ship, &greyhawk_ships[contacts[i].shipnum])),
-                 ship->lock_target == contacts[i].shipnum ? " (locked)" : "");
+    if (contacts[i].bearing < 0)
+      send_to_char(ch, "   %-3s %-20.20s  %6.1f u  %9s  %-4s  overlap%s\r\n", contact_ship->id,
+                   contact_ship->name[0] ? contact_ship->name : "Unknown Vessel", contacts[i].range,
+                   "-", "-", ship->lock_target == contact_ship->shipnum ? " (locked)" : "");
+    else
+      send_to_char(ch, "   %-3s %-20.20s  %6.1f u  %5d deg  %-4s  %s%s\r\n", contact_ship->id,
+                   contact_ship->name[0] ? contact_ship->name : "Unknown Vessel", contacts[i].range,
+                   contacts[i].bearing, bearing_direction_str(contacts[i].bearing),
+                   vessel_arc_name(vessel_arc_toward(ship, contact_ship)),
+                   ship->lock_target == contact_ship->shipnum ? " (locked)" : "");
   }
 
   send_to_char(ch, "\r\n");
