@@ -24,7 +24,7 @@ src/player/player_rename.c 10
 src/player/players.c 19
 src/quest/quest.c 15
 src/vessels/vehicles.c 3
-src/vessels/vessels_autopilot.c 17
+src/vessels/vessels_autopilot.c 15
 src/vessels/vessels_contracts.c 10
 src/vessels/vessels_crew.c 2
 src/vessels/vessels_db.c 25

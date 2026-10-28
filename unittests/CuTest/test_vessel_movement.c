@@ -1861,6 +1861,11 @@ void Test_vessel_waypoints_and_routes_record_their_creator(CuTest *tc)
   struct descriptor_data descriptor;
   struct waypoint_node *saved_waypoints;
   struct waypoint_node *waypoint;
+  struct waypoint special;
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char query[256];
+  int waypoint_id, route_id;
   struct route_node *saved_routes;
   char output[MAX_STRING_LENGTH];
   MYSQL *saved_conn;
@@ -1981,6 +1986,51 @@ void Test_vessel_waypoints_and_routes_record_their_creator(CuTest *tc)
   run_rows = movement_query_int(connection, "SELECT COUNT(*) FROM ship_routes");
   CuAssertIntEquals(tc, 0, mark_rows);
   CuAssertIntEquals(tc, 0, run_rows);
+
+  /* Bound inserts preserve quoted names, rounded coordinates, metadata and IDs. */
+  memset(&special, 0, sizeof(special));
+  strlcpy(special.name, "Harbor 'mark", sizeof(special.name));
+  special.x = -1.234;
+  special.y = 25.678;
+  special.z = -3.456;
+  special.tolerance = 0.876;
+  special.wait_time = 12;
+  special.flags = 3;
+  waypoint_id = waypoint_db_create(&special, MOVEMENT_CAPTAIN_ID);
+  route_id = route_db_create("Captain 'route", TRUE, MOVEMENT_CAPTAIN_ID);
+  CuAssertTrue(tc, waypoint_id > 0 && route_id > 0);
+  snprintf(query, sizeof(query),
+           "SELECT name, x, y, z, tolerance, wait_time, flags, creator_id "
+           "FROM ship_waypoints WHERE waypoint_id = %d",
+           waypoint_id);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+  result = mysql_store_result(connection);
+  CuAssertPtrNotNull(tc, result);
+  row = mysql_fetch_row(result);
+  CuAssertPtrNotNull(tc, row);
+  CuAssertStrEquals(tc, "Harbor 'mark", row[0]);
+  CuAssertDblEquals(tc, -1.23, atof(row[1]), 0.001);
+  CuAssertDblEquals(tc, 25.68, atof(row[2]), 0.001);
+  CuAssertDblEquals(tc, -3.46, atof(row[3]), 0.001);
+  CuAssertDblEquals(tc, 0.88, atof(row[4]), 0.001);
+  CuAssertIntEquals(tc, 12, atoi(row[5]));
+  CuAssertIntEquals(tc, 3, atoi(row[6]));
+  CuAssertIntEquals(tc, MOVEMENT_CAPTAIN_ID, atoi(row[7]));
+  mysql_free_result(result);
+  snprintf(query, sizeof(query),
+           "SELECT name, loop_route, active, creator_id "
+           "FROM ship_routes WHERE route_id = %d",
+           route_id);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+  result = mysql_store_result(connection);
+  CuAssertPtrNotNull(tc, result);
+  row = mysql_fetch_row(result);
+  CuAssertPtrNotNull(tc, row);
+  CuAssertStrEquals(tc, "Captain 'route", row[0]);
+  CuAssertIntEquals(tc, 1, atoi(row[1]));
+  CuAssertIntEquals(tc, 1, atoi(row[2]));
+  CuAssertIntEquals(tc, MOVEMENT_CAPTAIN_ID, atoi(row[3]));
+  mysql_free_result(result);
 
   waypoint_cache_clear();
   route_cache_clear();

@@ -1229,7 +1229,8 @@ movement, gunnery, damage, and reload code (see `VESSEL_SYSTEM.md`). The
 mechanical band is decision D2: a 3-8 minute median, no more than 12 minutes
 at p95, nothing under 90 seconds, and at most 2% of duels drawn (no kill in an
 hour). The default sample is 200 duels and the most is 1,000. The same report runs the production 1,000-trade
-simulation, lists crew payroll plus class hull/refit/insurance/dock anchors,
+simulation, lists one-time crew hires (there are no wages) and class
+hull/refit/insurance/dock anchors,
 and reads anonymized aggregate hull, freight, and event totals. It does not
 change live hulls, the game random stream, port supply, cargo, or character
 gold. A production-linked test locks the deterministic duel bounds and input
@@ -1239,7 +1240,13 @@ A mechanical `PASS` is not balance sign-off. Preserve the printed persisted
 sample and collect real beta combat ratings separately; at least 70 percent
 "fun" feedback remains a human release criterion.
 
-The August 2, 2026 actual-Kohdee run passed in 10 seconds on source
+The S5 1,000-duel tuning run with crew fatigue and repairs recorded a 437-second
+median, 636-second p95, 208-second minimum and 0.7% draws. Four other seeds
+produced medians of 437-443 seconds; see the time-to-kill tuning record in
+`docs/adr/0003-durismud-naval-model.md`. These are mechanical results,
+not player balance acceptance.
+
+The earlier August 2, 2026 actual-Kohdee run passed in 10 seconds on source
 `e07cd049` and installed SHA-256
 `075d552509218a5071067898c34130de31748628f1c40dc6f790cb0cc831b6dc`.
 All 1,000 duels resolved with a 60.5-second median and 72.5-second p95; the

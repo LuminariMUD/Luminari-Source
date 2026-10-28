@@ -66,7 +66,7 @@ and operator controls in one system.
 
 | Tier | Type | Memory | Interior | Use Case |
 | -- | -- | -- | -- | -- |
-| **Vessel** | Ships, airships, submarines | 5,120-byte base struct | Multi-room | Exploration, cargo, combat |
+| **Vessel** | Ships, airships, submarines | 2,712-byte base struct | Multi-room | Exploration, cargo, combat |
 | **Vehicle** | Carts, wagons, mounts | 152-byte base struct | None | Land travel, cargo, transport |
 
 ### System Components
@@ -106,7 +106,7 @@ and operator controls in one system.
 
 ### Memory Layout
 
-- **Vessel** (`greyhawk_ship_data`): 2,672 bytes, max 500 = about 1.27 MiB
+- **Vessel** (`greyhawk_ship_data`): 2,712 bytes, max 500 = about 1.29 MiB
 - **Autopilot** (`autopilot_data`): 80 bytes (optional, attached to vessel)
 - **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
 - **Vehicle** (`vehicle_data`): 152 bytes, max 1000 = about 148 KB
@@ -2126,7 +2126,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Component | Per unit | Maximum | Base total |
 | -- | -- | -- | -- |
-| Vessel | 2,672 bytes | 500 | About 1.27 MiB |
+| Vessel | 2,712 bytes | 500 | About 1.29 MiB |
 | Vehicle | 152 bytes | 1,000 | About 148 KB |
 | Autopilot | 80 bytes | Optional per vessel | Up to about 40 KB |
 | Schedule | About 32 bytes | Optional per vessel | Up to about 16 KB |
@@ -2135,7 +2135,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Structure | Size |
 | -- | -- |
-| `struct greyhawk_ship_data` | 2,672 bytes |
+| `struct greyhawk_ship_data` | 2,712 bytes |
 | `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
 | `struct ship_route` | 1840 bytes |

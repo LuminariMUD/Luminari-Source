@@ -12,7 +12,7 @@
 -- one for a player, so neither opens another account before it is settled.
 CREATE TABLE IF NOT EXISTS vessel_settlements (
   settlement_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  -- player_data.player_idnum of the captain; 0 for a mob, which has no file.
+  -- Player-file GET_IDNUM of the captain; 0 for a mob, which has no file.
   player_id INT UNSIGNED NOT NULL,
   ship_id INT NOT NULL,
   -- The undo of a trade or of a freight acceptance: supply_delta is added to
