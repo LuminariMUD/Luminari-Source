@@ -1332,7 +1332,6 @@ void Test_pet_object_decoder_validates_fields_and_preserves_text(CuTest *tc)
                            "#-1\nSpCt: 1\n",
                            "#-1\nSpCt: 0\nSpAb: 1 2 3 4 5 6 7\n",
                            "#-1\nSpCt: 1\nSpAb: 1 2 3 4 5 6\n",
-                           "#-1\nSpCt: 1\nSpAb: 1 2 3 4 5 6 7 alpha beta\n",
                            "#-1\nSpCt: 0\nSpCt: 0\n",
                            "#-1\nSpCt: 1\n#-1\n",
                            "#-1\nType: 999\n",
@@ -3565,7 +3564,8 @@ void Test_object_full_ability_list_round_trips_across_save_paths(CuTest *tc)
   zone_rnum saved_top_zone = top_of_zone_table;
   MYSQL *connection = NULL, *saved_conn = conn;
   bool saved_available = mysql_available;
-  bool file_ok = true, player_ok = true, sheath_ok = true, pet_ok = true, overflow_ok = true;
+  bool file_ok = true, player_ok = true, house_ok = true, sheath_ok = true, pet_ok = true;
+  bool overflow_ok = true;
   obj_save_data *loaded;
   FILE *fixture;
   int i;
@@ -3594,12 +3594,17 @@ void Test_object_full_ability_list_round_trips_across_save_paths(CuTest *tc)
   CREATE(objects[0]->special_abilities->next, struct obj_special_ability, 1);
   objects[0]->special_abilities->next->ability = WEAPON_SPECAB_FLAMING_BURST;
   objects[0]->special_abilities->next->level = 20;
-  objects[0]->special_abilities->next->command_word = filled_string('x', 180);
+  objects[0]->special_abilities->next->command_word = filled_string('x', 490);
+  objects[0]->special_abilities->next->command_word[0] = ' ';
+  objects[0]->special_abilities->next->command_word[200] = ' ';
+  objects[0]->special_abilities->next->command_word[489] = ' ';
   CREATE(objects[0]->special_abilities->next->next, struct obj_special_ability, 1);
   objects[0]->special_abilities->next->next->ability = WEAPON_SPECAB_BANE;
   objects[0]->special_abilities->next->next->level = 3;
   objects[1] = read_object(index.vnum, VIRTUAL);
   objects[1]->special_abilities->next->level = 20;
+  free(objects[1]->special_abilities->next->command_word);
+  objects[1]->special_abilities->next->command_word = strdup("red  flame");
   objects[2] = read_object(index.vnum, VIRTUAL);
   free_obj_special_abilities(objects[2]->special_abilities);
   objects[2]->special_abilities = NULL;
@@ -3614,6 +3619,10 @@ void Test_object_full_ability_list_round_trips_across_save_paths(CuTest *tc)
                                         "idnum INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), "
                                         "serialized_obj TEXT, "
                                         "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0;
+    house_ok = mysql_query(connection, "CREATE TEMPORARY TABLE house_data ("
+                                       "idnum INT AUTO_INCREMENT PRIMARY KEY, vnum INT, "
+                                       "serialized_obj TEXT, "
+                                       "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0;
     sheath_ok = mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs_sheathed ("
                                         "sheath_obj_id BIGINT, sheathed_position INT, "
                                         "owner_name VARCHAR(100), serialized_obj TEXT)") == 0;
@@ -3643,6 +3652,16 @@ void Test_object_full_ability_list_round_trips_across_save_paths(CuTest *tc)
         loaded = objsave_parse_objects_db(GET_NAME(&owner), NOWHERE);
         player_ok = player_ok && loaded != NULL && loaded->next == NULL &&
                     same_special_ability_order(objects[i], loaded->obj);
+        extract_loaded_objects(loaded);
+      }
+      if (mysql_query(connection, "DELETE FROM house_data") ||
+          !objsave_save_obj_record_db(objects[i], NULL, 900, fixture, 0))
+        house_ok = false;
+      else
+      {
+        loaded = objsave_parse_objects_db(NULL, 900);
+        house_ok = house_ok && loaded != NULL && loaded->next == NULL &&
+                   same_special_ability_order(objects[i], loaded->obj);
         extract_loaded_objects(loaded);
       }
       if (mysql_query(connection, "DELETE FROM player_save_objs_sheathed") ||
@@ -3709,6 +3728,7 @@ void Test_object_full_ability_list_round_trips_across_save_paths(CuTest *tc)
     mysql_close(connection);
   CuAssertTrue(tc, file_ok);
   CuAssertTrue(tc, player_ok);
+  CuAssertTrue(tc, house_ok);
   CuAssertTrue(tc, sheath_ok);
   CuAssertTrue(tc, pet_ok);
   CuAssertTrue(tc, overflow_ok);
@@ -3739,7 +3759,7 @@ void Test_object_legacy_single_ability_record_preserves_prototype(CuTest *tc)
   FILE *fixture;
   char payload[256], escaped[512], query[1024];
   bool saved_available = mysql_available;
-  bool valid, player_ok = true, sheath_ok = true, pet_ok = true;
+  bool valid, player_ok = true, house_ok = true, sheath_ok = true, pet_ok = true;
 
   clear_object(&prototype);
   prototype.item_number = 0;
@@ -3754,9 +3774,11 @@ void Test_object_legacy_single_ability_record_preserves_prototype(CuTest *tc)
   top_of_zone_table = 0;
   expected = read_object(index.vnum, VIRTUAL);
   expected->special_abilities->level = 20;
+  free(expected->special_abilities->command_word);
+  expected->special_abilities->command_word = strdup("legacy");
   fixture = tmpfile();
   CuAssertPtrNotNull(tc, fixture);
-  snprintf(payload, sizeof(payload), "#91001\nSpAb: %d 20 0 0 0 0 0\n",
+  snprintf(payload, sizeof(payload), "#91001\nSpAb: %d 20 0 0 0 0 0 legacy extra\n",
            expected->special_abilities->ability);
   fputs(payload, fixture);
   rewind(fixture);
@@ -3787,6 +3809,17 @@ void Test_object_legacy_single_ability_record_preserves_prototype(CuTest *tc)
     player_ok = player_ok && mysql_query(connection, query) == 0;
     loaded = player_ok ? objsave_parse_objects_db(GET_NAME(&owner), NOWHERE) : NULL;
     player_ok =
+        loaded != NULL && loaded->next == NULL && same_special_ability_order(expected, loaded->obj);
+    extract_loaded_objects(loaded);
+    house_ok = mysql_query(connection, "CREATE TEMPORARY TABLE house_data ("
+                                       "idnum INT AUTO_INCREMENT PRIMARY KEY, vnum INT, "
+                                       "serialized_obj TEXT, "
+                                       "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0;
+    snprintf(query, sizeof(query),
+             "INSERT INTO house_data (vnum, serialized_obj) VALUES (900, '%s')", escaped);
+    house_ok = house_ok && mysql_query(connection, query) == 0;
+    loaded = house_ok ? objsave_parse_objects_db(NULL, 900) : NULL;
+    house_ok =
         loaded != NULL && loaded->next == NULL && same_special_ability_order(expected, loaded->obj);
     extract_loaded_objects(loaded);
     sheath_ok = mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs_sheathed ("
@@ -3820,6 +3853,7 @@ void Test_object_legacy_single_ability_record_preserves_prototype(CuTest *tc)
   top_of_zone_table = saved_top_zone;
   CuAssertTrue(tc, valid);
   CuAssertTrue(tc, player_ok);
+  CuAssertTrue(tc, house_ok);
   CuAssertTrue(tc, sheath_ok);
   CuAssertTrue(tc, pet_ok);
 }

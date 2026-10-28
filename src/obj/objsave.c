@@ -110,13 +110,12 @@ static bool objsave_read_special_ability(struct obj_data *obj, const char *line,
   struct obj_special_ability **tail;
   int values[7];
   const char *word;
-  const char *after_word;
   size_t word_length;
   int consumed = -1;
   int fields = 0;
 
   if (obj != NULL && line != NULL)
-    fields = strict_sscanf(line, "%d %d %d %d %d %d %d %n", &values[0], &values[1], &values[2],
+    fields = strict_sscanf(line, "%d %d %d %d %d %d %d%n", &values[0], &values[1], &values[2],
                            &values[3], &values[4], &values[5], &values[6], &consumed);
   if (fields != 7 || consumed < 0)
   {
@@ -124,11 +123,21 @@ static bool objsave_read_special_ability(struct obj_data *obj, const char *line,
     return false;
   }
   word = line + consumed;
-  word_length = strcspn(word, " \t\r\n");
-  after_word = word + word_length;
-  after_word += strspn(after_word, " \t\r\n");
-  if (append && *after_word != '\0')
-    return false;
+  if (append)
+  {
+    /* The writer inserts one separator; the rest is the complete command. */
+    if (*word == ' ')
+      word++;
+    else if (*word != '\0' && *word != '\r')
+      return false;
+    word_length = strcspn(word, "\r\n");
+  }
+  else
+  {
+    /* Old records used %127s, so preserve their one-word interpretation. */
+    word += strspn(word, " \t\r\n");
+    word_length = MIN(strcspn(word, " \t\r\n"), (size_t)127);
+  }
 
   ability = NULL;
   if (append)
@@ -2024,7 +2033,7 @@ static void objsave_sync_loaded_objects(obj_save_data *loaded)
 obj_save_data *objsave_parse_objects(FILE *fl)
 {
   obj_save_data *head, *current, *tempsave;
-  char f1[128], f2[128], f3[128], f4[128], line[READ_SIZE];
+  char f1[128], f2[128], f3[128], f4[128], line[OBJSAVE_LINE_SIZE];
   int t[NUM_OBJ_VAL_POSITIONS], i, j = 0, nr, abilities_left = -1;
   struct obj_data *temp;
 
@@ -2075,6 +2084,20 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
 
       break;
+    }
+
+    /* get_line() reads at most READ_SIZE-1 bytes. An ability's command can
+     * fill a player input line, so read the remainder of this field too. */
+    if (!strncmp(line, "SpAb:", 5) && strlen(line) == READ_SIZE - 1)
+    {
+      size_t length = strlen(line);
+
+      if (fgets(line + length, sizeof(line) - length, fl) != NULL)
+      {
+        length = strlen(line);
+        while (length > 0 && (line[length - 1] == '\n' || line[length - 1] == '\r'))
+          line[--length] = '\0';
+      }
     }
 
     /* if it's a new record, wrap up the old one, and make space for a new one */
