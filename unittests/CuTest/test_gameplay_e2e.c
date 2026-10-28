@@ -4862,7 +4862,8 @@ void Test_gameplay_familiar_recall_reports_injuries_without_changing_health(CuTe
   struct char_data *owner = &fixture.actor, *pet = &fixture.victim;
   struct char_data *saved_characters = character_list;
   bool preserved = true, reported = true;
-  int command, position;
+  int command;
+  byte position;
   size_t i;
 
   begin_gameplay_fixture(&fixture);
