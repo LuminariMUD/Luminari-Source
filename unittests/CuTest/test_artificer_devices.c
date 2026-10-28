@@ -410,6 +410,57 @@ void Test_artificer_device_work_can_be_cancelled(CuTest *tc)
   CuAssertTrue(tc, !repairing);
 }
 
+void Test_artificer_device_information_does_not_require_standard_action(CuTest *tc)
+{
+  struct artificer_fixture f;
+  bool created_commands = complete_cmd_info == NULL;
+  const char *commands[] = {"device list",     "device info", "device spells", "device usage",
+                            "device cooldown", "device l",    "device i",      "device s",
+                            "device usa",      "device co"};
+  const char *expected[] = {"Your weird science inventions",
+                            "Usage: device info",
+                            "Usage: device spells",
+                            "Artificer Spell Slot Usage",
+                            "Device Cooldown Status",
+                            "Your weird science inventions",
+                            "Usage: device info",
+                            "Usage: device spells",
+                            "Artificer Spell Slot Usage",
+                            "Device Cooldown Status"};
+  const char *acting[] = {"device use 1",    "device create",    "device add 1 shield",
+                          "device repair 1", "device destroy 1", "device rename 1 test",
+                          "device u 1",      "device c"};
+  char command[MAX_INPUT_LENGTH];
+  bool information_works = true, acting_waits = true;
+  size_t i;
+
+  begin_artificer(&f, 1);
+  if (created_commands)
+    create_command_list();
+  USE_STANDARD_ACTION(&f.ch);
+  for (i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
+  {
+    clear_output(&f);
+    strlcpy(command, commands[i], sizeof(command));
+    command_interpreter(&f.ch, command);
+    information_works = information_works && strstr(f.descriptor.output, expected[i]) != NULL;
+  }
+  for (i = 0; i < sizeof(acting) / sizeof(acting[0]); i++)
+  {
+    clear_output(&f);
+    strlcpy(command, acting[i], sizeof(command));
+    command_interpreter(&f.ch, command);
+    acting_waits = acting_waits &&
+                   strstr(f.descriptor.output, "You must wait for the required action") != NULL;
+  }
+  if (created_commands)
+    free_command_list();
+  end_artificer(&f);
+
+  CuAssertTrue(tc, information_works);
+  CuAssertTrue(tc, acting_waits);
+}
+
 /* Metamagic Science on a wand spends one extra charge per level the metamagic adds; it used to
  * spend one charge whatever was applied. */
 void Test_metamagic_science_wand_spends_a_charge_per_added_level(CuTest *tc)
