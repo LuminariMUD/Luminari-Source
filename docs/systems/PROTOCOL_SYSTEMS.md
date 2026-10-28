@@ -61,6 +61,24 @@ Native MSDP and MSDP-over-GMCP expose the same logical values:
   embedded NUL, invalid UTF-8, and malformed JSON are rejected before any
   command in the object is applied. The `MSDP` package name is case-sensitive.
 
+## Prompt boundaries and queued actions
+
+The prompt renderer appends Telnet IAC GA to every prompt, including when the player
+has selected prompt none or screen-reader mode suppresses gameplay prompt text.
+In those cases the bare GA is the intended prompt boundary, not visible text.
+Pager and editor prompts still have text in screen-reader mode.
+
+When a command cannot use its required action, the interpreter queues it and
+sends an acknowledgement. The output handler sends that acknowledgement with a
+prompt and the game loop marks the descriptor as having a prompt. Waiting alone
+does not request another prompt. When the action becomes available,
+the descriptor command processor runs it; its output is sent with another
+prompt. Thus the acknowledgement and the later command reply each have their own
+boundary. A production-linked socket transcript regression covers both normal
+and screen-reader prompts. The historical report of a duplicate prompt was not
+reproduced by that fixture; client-side rendering and the original transcript
+have not been verified.
+
 ## Outbound Frame and Backpressure Contract
 
 Encoded MSDP, GMCP, MSSP, and MXP subnegotiations enter the descriptor queue
