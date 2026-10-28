@@ -1740,7 +1740,8 @@ ACMD(do_stat)
           send_to_char(ch, "Sorry, you can't do that.\r\n");
         else
           do_stat_character(ch, victim);
-        extract_char(victim);
+        char_from_room(victim);
+        free_char(victim);
       }
       else
       {

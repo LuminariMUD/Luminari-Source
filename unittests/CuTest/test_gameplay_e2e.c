@@ -5002,6 +5002,74 @@ void Test_gameplay_bag_commands_refuse_a_character_without_bags(CuTest *tc)
   CuAssertIntEquals(tc, 8, refusals);
 }
 
+/* Offline stat must leave neither a room occupant nor a pending extraction,
+ * whether the staff member may view the player or is denied. */
+void Test_gameplay_stat_file_cleans_up_offline_player(CuTest *tc)
+{
+  char temporary_directory[] = "/tmp/luminari-stat-fixture-XXXXXX";
+  char directory[PATH_MAX], filename[MAX_FILEPATH], name[32], argument[64];
+  char output[MAX_STRING_LENGTH] = {'\0'};
+  struct gameplay_fixture fixture;
+  struct player_index_element index[1] = {0};
+  struct player_index_element *saved_table = player_table;
+  struct char_data *saved_characters = character_list;
+  struct descriptor_data descriptor = {0};
+  int saved_top = top_of_p_table, pending_before = pending_extractions_count();
+  bool allowed_cleanup, denied_cleanup, shown, denied;
+  FILE *file;
+
+  snprintf(name, sizeof(name), "Zzstat%ld", (long)getpid());
+  snprintf(argument, sizeof(argument), "file %s", name);
+  index[0].name = name;
+  index[0].id = 4248;
+  index[0].level = 7;
+  player_table = index;
+  top_of_p_table = 0;
+  character_list = NULL;
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  enter_player_fixture(tc, temporary_directory);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  fprintf(file, "Name: %s\nId  : 4248\nLevl: 7\n", name);
+  fclose(file);
+
+  begin_gameplay_fixture(&fixture);
+  descriptor.character = &fixture.actor;
+  descriptor.connected = CON_PLAYING;
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  fixture.actor.desc = &descriptor;
+  GET_LEVEL(&fixture.actor) = LVL_IMPL;
+  do_stat(&fixture.actor, argument, 0, 0);
+  shown = strstr(output, name) != NULL;
+  allowed_cleanup =
+      fixture.rooms[0].people == &fixture.actor && pending_extractions_count() == pending_before;
+
+  output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  GET_LEVEL(&fixture.actor) = 1;
+  do_stat(&fixture.actor, argument, 0, 0);
+  denied = strstr(output, "Sorry, you can't do that.") != NULL;
+  denied_cleanup =
+      fixture.rooms[0].people == &fixture.actor && pending_extractions_count() == pending_before;
+
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  end_gameplay_fixture(&fixture);
+  unlink(filename);
+  CuAssertIntEquals(tc, 0, leave_player_fixture(directory, temporary_directory));
+  player_table = saved_table;
+  top_of_p_table = saved_top;
+  character_list = saved_characters;
+  CuAssertTrue(tc, shown);
+  CuAssertTrue(tc, allowed_cleanup);
+  CuAssertTrue(tc, denied);
+  CuAssertTrue(tc, denied_cleanup);
+}
+
 /* A player body built for a staff command, as stat file builds one for a
  * player who is not online, has no bag storage. Extracting it drops nothing
  * and leaves the room as it was. */
