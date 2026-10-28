@@ -1266,7 +1266,9 @@ static int Crash_is_unrentable(struct obj_data *obj)
   if (!obj)
     return FALSE;
 
-  if (OBJ_FLAGGED(obj, ITEM_NORENT) || GET_OBJ_RENT(obj) < 0 || GET_OBJ_RNUM(obj) == NOTHING ||
+  /* Delivered notes are unique objects and must survive rent without a prototype. */
+  if (OBJ_FLAGGED(obj, ITEM_NORENT) || GET_OBJ_RENT(obj) < 0 ||
+      (GET_OBJ_RNUM(obj) == NOTHING && GET_OBJ_TYPE(obj) != ITEM_NOTE) ||
       GET_OBJ_TYPE(obj) == ITEM_KEY)
   {
     log("Crash_is_unrentable: removing object %s", obj->short_description);

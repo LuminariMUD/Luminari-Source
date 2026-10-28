@@ -7733,6 +7733,149 @@ static void free_object_edit_copy(struct obj_data *edit)
   free(edit);
 }
 
+void Test_gameplay_relay_note_has_no_prototype_and_round_trips(CuTest *tc)
+{
+  struct gameplay_fixture game;
+  struct object_table_fixture objects;
+  struct player_special_data sender_specials = {0}, recipient_specials = {0};
+  struct char_data *saved_characters = character_list;
+  struct obj_data *letter, *prototype_object, *added;
+  obj_save_data *loaded;
+  FILE *file;
+  bool created, round_tripped, renumbered, count_kept;
+  char command[] = "recipient A secret message";
+
+  begin_gameplay_fixture(&game);
+  begin_object_table(&objects, 2);
+  objects.zone.city = 1;
+  game.rooms[0].light = 1;
+  REMOVE_BIT_AR(MOB_FLAGS(&game.actor), MOB_ISNPC);
+  REMOVE_BIT_AR(MOB_FLAGS(&game.victim), MOB_ISNPC);
+  game.actor.player_specials = &sender_specials;
+  game.victim.player_specials = &recipient_specials;
+  game.actor.player.name = CuMutableString("sender");
+  game.victim.player.name = CuMutableString("recipient");
+  SET_FEAT(&game.actor, FEAT_BG_CRIMINAL, 1);
+  character_list = &game.actor;
+  game.actor.next = &game.victim;
+  prototype_object = read_object(1, REAL);
+  do_relay(&game.actor, command, 0, 0);
+  letter = game.victim.carrying;
+  created = letter != NULL && GET_OBJ_RNUM(letter) == NOTHING &&
+            GET_OBJ_TYPE(letter) == ITEM_NOTE && letter->action_description != NULL &&
+            strstr(letter->action_description, "A secret message") != NULL &&
+            obj_index[1].number == 1 && get_obj_num(1) == prototype_object;
+  file = tmpfile();
+  round_tripped = false;
+  if (letter != NULL && file != NULL && test_objsave_save_obj_record(letter, &game.victim, file, 0))
+  {
+    rewind(file);
+    loaded = objsave_parse_objects(file);
+    if (loaded != NULL)
+    {
+      round_tripped = loaded->next == NULL && GET_OBJ_RNUM(loaded->obj) == NOTHING &&
+                      GET_OBJ_TYPE(loaded->obj) == ITEM_NOTE &&
+                      loaded->obj->action_description != NULL &&
+                      strstr(loaded->obj->action_description, "A secret message") != NULL;
+      extract_obj(loaded->obj);
+      free(loaded);
+    }
+  }
+  if (file != NULL)
+    fclose(file);
+  CREATE(added, struct obj_data, 1);
+  clear_object(added);
+  added->name = strdup("new prototype");
+  renumbered = add_object(added, 91000) == 0 && letter != NULL && GET_OBJ_RNUM(letter) == NOTHING &&
+               GET_OBJ_RNUM(prototype_object) == 2 && get_obj_num(2) == prototype_object;
+  if (letter != NULL)
+    extract_obj(letter);
+  count_kept = obj_index[2].number == 1 && get_obj_num(2) == prototype_object;
+  extract_obj(prototype_object);
+  free_object_edit_copy(added);
+  remove_from_save_list(objects.zone.number, SL_ZON);
+  character_list = saved_characters;
+  game.actor.next = NULL;
+  end_object_table(&objects);
+  end_gameplay_fixture(&game);
+  CuAssertTrue(tc, created);
+  CuAssertTrue(tc, round_tripped);
+  CuAssertTrue(tc, renumbered);
+  CuAssertTrue(tc, count_kept);
+}
+
+void Test_gameplay_retainer_note_has_no_prototype(CuTest *tc)
+{
+  struct gameplay_fixture game;
+  struct object_table_fixture objects;
+  struct player_special_data sender_specials = {0}, recipient_specials = {0};
+  struct char_data prototype, *pet, *saved_proto = mob_proto;
+  struct char_data *saved_characters = character_list;
+  struct obj_data *letter, *prototype_object;
+  char *mail_recipient;
+  bool delivered = false, count_kept;
+  char message[] = "mail Another secret";
+
+  begin_gameplay_fixture(&game);
+  begin_object_table(&objects, 2);
+  objects.zone.faction = -1;
+  game.rooms[0].light = 1;
+  REMOVE_BIT_AR(MOB_FLAGS(&game.actor), MOB_ISNPC);
+  REMOVE_BIT_AR(MOB_FLAGS(&game.victim), MOB_ISNPC);
+  game.actor.player_specials = &sender_specials;
+  game.victim.player_specials = &recipient_specials;
+  game.actor.player.name = CuMutableString("sender");
+  game.victim.player.name = CuMutableString("recipient");
+  game.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(&game.actor) = -1;
+  GET_CHA(&game.actor) = 18;
+  SET_FEAT(&game.actor, FEAT_BG_SQUIRE, 1);
+  character_list = &game.actor;
+  game.actor.next = &game.victim;
+  game.mobile_index[0].vnum = RETAINER_MOB_VNUM;
+  initialize_test_npc(&prototype, "retainer", NOWHERE);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_RETAINER);
+  prototype.player.name = CuMutableString("retainer");
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  prototype_object = read_object(1, REAL);
+  do_retainer(&game.actor, "call", 0, 0);
+  pet = game.actor.followers != NULL ? game.actor.followers->follower : NULL;
+  mail_recipient = strdup("recipient");
+  sender_specials.retainer_mail_recipient = mail_recipient;
+  if (pet != NULL)
+    do_retainer(&game.actor, message, 0, 0);
+  letter = game.victim.carrying;
+  if (letter != NULL)
+  {
+    delivered = GET_OBJ_RNUM(letter) == NOTHING && GET_OBJ_TYPE(letter) == ITEM_NOTE &&
+                letter->action_description != NULL &&
+                strstr(letter->action_description, "Another secret") != NULL;
+    extract_obj(letter);
+  }
+  count_kept = obj_index[1].number == 1 && get_obj_num(1) == prototype_object;
+  extract_obj(prototype_object);
+  if (pet != NULL)
+  {
+    if (!MOB_FLAGGED(pet, MOB_NOTDEADYET))
+      extract_char(pet);
+    extract_pending_chars();
+  }
+  free(mail_recipient);
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  game.actor.next = NULL;
+  domain_event_world_forget_character(&game.actor);
+  domain_event_world_forget_character(&game.victim);
+  end_object_table(&objects);
+  end_gameplay_fixture(&game);
+  CuAssertTrue(tc, delivered);
+  CuAssertTrue(tc, count_kept);
+}
+
 /* An OLC save leaves a live object what it made its own and gives it the rest
  * of the new definition: a generated item keeps its name, dice, level, bonus,
  * abilities and restring, an essence its level, a spellbook the page written

@@ -1116,7 +1116,6 @@ ACMD(do_relay)
                                                    : GET_NAME(ch));
 
   obj = create_obj();
-  obj->item_number = 1;
   if (ch->player_specials->forge_check > 0)
   {
     GET_OBJ_VAL(obj, 0) = ch->player_specials->forge_check;
@@ -1379,7 +1378,6 @@ ACMD(do_retainer)
              strfrmt((char *)arg2, 80, 1, FALSE, FALSE, FALSE), GET_NAME(ch));
 
     obj = create_obj();
-    obj->item_number = 1;
     if (ch->player_specials->forge_check > 0)
     {
       GET_OBJ_VAL(obj, 0) = ch->player_specials->forge_check;

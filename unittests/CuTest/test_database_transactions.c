@@ -741,6 +741,49 @@ static int saves_player_rows(struct transactions_world *w)
                             "' LOCK IN SHARE MODE");
 }
 
+void Test_rent_keeps_a_prototype_free_note_but_not_other_unprototyped_objects(CuTest *tc)
+{
+  struct transactions_world w;
+  struct obj_data *note, *other;
+  obj_save_data *loaded;
+  bool restored;
+  int rows;
+
+  if (!transactions_world_begin(tc, &w))
+    return;
+  note = create_obj();
+  note->name = strdup("letter paper");
+  note->short_description = strdup("a letter");
+  note->description = strdup("A letter lies here.");
+  note->action_description = strdup("A secret message.\r\n");
+  GET_OBJ_TYPE(note) = ITEM_NOTE;
+  GET_OBJ_RENT(note) = 10;
+  obj_to_char(note, &w.owner);
+  other = create_obj();
+  other->short_description = strdup("an unprototyped treasure");
+  GET_OBJ_TYPE(other) = ITEM_TREASURE;
+  obj_to_char(other, &w.owner);
+
+  Crash_rentsave(&w.owner, 0);
+  rows = saves_player_rows(&w);
+  loaded = objsave_parse_objects_db(GET_NAME(&w.owner), NOWHERE);
+  restored = loaded != NULL && loaded->next == NULL && loaded->obj != NULL &&
+             GET_OBJ_RNUM(loaded->obj) == NOTHING && GET_OBJ_TYPE(loaded->obj) == ITEM_NOTE &&
+             loaded->obj->action_description != NULL &&
+             strstr(loaded->obj->action_description, "A secret message.") != NULL;
+  while (loaded != NULL)
+  {
+    obj_save_data *next = loaded->next;
+
+    extract_obj(loaded->obj);
+    free(loaded);
+    loaded = next;
+  }
+  transactions_world_end(tc, &w);
+  CuAssertIntEquals(tc, 1, rows);
+  CuAssertTrue(tc, restored);
+}
+
 static int saves_house_rows(struct transactions_world *w)
 {
   return transactions_value(
