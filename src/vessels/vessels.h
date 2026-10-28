@@ -658,6 +658,10 @@ double vessel_range_between(const struct greyhawk_ship_data *from,
                             const struct greyhawk_ship_data *to);
 double vessel_bearing_between(const struct greyhawk_ship_data *from,
                               const struct greyhawk_ship_data *to);
+bool vessel_positions_overlap(const struct greyhawk_ship_data *from,
+                              const struct greyhawk_ship_data *to);
+double vessel_attack_bearing(const struct greyhawk_ship_data *attacker,
+                             const struct greyhawk_ship_data *target, int firing_arc);
 bool vessel_open_water(struct greyhawk_ship_data *ship, int x, int y, int z);
 double vessel_volley_chance(int sight);
 int vessel_gunnery_dc(struct greyhawk_ship_data *ship, const struct vessel_weapon_type *type,

@@ -621,7 +621,7 @@ static bool vessel_raider_too_close(const struct greyhawk_ship_data *ship, doubl
  * soonest; -1 when none can. *soon says it is ready within 4 s.
  */
 static int vessel_raider_best_arc(const struct greyhawk_ship_data *ship, double range,
-                                  double bearing, bool *soon)
+                                  double bearing, bool overlap, bool *soon)
 {
   double turn;
   double best_turn;
@@ -640,7 +640,8 @@ static int vessel_raider_best_arc(const struct greyhawk_ship_data *ship, double 
     {
       continue;
     }
-    turn = fabs(vessel_heading_difference(ship->heading, bearing - arc_bearing[arc]));
+    turn =
+        overlap ? 0.0 : fabs(vessel_heading_difference(ship->heading, bearing - arc_bearing[arc]));
     if (best < 0 || (ready <= 8 && (best_ready > 8 || turn < best_turn)) ||
         (ready > 8 && best_ready > 8 && ready < best_ready))
     {
@@ -729,8 +730,9 @@ static void vessel_raider_basic(struct greyhawk_ship_data *ship, struct greyhawk
 
   bearing = vessel_bearing_between(ship, target);
   range = vessel_range_between(ship, target);
-  facing = vessel_arc_toward(target, ship);
-  arc = vessel_raider_best_arc(ship, range, bearing, &soon);
+  arc = vessel_raider_best_arc(ship, range, bearing, vessel_positions_overlap(ship, target), &soon);
+  facing = vessel_arc_for_relative_bearing((int)lround(
+      vessel_attack_bearing(ship, target, arc >= 0 ? arc : GREYHAWK_FORE) - target->heading));
   close = vessel_raider_too_close(ship, range);
   if (*vessel_arc_armor(target, facing) == 0 && *vessel_arc_internal(target, facing) == 0)
   {
@@ -740,7 +742,7 @@ static void vessel_raider_basic(struct greyhawk_ship_data *ship, struct greyhawk
   }
   else if (arc >= 0 && (soon || !close))
   {
-    heading = bearing - arc_bearing[arc];
+    heading = vessel_positions_overlap(ship, target) ? ship->heading : bearing - arc_bearing[arc];
   }
   else if (close)
   {
@@ -836,10 +838,11 @@ static void vessel_raider_advanced(struct greyhawk_ship_data *ship,
   vessel_project(ship, &ship_next, &ship_pilot, 6);
   vessel_project(target, &target_next, &target_pilot, 6);
   side = vessel_raider_weakest_side(target);
-  if (vessel_arc_toward(&target_next, &ship_next) == side &&
+  if (vessel_arc_for_relative_bearing((int)lround(
+          vessel_attack_bearing(&ship_next, &target_next, arc) - target_next.heading)) == side &&
       vessel_raider_arc_ready(ship, arc, range) == 0)
   {
-    heading = bearing - arc_bearing[arc];
+    heading = vessel_positions_overlap(ship, target) ? ship->heading : bearing - arc_bearing[arc];
   }
   else
   {

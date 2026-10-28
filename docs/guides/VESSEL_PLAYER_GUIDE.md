@@ -783,8 +783,9 @@ The same screen shows the Sea Wren, at battle stations, running aground in the s
 Fighting tips from the duel:
 
 - One holed side cannot sink her. Maneuver (`setsail`) to bring a second side under your guns.
-- Two hulls on the same spot (range 0.0) cannot fire at each other unless a weapon faces north,
-  since at range 0 the bearing is taken as north. Keep a room or two apart.
+- Hulls at the same horizontal position overlap every firing arc; each weapon still needs the
+  target inside its range band. The struck side depends on the weapon's direction and the hulls'
+  headings. CONTACTS shows an overlap without a compass bearing.
 
 ![Sinking](vessel-guide/43-captains-sinking.png)
 
@@ -1092,7 +1093,7 @@ speaks GMCP but not MSDP gets the same values as JSON in the `MSDP` GMCP package
 | `SHIP_STAMINA`, `SHIP_STAMINA_MAX` | Crew stamina |
 | `SHIP_TARGET` | The locked contact's ID, or empty |
 | `SHIP_WEAPONS` | Slot, name, arc, ammunition, ready, damage |
-| `SHIP_CONTACTS` | Up to 20 nearest contacts: ID, name, range, bearing, arc |
+| `SHIP_CONTACTS` | Up to 20 nearest contacts: ID, name, range, bearing, arc; overlapping horizontal positions use bearing -1 and arc `overlap` |
 
 The full protocol reference is [MSDP_VARIABLES.md](../systems/MSDP_VARIABLES.md).
 

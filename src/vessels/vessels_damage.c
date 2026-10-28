@@ -657,7 +657,7 @@ int vessel_resolve_hit(struct greyhawk_ship_data *attacker, struct greyhawk_ship
                   ? ((double)type->max_range - range) / (double)(type->max_range - type->min_range)
                   : 1.0;
   closeness = fmax(0.0, fmin(1.0, closeness));
-  bearing = greyhawk_bearing(target->x, target->y, attacker->x, attacker->y);
+  bearing = (int)lround(vessel_attack_bearing(attacker, target, weapon->position));
   total = 0;
   for (i = 0; i < type->fragments; i++)
   {

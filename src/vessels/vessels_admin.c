@@ -352,7 +352,9 @@ static void vessel_msdp_contacts(const struct greyhawk_ship_data *ship, char *bu
              contact_ship->id, (char)MSDP_VAR, (char)MSDP_VAL,
              contact_ship->name[0] ? contact_ship->name : "Unknown Vessel", (char)MSDP_VAR,
              (char)MSDP_VAL, contacts[i].range, (char)MSDP_VAR, (char)MSDP_VAL, contacts[i].bearing,
-             (char)MSDP_VAR, (char)MSDP_VAL, vessel_arc_name(vessel_arc_toward(ship, contact_ship)),
+             (char)MSDP_VAR, (char)MSDP_VAL,
+             contacts[i].bearing < 0 ? "overlap"
+                                     : vessel_arc_name(vessel_arc_toward(ship, contact_ship)),
              (char)MSDP_TABLE_CLOSE);
     strlcat(buffer, entry, size);
   }

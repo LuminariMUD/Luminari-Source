@@ -177,7 +177,8 @@ bool vessel_ram(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *targ
   own = vessel_class_handling(ship->vessel_type);
   theirs = vessel_class_handling(target->vessel_type);
   sarc = vessel_arc_toward(ship, target);
-  tarc = vessel_arc_toward(target, ship);
+  tarc = vessel_arc_for_relative_bearing(
+      (int)lround(vessel_attack_bearing(ship, target, GREYHAWK_FORE) - target->heading));
   ram_damage = (own->hull_weight + 100) / 10;
   ram_damage =
       (int)(ram_damage * (0.1 + 0.4 * ship->speed / own->speed + 0.5 * ram_speed / own->speed) *
@@ -205,7 +206,7 @@ bool vessel_ram(struct greyhawk_ship_data *ship, struct greyhawk_ship_data *targ
 
   /* The crash, in 2-6 point hits shared in proportion. */
   split = 100 * ram_damage / MAX(1, ram_damage + counter_damage);
-  from_ship = (int)lround(vessel_bearing_between(target, ship) - target->heading);
+  from_ship = (int)lround(vessel_attack_bearing(ship, target, GREYHAWK_FORE) - target->heading);
   while (ram_damage > 0 || counter_damage > 0)
   {
     if (counter_damage == 0 || (ram_damage > 0 && rand_number(0, 99) < split))
