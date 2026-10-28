@@ -73,6 +73,8 @@ baseline_secondary_bounty=
 warship_prototype_id=
 contraband_unstocked=false
 settlement_contract_id=
+economy_contract_id=
+economy_contract_marker=
 payment_refusal_planted=false
 snapshot_ready=false
 cleanup_needed=false
@@ -451,6 +453,12 @@ restore_baseline() {
   fi
   if [[ -n "$settlement_contract_id" ]]; then
     remove_planted_settlement || cleanup_status=1
+  fi
+  if [[ -n "$economy_contract_id" ]]; then
+    database_query "DELETE FROM freight_contracts WHERE contract_id = $economy_contract_id;" || cleanup_status=1
+  elif [[ -n "$economy_contract_marker" ]]; then
+    # The insert may have committed even if its reply containing the ID was lost.
+    database_query "DELETE FROM freight_contracts WHERE status = 0 AND taken_by = '$economy_contract_marker';" || cleanup_status=1
   fi
   if [[ "$payment_refusal_planted" == true ]]; then
     remove_payment_refusal || cleanup_status=1
@@ -1041,19 +1049,41 @@ elif [[ "$acceptance_mode" == economy ]]; then
   [[ "$economy_help_state" == 2 ]] ||
     fail "the authoritative vessel economy help is stale"
 
-  timeout 600 env DEV_MUD_CHARACTER="$target_player" \
+  # A small deterministic offer ensures the live captain can afford and stow it.
+  economy_contract_marker="gate-$run_id"
+  economy_contract_id=$(database_query "
+    INSERT INTO freight_contracts
+      (origin_vnum, destination_vnum, commodity_id, quantity, payout, status, taken_by)
+    SELECT 1000390, 1000390, commodity_id, 1, 100, 0, '$economy_contract_marker'
+      FROM trade_commodities WHERE name = 'salt';
+    SELECT LAST_INSERT_ID();") || economy_contract_id=
+  [[ "$economy_contract_id" =~ ^[1-9][0-9]*$ ]] ||
+    fail "could not plant the economy freight offer"
+
+  timeout 600 env DEV_MUD_CHARACTER="$target_player" MUD_ECONOMY_CONTRACT_ID="$economy_contract_id" \
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --vessel-economy-check \
     "$warship_prototype_id" "$secondary_player" \
     >"$run_dir/02-kohdee-vessel-economy.log" 2>&1 ||
     fail "the actual Kohdee and Vesselmate vessel-economy session failed"
   for expected_text in \
     'PASS: the East Dock refused its forbidden tomes to a hull of no renown and sold them to an able crew.' \
+    'PASS: the captain accepted the freight contract.' \
     'PASS: under neutral colors the merchants paid a tenth less.' \
     "PASS: Kohdee's warship sank Vesselmate's boat, won her 25 renown, and was paid prize money." \
     'PASS: the vessel economy check completed and left the smuggler a room off the East Dock'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-economy.log" ||
       fail "the economy session did not report '$expected_text'"
   done
+
+  economy_freight_state=$(database_query "
+    SELECT CONCAT(status, ':', taken_by) FROM freight_contracts
+     WHERE contract_id = $economy_contract_id;") || economy_freight_state=unreadable
+  [[ "$economy_freight_state" == "1:$secondary_player" ]] ||
+    fail "the live captain did not accept the freight offer: $economy_freight_state"
+  database_query "DELETE FROM freight_contracts WHERE contract_id = $economy_contract_id;" ||
+    fail "could not remove the economy freight offer"
+  economy_contract_id=
+  economy_contract_marker=
 
   # The captain's trades were settled in two phases (study step S14): no
   # settlement is left open, and his player file names the last one.
@@ -1070,6 +1100,14 @@ elif [[ "$acceptance_mode" == economy ]]; then
   economy_ship_prototype_id=$(economy_value economy_ship_prototype_id)
   [[ -n "$economy_ship_slot" && -n "$economy_ship_prototype_id" ]] ||
     fail "the economy session did not report its smuggler"
+  economy_freight_loaded=$(database_query "
+    SELECT COALESCE(SUM(manifest.item_count), 0)
+      FROM ship_cargo_manifest AS manifest
+      JOIN trade_commodities AS commodity ON commodity.commodity_id = manifest.item_vnum
+     WHERE manifest.ship_id = $economy_ship_slot AND commodity.name = 'salt';") ||
+    economy_freight_loaded=unreadable
+  [[ "$economy_freight_loaded" =~ ^[1-9][0-9]*$ ]] ||
+    fail "the accepted salt freight was not saved aboard: $economy_freight_loaded"
 
   # A settlement his file does not name is undone when he next enters the
   # game: a freight acceptance is planted as the server would leave it had it
