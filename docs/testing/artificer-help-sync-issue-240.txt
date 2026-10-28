@@ -1,0 +1,24 @@
+Artificer help publication - issue #240
+2026-10-28
+
+Ran the repository help-sync audit followed by sync --authorize-production.
+The artificer class, artificer device, gnome and class roster entries were
+present in the development help file. Both environments already held the same
+catalog and generated help file. The sealed plan had no additions, updates,
+deletions, renames, conflicts or layer repairs. Both applies were verified
+no-ops, and the common baseline advanced after independent verification.
+
+Plan: 970b53290f609e58f632865be52c52ceb42a522ca47655f43a177e24b30c3d36
+Catalog SHA-256: b3a80e38dc9aff7e1600037adb0c4e3bcf5dcc955f6aad00767f703080eaa2cc
+Help file SHA-256: c0f101bff86c5a0b2c707d899b1d5ac3c3ff1c794b89a6b119f32955cace19df
+Entries: 2271; relationships: 0.
+
+Development run: 20261028T084638Z-970b53290f60-2d02b844
+Development backup: lib/text/help/.help-sync/runs/20261028T084638Z-970b53290f60-2d02b844/development
+Production run: 20261028T084714Z-970b53290f60-9f74bfd5
+Production backup: lib/text/help/.help-sync/runs/20261028T084714Z-970b53290f60-9f74bfd5/production
+
+The engine verified catalog and file hashes and representative lookup checks
+on both endpoints. Production reported the MUD running; development reported
+it stopped. The runtime refresh was a no-op because content was already
+current. No production code or player data was changed.
