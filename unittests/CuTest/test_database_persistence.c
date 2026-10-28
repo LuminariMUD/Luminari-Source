@@ -1978,6 +1978,63 @@ static void extract_all_followers(struct char_data *owner)
   extract_pending_chars();
 }
 
+void Test_pet_familiar_restore_reports_critical_injury_without_healing(CuTest *tc)
+{
+  struct pet_save_fixture fixture;
+  struct pet_lifetime_world w;
+  struct char_data *pet;
+  struct char_data *saved_characters = character_list;
+  MYSQL *connection, *saved_conn = conn;
+  bool saved_available = mysql_available;
+  bool saved, restored, reported;
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_test_database();
+  CuAssertPtrNotNull(tc, connection);
+  conn = connection;
+  mysql_available = true;
+  begin_pet_lifetime_world(&w);
+  initialize_pet_save_fixture(&fixture);
+  fixture.owner.followers = &fixture.first_follower;
+  fixture.first_follower.next = NULL;
+  fixture.first_pet.equipment[0] = NULL;
+  fixture.first_pet.affected = NULL;
+  fixture.first_pet.master = &fixture.owner;
+  SET_BIT_AR(MOB_FLAGS(&fixture.first_pet), MOB_C_FAMILIAR);
+  GET_MOB_RNUM(&fixture.first_pet) = 0;
+  GET_HIT(&fixture.first_pet) = -8;
+  GET_REAL_MAX_HIT(&fixture.first_pet) = GET_MAX_HIT(&fixture.first_pet) = 101;
+  GET_POS(&fixture.owner) = POS_STANDING;
+  IN_ROOM(&fixture.owner) = 0;
+  w.room.people = &fixture.owner;
+  fixture.descriptor.output = fixture.descriptor.small_outbuf;
+  fixture.descriptor.bufspace = SMALL_BUFSIZE - 1;
+  fixture.descriptor.pProtocol = ProtocolCreate();
+  saved = create_pet_snapshot_temporary_schema(connection) && save_char_pets(&fixture.owner);
+  fixture.owner.followers = NULL;
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&fixture.owner);
+  pet = fixture.owner.followers != NULL ? fixture.owner.followers->follower : NULL;
+  restored = fixture.owner.pet_roster_load_state == PET_ROSTER_LOADED && pet != NULL &&
+             GET_HIT(pet) == -8 && GET_MAX_HIT(pet) == 101 && GET_POS(pet) == POS_MORTALLYW &&
+             MOB_FLAGGED(pet, MOB_C_FAMILIAR) && pet->master == &fixture.owner;
+  reported = strstr(fixture.descriptor.output, "critically wounded (-8/101") != NULL &&
+             strstr(fixture.descriptor.output, "needs healing") != NULL;
+  extract_all_followers(&fixture.owner);
+  domain_event_world_forget_character(&fixture.owner);
+  ProtocolDestroy(fixture.descriptor.pProtocol);
+  character_list = saved_characters;
+  end_pet_lifetime_world(&w);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+  CuAssertTrue(tc, saved);
+  CuAssertTrue(tc, restored);
+  CuAssertTrue(tc, reported);
+}
+
 void Test_pet_lifetime_survives_snapshot_restore_and_keeper_release(CuTest *tc)
 {
   struct pet_save_fixture fixture;

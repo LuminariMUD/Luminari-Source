@@ -4817,7 +4817,8 @@ void Test_gameplay_companion_creation_sets_bond_and_preserves_failed_call_cooldo
   mob_proto = &prototype;
   perform_call(&fixture.actor, MOB_C_FAMILIAR, 10);
   pet = fixture.actor.followers != NULL ? fixture.actor.followers->follower : NULL;
-  bonded = pet != NULL && MOB_FLAGGED(pet, MOB_C_FAMILIAR) && IS_PET(pet) &&
+  bonded = pet != NULL && MOB_FLAGGED(pet, MOB_C_FAMILIAR) && IS_PET(pet) && GET_HIT(pet) > 0 &&
+           GET_HIT(pet) == GET_MAX_HIT(pet) &&
            char_has_mud_event(&fixture.actor, eC_FAMILIAR) != NULL;
   recalled = false;
   if (pet != NULL)
@@ -4849,6 +4850,80 @@ void Test_gameplay_companion_creation_sets_bond_and_preserves_failed_call_cooldo
   CuAssertTrue(tc, bonded);
   CuAssertTrue(tc, recalled);
   CuAssertTrue(tc, blocked_corpse);
+}
+
+void Test_gameplay_familiar_recall_reports_injuries_without_changing_health(CuTest *tc)
+{
+  const int health[] = {101, 17, 0, -8};
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct follow_type follower = {0};
+  struct char_data *owner = &fixture.actor, *pet = &fixture.victim;
+  struct char_data *saved_characters = character_list;
+  bool preserved = true, reported = true;
+  int command;
+  byte position;
+  size_t i;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(owner), MOB_ISNPC);
+  owner->player_specials = &specials;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.character = owner;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  owner->desc = &descriptor;
+  owner->next = pet;
+  pet->next = NULL;
+  character_list = owner;
+  follower.follower = pet;
+  owner->followers = &follower;
+  pet->master = owner;
+  SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  SET_BIT_AR(MOB_FLAGS(pet), MOB_C_FAMILIAR);
+  GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) = 101;
+  for (command = 0; command < 3; command++)
+  {
+    for (i = 0; i < sizeof(health) / sizeof(health[0]); i++)
+    {
+      GET_HIT(pet) = health[i];
+      GET_POS(pet) = POS_STANDING;
+      update_pos(pet);
+      position = GET_POS(pet);
+      char_from_room(pet);
+      char_to_room(pet, 1);
+      descriptor.output[0] = '\0';
+      descriptor.bufptr = 0;
+      descriptor.bufspace = SMALL_BUFSIZE - 1;
+      GET_MOVE(owner) = GET_MAX_MOVE(owner) = 1000;
+      if (command == 0)
+        do_summon(owner, "", 0, 0);
+      else if (command == 1)
+        perform_call(owner, MOB_C_FAMILIAR, 9);
+      else
+        char_pets_to_char_loc(owner, false);
+      preserved = preserved && IN_ROOM(pet) == IN_ROOM(owner) && GET_HIT(pet) == health[i] &&
+                  GET_MAX_HIT(pet) == 101 && GET_POS(pet) == position && pet->master == owner &&
+                  owner->followers == &follower && follower.next == NULL;
+      reported = reported && ((strstr(descriptor.output, "needs healing") != NULL) ==
+                              (command < 2 && health[i] < 101));
+      if (command < 2 && health[i] == -8)
+        reported = reported && strstr(descriptor.output, "critically wounded (-8/101") != NULL;
+      if (command < 2 && health[i] == 17)
+        reported = reported && strstr(descriptor.output, "injured (17/101") != NULL;
+    }
+  }
+  owner->followers = NULL;
+  pet->master = NULL;
+  owner->desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  domain_event_world_forget_character(owner);
+  domain_event_world_forget_character(pet);
+  character_list = saved_characters;
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, preserved);
+  CuAssertTrue(tc, reported);
 }
 
 static void verify_item_pet_acquisition(CuTest *tc, bool horn)

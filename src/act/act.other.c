@@ -1833,7 +1833,10 @@ void perform_call(struct char_data *ch, int call_type, int level)
         ch = domain_event_world_resolve_character(owner);
         mob = domain_event_world_resolve_character(companion);
         if (ch != NULL && mob != NULL && mob->master == ch && !MOB_FLAGGED(mob, MOB_NOTDEADYET))
+        {
+          report_injured_pet(ch, mob);
           act("$n calls $N!", FALSE, ch, 0, mob, TO_ROOM);
+        }
         return;
       }
     }

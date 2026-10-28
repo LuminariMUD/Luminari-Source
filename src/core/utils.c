@@ -1849,6 +1849,19 @@ bool pet_guards_owner(struct char_data *pet, struct char_data *owner, struct cha
   return CAN_SEE(pet, attacker) && pvp_ok(pet, attacker, false);
 }
 
+/* Recall and restoration preserve damage; make an injured arrival explicit. */
+void report_injured_pet(struct char_data *owner, struct char_data *pet)
+{
+  char message[MAX_STRING_LENGTH];
+
+  if (owner == NULL || pet == NULL || pet->master != owner || GET_HIT(pet) >= GET_MAX_HIT(pet))
+    return;
+
+  snprintf(message, sizeof(message), "$N is %s (%d/%d hit points) and needs healing.",
+           GET_HIT(pet) <= 0 ? "critically wounded" : "injured", GET_HIT(pet), GET_MAX_HIT(pet));
+  act(message, FALSE, owner, NULL, pet, TO_CHAR);
+}
+
 bool char_pets_to_char_loc(struct char_data *ch, bool include_waiting)
 {
   bool found = false;
@@ -1889,6 +1902,8 @@ bool char_pets_to_char_loc(struct char_data *ch, bool include_waiting)
     /* move into the new location! */
     char_to_room(tch, IN_ROOM(ch));
     act("$n appears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
+    if (include_waiting)
+      report_injured_pet(ch, tch);
 
     found = true;
   }

@@ -7529,6 +7529,7 @@ static struct char_data *publish_saved_pet(struct char_data *owner, struct char_
     discard_unpublished_saved_pet(pet);
     return NULL;
   }
+  report_injured_pet(owner, pet);
   act("$N appears beside you.", true, owner, 0, pet, TO_CHAR);
   act("$N appears beside $n.", true, owner, 0, pet, TO_ROOM);
   return pet;
