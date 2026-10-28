@@ -25,6 +25,8 @@
 #include "../../src/character/feats.h"
 #include "../../src/dgscript/dg_olc.h"
 #include "../../src/dgscript/dg_scripts.h"
+#include "../../src/events/domain_event_world.h"
+#include "../../src/core/lists.h"
 #include "../../src/craft/crafting_new.h"
 #include "../../src/core/constants.h"
 #include "../../src/net/protocol.h"
@@ -36,6 +38,82 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <time.h>
+
+void Test_otransform_preserves_live_identity_and_object_indexes(CuTest *tc)
+{
+  struct obj_data prototypes[2], *first, *target, *last, *other;
+  struct obj_data *saved_proto = obj_proto, *saved_objects = object_list;
+  struct index_data indexes[2] = {{0}}, *saved_indexes = obj_index;
+  struct zone_data zone = {0}, *saved_zones = zone_table;
+  struct obj_rnum_hash_bucket saved_buckets[2];
+  struct obj_special_ability ability = {0};
+  struct list_data *events;
+  struct domain_entity_handle handle;
+  obj_rnum saved_top = top_of_objt;
+  zone_rnum saved_zone_top = top_of_zone_table;
+  bool transformed, cleaned;
+  char command[] = "otransform 1001";
+
+  saved_buckets[0] = obj_rnum_hash[0];
+  saved_buckets[1] = obj_rnum_hash[1];
+  obj_rnum_hash[0].objs = obj_rnum_hash[1].objs = NULL;
+  object_list = NULL;
+  memset(prototypes, 0, sizeof(prototypes));
+  clear_object(&prototypes[0]);
+  clear_object(&prototypes[1]);
+  prototypes[0].item_number = 0;
+  prototypes[1].item_number = 1;
+  prototypes[0].name = CuMutableString("old");
+  prototypes[0].short_description = CuMutableString("old object");
+  prototypes[1].name = CuMutableString("new");
+  prototypes[1].short_description = CuMutableString("new object");
+  prototypes[1].arcane_mark = CuMutableString("test mark");
+  ability.command_word = CuMutableString("word");
+  prototypes[1].special_abilities = &ability;
+  indexes[0].vnum = 1000;
+  indexes[1].vnum = 1001;
+  obj_proto = prototypes;
+  obj_index = indexes;
+  top_of_objt = 1;
+  zone.number = 10;
+  zone.bot = 1000;
+  zone.top = 1099;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+  first = read_object(1000, VIRTUAL);
+  target = read_object(1000, VIRTUAL);
+  last = read_object(1000, VIRTUAL);
+  other = read_object(1001, VIRTUAL);
+  target->events = create_list();
+  events = target->events;
+  handle = domain_event_object_handle(target);
+  obj_command_interpreter(target, command);
+  transformed = GET_OBJ_RNUM(target) == 1 && indexes[0].number == 2 && indexes[1].number == 2 &&
+                obj_rnum_hash[0].objs == last && last->next_in_hash == first &&
+                first->prev_in_hash == last && obj_rnum_hash[1].objs == target &&
+                target->next_in_hash == other && other->prev_in_hash == target &&
+                target->events == events && domain_event_world_resolve_object(handle) == target &&
+                target->arcane_mark && strcmp(target->arcane_mark, "test mark") == 0 &&
+                target->special_abilities && target->special_abilities->command_word &&
+                strcmp(target->special_abilities->command_word, "word") == 0;
+  extract_obj(target);
+  cleaned = indexes[1].number == 1 && obj_rnum_hash[1].objs == other &&
+            other->prev_in_hash == NULL && obj_rnum_hash[0].objs == last &&
+            last->next_in_hash == first && domain_event_world_resolve_object(handle) == NULL;
+  extract_obj(other);
+  extract_obj(last);
+  extract_obj(first);
+  obj_rnum_hash[0] = saved_buckets[0];
+  obj_rnum_hash[1] = saved_buckets[1];
+  obj_proto = saved_proto;
+  obj_index = saved_indexes;
+  top_of_objt = saved_top;
+  zone_table = saved_zones;
+  top_of_zone_table = saved_zone_top;
+  object_list = saved_objects;
+  CuAssertTrue(tc, transformed);
+  CuAssertTrue(tc, cleaned);
+}
 
 static size_t longest_visible_output_line(const char *output)
 {

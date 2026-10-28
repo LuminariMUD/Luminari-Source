@@ -5867,9 +5867,9 @@ void assign_feats(void)
   feato(FEAT_WEIRD_SCIENCE, "weird science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Create magical devices that replicate spell effects.",
         "An artificer can imbue items with magical power through weird science, creating devices "
-        "that combine the effects of "
-        "one or more spells. These devices are temporary and can be used a limited number of times "
-        "per day.");
+        "that combine the effects of one or more spells. Devices persist and recharge outside "
+        "combat: every 30 seconds, one device first reduces its DC penalty or regains one use. "
+        "Broken devices must be repaired before they recharge. See HELP DEVICE for details.");
 
   feato(FEAT_ARTIFICER_ITEM_CREATION, "artificer item creation", TRUE, FALSE, FALSE,
         FEAT_TYPE_CLASS_ABILITY, "Brew potions of spells you could put in a device.",

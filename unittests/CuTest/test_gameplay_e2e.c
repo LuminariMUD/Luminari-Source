@@ -7876,6 +7876,122 @@ void Test_gameplay_retainer_note_has_no_prototype(CuTest *tc)
   CuAssertTrue(tc, count_kept);
 }
 
+void Test_gameplay_downgrade_preview_and_confirmation_keep_owned_data(CuTest *tc)
+{
+  struct gameplay_fixture game;
+  struct object_table_fixture objects;
+  struct player_special_data specials = {0};
+  struct char_data *ch = &game.actor;
+  struct obj_data *weapon, *head;
+  struct obj_special_ability *abilities;
+  struct obj_spellbook_spell *spellbook;
+  struct player_index_element *saved_players = player_table;
+  int saved_player_top = top_of_p_table;
+  bool preview_kept, refused, confirmed;
+  char preview[] = "sword 5", invalid[] = "sword 5 wrong-code", confirm[100];
+
+  begin_gameplay_fixture(&game);
+  begin_object_table(&objects, 2);
+  player_table = NULL;
+  top_of_p_table = -1;
+  REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &specials;
+  ch->player.name = CuMutableString("downgrader");
+  GET_LEVEL(ch) = 20;
+  GET_GOLD(ch) = 1000;
+  obj_proto[1].name = strdup("sword");
+  obj_proto[1].short_description = strdup("a sword");
+  GET_OBJ_TYPE(&obj_proto[1]) = ITEM_WEAPON;
+  GET_OBJ_LEVEL(&obj_proto[1]) = 10;
+  GET_OBJ_VAL(&obj_proto[1], 0) = WEAPON_TYPE_LONG_SWORD;
+  SET_BIT_AR(GET_OBJ_EXTRA(&obj_proto[1]), ITEM_IDENTIFIED);
+  weapon = read_object(1, REAL);
+  CREATE(weapon->special_abilities, struct obj_special_ability, 1);
+  weapon->special_abilities->ability = WEAPON_SPECAB_FLAMING;
+  weapon->special_abilities->command_word = strdup("blaze");
+  CREATE(weapon->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+  weapon->sbinfo[0].spellname = SPELL_MAGIC_MISSILE;
+  weapon->sbinfo[0].pages = 1;
+  obj_to_char(weapon, ch);
+  abilities = weapon->special_abilities;
+  spellbook = weapon->sbinfo;
+  head = object_list;
+
+  do_downgrade(ch, preview, 0, 0);
+  preview_kept = specials.downgrade_confirm != NULL && object_list == head &&
+                 obj_index[1].number == 1 && GET_OBJ_LEVEL(weapon) == 10 &&
+                 weapon->special_abilities == abilities &&
+                 !strcmp(abilities->command_word, "blaze") && weapon->sbinfo == spellbook &&
+                 spellbook[0].spellname == SPELL_MAGIC_MISSILE && GET_GOLD(ch) == 1000;
+  do_downgrade(ch, invalid, 0, 0);
+  refused = specials.downgrade_confirm != NULL && GET_OBJ_LEVEL(weapon) == 10 &&
+            weapon->special_abilities == abilities && GET_GOLD(ch) == 1000 &&
+            !OBJ_FLAGGED(weapon, ITEM_DOWNGRADED);
+  if (specials.downgrade_confirm != NULL)
+  {
+    snprintf(confirm, sizeof(confirm), "sword 5 %s", specials.downgrade_confirm);
+    do_downgrade(ch, confirm, 0, 0);
+  }
+  confirmed = specials.downgrade_confirm == NULL && GET_OBJ_LEVEL(weapon) == 5 &&
+              weapon->special_abilities == NULL && weapon->sbinfo == spellbook &&
+              spellbook[0].spellname == SPELL_MAGIC_MISSILE && GET_GOLD(ch) == 500 &&
+              OBJ_FLAGGED(weapon, ITEM_DOWNGRADED) && object_list == head;
+  free(specials.downgrade_confirm);
+  specials.downgrade_confirm = NULL;
+  extract_obj(weapon);
+  player_table = saved_players;
+  top_of_p_table = saved_player_top;
+  end_object_table(&objects);
+  end_gameplay_fixture(&game);
+  CuAssertTrue(tc, preview_kept);
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, confirmed);
+}
+
+void Test_gameplay_applyoil_replaces_placeholder_abilities(CuTest *tc)
+{
+  struct gameplay_fixture game;
+  struct object_table_fixture objects;
+  struct player_special_data specials = {0};
+  struct char_data *ch = &game.actor;
+  struct obj_data *weapon, *oil;
+  bool applied;
+  char argument[] = "sword oil";
+
+  begin_gameplay_fixture(&game);
+  begin_object_table(&objects, 2);
+  REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &specials;
+  ch->player.name = CuMutableString("alchemist");
+  obj_proto[1].name = strdup("sword");
+  obj_proto[1].short_description = strdup("a sword");
+  GET_OBJ_TYPE(&obj_proto[1]) = ITEM_WEAPON;
+  GET_OBJ_VAL(&obj_proto[1], 0) = WEAPON_TYPE_LONG_SWORD;
+  weapon = read_object(1, REAL);
+  CREATE(weapon->special_abilities, struct obj_special_ability, 1);
+  weapon->special_abilities->command_word = strdup("first placeholder");
+  CREATE(weapon->special_abilities->next, struct obj_special_ability, 1);
+  weapon->special_abilities->next->command_word = strdup("second placeholder");
+  oil = create_obj();
+  oil->name = strdup("oil");
+  oil->short_description = strdup("weapon oil");
+  GET_OBJ_TYPE(oil) = ITEM_WEAPON_OIL;
+  GET_OBJ_VAL(oil, 0) = WEAPON_SPECAB_FLAMING;
+  obj_to_char(weapon, ch);
+  obj_to_char(oil, ch);
+  do_applyoil(ch, argument, 0, 0);
+  applied = ch->carrying == weapon && weapon->special_abilities != NULL &&
+            weapon->special_abilities->ability == WEAPON_SPECAB_FLAMING &&
+            weapon->special_abilities->next == NULL &&
+            weapon->special_abilities->command_word != NULL &&
+            !strcmp(weapon->special_abilities->command_word, "blaze");
+  while (ch->carrying != NULL)
+    extract_obj(ch->carrying);
+  end_object_table(&objects);
+  end_gameplay_fixture(&game);
+  CuAssertTrue(tc, applied);
+}
+
 /* An OLC save leaves a live object what it made its own and gives it the rest
  * of the new definition: a generated item keeps its name, dice, level, bonus,
  * abilities and restring, an essence its level, a spellbook the page written

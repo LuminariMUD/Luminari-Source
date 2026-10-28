@@ -149,6 +149,51 @@ static void run_device(struct artificer_fixture *f, const char *argument)
   do_device(&f->ch, argument, 0, 0);
 }
 
+void Test_artificer_device_rejects_object_and_argument_spells(CuTest *tc)
+{
+  struct artificer_fixture f;
+  const int shield[] = {SPELL_SHIELD};
+  const char *unsupported[] = {"enchant item",  "preserve",    "minor creation",
+                               "ventriloquate", "rock to mud", "mud to rock"};
+  struct player_invention *inv;
+  char argument[MAX_INPUT_LENGTH];
+  bool create_refused = true, add_refused = true, list_filtered, old_device_refused;
+  size_t i;
+
+  begin_artificer(&f, 20);
+  for (i = 0; i < sizeof(unsupported) / sizeof(unsupported[0]); i++)
+  {
+    snprintf(argument, sizeof(argument), "create \"%s\"", unsupported[i]);
+    run_device(&f, argument);
+    create_refused = create_refused &&
+                     strstr(f.descriptor.output, "cannot be used in a device") != NULL &&
+                     char_has_mud_event(&f.ch, eDEVICE_CREATION) == NULL;
+  }
+  inv = give_device(&f, shield, 1);
+  for (i = 0; i < sizeof(unsupported) / sizeof(unsupported[0]); i++)
+  {
+    snprintf(argument, sizeof(argument), "add 1 %s", unsupported[i]);
+    run_device(&f, argument);
+    add_refused = add_refused &&
+                  strstr(f.descriptor.output, "cannot be used in a device") != NULL &&
+                  inv->num_spells == 1;
+  }
+  run_device(&f, "spells arcane");
+  list_filtered = strstr(f.descriptor.output, "minor creation") == NULL &&
+                  strstr(f.descriptor.output, "ventriloquate") == NULL &&
+                  strstr(f.descriptor.output, "shield") != NULL;
+  inv->spell_effects[0] = SPELL_MINOR_CREATE;
+  run_device(&f, "use 1");
+  old_device_refused =
+      strstr(f.descriptor.output, "cannot be used in a device") != NULL && inv->uses == 0;
+  end_artificer(&f);
+
+  CuAssertTrue(tc, create_refused);
+  CuAssertTrue(tc, add_refused);
+  CuAssertTrue(tc, list_filtered);
+  CuAssertTrue(tc, old_device_refused);
+}
+
 /* The reported bug: a level 20 artificer could not add a 3rd- or 4th-circle spell to a device,
  * because device add compared a class spell level against the circle cap. */
 void Test_artificer_device_add_takes_third_and_fourth_circle_spells(CuTest *tc)
@@ -408,6 +453,57 @@ void Test_artificer_device_work_can_be_cancelled(CuTest *tc)
   CuAssertTrue(tc, list_waited);
   CuAssertTrue(tc, !creating);
   CuAssertTrue(tc, !repairing);
+}
+
+void Test_artificer_device_information_does_not_require_standard_action(CuTest *tc)
+{
+  struct artificer_fixture f;
+  bool created_commands = complete_cmd_info == NULL;
+  const char *commands[] = {"device list",     "device info", "device spells", "device usage",
+                            "device cooldown", "device l",    "device i",      "device s",
+                            "device usa",      "device co"};
+  const char *expected[] = {"Your weird science inventions",
+                            "Usage: device info",
+                            "Usage: device spells",
+                            "Artificer Spell Slot Usage",
+                            "Device Cooldown Status",
+                            "Your weird science inventions",
+                            "Usage: device info",
+                            "Usage: device spells",
+                            "Artificer Spell Slot Usage",
+                            "Device Cooldown Status"};
+  const char *acting[] = {"device use 1",    "device create",    "device add 1 shield",
+                          "device repair 1", "device destroy 1", "device rename 1 test",
+                          "device u 1",      "device c"};
+  char command[MAX_INPUT_LENGTH];
+  bool information_works = true, acting_waits = true;
+  size_t i;
+
+  begin_artificer(&f, 1);
+  if (created_commands)
+    create_command_list();
+  USE_STANDARD_ACTION(&f.ch);
+  for (i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
+  {
+    clear_output(&f);
+    strlcpy(command, commands[i], sizeof(command));
+    command_interpreter(&f.ch, command);
+    information_works = information_works && strstr(f.descriptor.output, expected[i]) != NULL;
+  }
+  for (i = 0; i < sizeof(acting) / sizeof(acting[0]); i++)
+  {
+    clear_output(&f);
+    strlcpy(command, acting[i], sizeof(command));
+    command_interpreter(&f.ch, command);
+    acting_waits = acting_waits &&
+                   strstr(f.descriptor.output, "You must wait for the required action") != NULL;
+  }
+  if (created_commands)
+    free_command_list();
+  end_artificer(&f);
+
+  CuAssertTrue(tc, information_works);
+  CuAssertTrue(tc, acting_waits);
 }
 
 /* Metamagic Science on a wand spends one extra charge per level the metamagic adds; it used to

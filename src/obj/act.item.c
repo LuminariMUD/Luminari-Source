@@ -6154,10 +6154,9 @@ ACMD(do_applyoil)
     }
   }
 
-  // let's create the special ability
+  /* Replace any SPECAB_NONE placeholders with the new ability. */
+  free_obj_special_abilities(weapon->special_abilities);
   CREATE(weapon->special_abilities, struct obj_special_ability, 1);
-  // weapon->special_abilities->next = weapon->special_abilities;
-  // weapon->special_abilities = weapon->special_abilities;
 
   weapon->special_abilities->ability = specab_type;
   weapon->special_abilities->level = special_ability_info[specab_type].level;
@@ -8920,6 +8919,7 @@ static void downgrade_item(struct char_data *ch, struct obj_data *obj, int level
   }
 
   // downgraded items lose any special abilities
+  free_obj_special_abilities(obj->special_abilities);
   obj->special_abilities = NULL;
 
   // downgrade items lose any weapon spells
@@ -9056,18 +9056,13 @@ ACMD(do_downgrade)
 
   if (ch->player_specials->downgrade_confirm == NULL)
   {
-    struct obj_data *temp_obj;
-    if ((temp_obj = read_object(ITEM_PROTOTYPE, VIRTUAL)) == NULL)
-    {
-      send_to_char(
-          ch,
-          "There was an error. Please report to a staff member with error code DOWNGRADE001.\r\n");
-      return;
-    }
+    struct obj_data preview = *obj;
+
+    /* The preview loses abilities, but the original retains its owned list. */
+    preview.special_abilities = NULL;
     send_to_char(ch, "\tCYour downgraded item will have the following stats:\tn\r\n");
-    copy_object(temp_obj, obj);
-    downgrade_item(ch, temp_obj, level);
-    do_stat_object(ch, temp_obj, ITEM_STAT_MODE_LORE_SKILL);
+    downgrade_item(ch, &preview, level);
+    do_stat_object(ch, &preview, ITEM_STAT_MODE_LORE_SKILL);
     send_to_char(ch, "\r\n");
     send_to_char(ch, "\tCPLEASE NOTE: \tn");
     send_to_char(ch, "\tcDowngrading an item will cause it to lose all special ability, perm "
@@ -9091,6 +9086,7 @@ ACMD(do_downgrade)
   else if (is_abbrev(arg3, "cancel"))
   {
     send_to_char(ch, "You've aborted the downgrade.\r\n");
+    free(ch->player_specials->downgrade_confirm);
     ch->player_specials->downgrade_confirm = NULL;
     return;
   }
@@ -9099,6 +9095,7 @@ ACMD(do_downgrade)
     send_to_char(ch, "To proceed with this downgrade type: downgrade %s %d %s\r\n", arg, level,
                  ch->player_specials->downgrade_confirm);
     send_to_char(ch, "To abort the downgrade, type: downgrade %s %d cancel\r\n", arg, level);
+    return;
   }
 
   award_gold(ch, -cost);
@@ -9107,6 +9104,7 @@ ACMD(do_downgrade)
   do_stat_object(ch, obj, ITEM_STAT_MODE_LORE_SKILL);
   send_to_char(ch, "\tMYou downgrade %s to level %d.\tn\r\n", obj->short_description, level);
   send_to_char(ch, "It cost you %d coins to downgrade this item.\tn\r\n", cost);
+  free(ch->player_specials->downgrade_confirm);
   ch->player_specials->downgrade_confirm = NULL;
 }
 

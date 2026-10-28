@@ -11893,6 +11893,35 @@ static int device_spell_level(int spellnum)
   return wizard ? wizard : cleric;
 }
 
+/* Devices supply a character target but no object or cast argument. */
+static bool device_spell_supported(int spellnum)
+{
+  int targets;
+
+  if (spellnum <= 0 || spellnum >= NUM_SPELLS)
+    return false;
+  targets = spell_info[spellnum].targets;
+  if (IS_SET(targets, TAR_OBJ_INV | TAR_OBJ_EQUIP | TAR_OBJ_ROOM | TAR_OBJ_WORLD) &&
+      !IS_SET(targets, TAR_IGNORE | TAR_CHAR_ROOM | TAR_CHAR_WORLD))
+    return false;
+
+  switch (spellnum)
+  {
+  case SPELL_CONTROL_SUMMONED_CREATURE:
+  case SPELL_SIPHON_MIGHT:
+  case SPELL_HUMAN_POTENTIAL:
+  case SPELL_MASS_HUMAN_POTENTIAL:
+  case SPELL_OVERLAND_FLIGHT:
+  case SPELL_MINOR_CREATE:
+  case SPELL_VENTRILOQUATE:
+  case SPELL_ROCK_TO_MUD:
+  case SPELL_MUD_TO_ROCK:
+    return false;
+  default:
+    return true;
+  }
+}
+
 static int device_level_circle(int level)
 {
   return (level + 1) / 2;
@@ -12299,6 +12328,12 @@ ACMDU(do_device)
         return;
       }
 
+      if (!device_spell_supported(spell_nums[i]))
+      {
+        send_to_char(ch, "The spell '%s' cannot be used in a device.\r\n", spells[i]);
+        return;
+      }
+
       int spell_circle = device_level_circle(device_spell_level(spell_nums[i]));
       if (spell_circle <= 0 || spell_circle > max_spell_level)
       {
@@ -12651,6 +12686,12 @@ ACMDU(do_device)
       return;
     }
 
+    if (!device_spell_supported(spell_num))
+    {
+      send_to_char(ch, "That spell cannot be used in a device.\r\n");
+      return;
+    }
+
     /* The spell must be on the wizard or cleric list within the circle cap */
     int spell_circle = device_level_circle(device_spell_level(spell_num));
     if (spell_circle <= 0 || spell_circle > max_spell_level)
@@ -12719,6 +12760,16 @@ ACMDU(do_device)
     }
 
     struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+
+    /* Old saved devices may contain spells that cannot work safely from a device. */
+    for (i = 0; i < inv->num_spells && i < MAX_INVENTION_SPELLS; i++)
+    {
+      if (!device_spell_supported(inv->spell_effects[i]))
+      {
+        send_to_char(ch, "This device contains a spell that cannot be used in a device.\r\n");
+        return;
+      }
+    }
 
     /* Check if device is broken */
     if (inv->broken)
@@ -13124,7 +13175,7 @@ ACMDU(do_device)
       {
         int spell_circle = compute_spells_circle(ch, spell_class, inner_spell_num, METAMAGIC_NONE,
                                                  DOMAIN_UNDEFINED);
-        if (spell_circle == spell_level)
+        if (spell_circle == spell_level && device_spell_supported(inner_spell_num))
         {
           if (!spells_found)
           {
