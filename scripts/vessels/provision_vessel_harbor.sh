@@ -554,6 +554,63 @@ refresh_merchant_state() {
         AND schedule.enabled = 1")
 }
 
+repair_disabled_harbor_merchant() {
+  local disabled_count eligible_count interval recovery_output
+
+  disabled_count=$(database_scalar \
+    "SELECT COUNT(*)
+       FROM vessel_npc_merchants AS merchant
+       JOIN ship_schedules AS schedule ON schedule.ship_id = merchant.active_ship_id
+      WHERE merchant.merchant_id = $merchant_id
+        AND schedule.route_id = merchant.route_id
+        AND schedule.enabled = 0")
+  [[ "$disabled_count" != 0 ]] || return 0
+  [[ "$disabled_count" == 1 ]] ||
+    fail "the harbor merchant has multiple disabled schedules; inspect its registry before repair"
+
+  eligible_count=$(database_scalar \
+    "SELECT COUNT(*)
+       FROM vessel_npc_merchants AS merchant
+       JOIN ship_runtime_state AS runtime ON runtime.ship_id = merchant.active_ship_id
+       JOIN ship_interiors AS interior ON interior.ship_id = merchant.active_ship_id
+      WHERE merchant.merchant_id = $merchant_id
+        AND merchant.active_ship_id = $merchant_slot
+        AND merchant.generation = $merchant_generation
+        AND merchant.enabled = 1
+        AND runtime.prototype_id = merchant.prototype_id
+        AND interior.owner = ''
+        AND interior.vessel_name = merchant.name")
+  [[ "$eligible_count" == 1 ]] ||
+    fail "the harbor merchant schedule is disabled but its active hull identity is inconsistent; repair the merchant registry first"
+
+  interval=$(database_scalar \
+    "SELECT schedule_interval_hours FROM vessel_npc_merchants
+      WHERE merchant_id = $merchant_id")
+  [[ "$interval" =~ ^[1-9][0-9]*$ ]] ||
+    fail "the harbor merchant schedule is disabled and its interval is invalid; repair the merchant definition"
+
+  recovery_output=$(
+    "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --commands \
+      "shipfix $merchant_slot" \
+      "shipgoto $merchant_slot" \
+      "setroute harbor_ferry_loop" \
+      "setschedule harbor_ferry_loop $interval 0" \
+      "autopilot on"
+  )
+  printf '%s\n' "$recovery_output"
+  grep -Fq "Harbor Sandbox Merchant (slot $merchant_slot) restored to full condition." \
+    <<<"$recovery_output" ||
+    fail "the harbor merchant schedule is disabled and its hull could not be repaired; inspect shipfix and database errors"
+  grep -Fq "Route 'harbor_ferry_loop' assigned to autopilot" <<<"$recovery_output" ||
+    fail "the harbor merchant route could not be assigned; inspect the route and persistence errors"
+  grep -Fq "Schedule set: Route 'harbor_ferry_loop' every $interval MUD hours." \
+    <<<"$recovery_output" ||
+    fail "the harbor merchant schedule is disabled and its route could not be scheduled; inspect the reported route obstruction and repair the route or hull position"
+  grep -Eq "Autopilot (engaged on route 'harbor_ferry_loop'[.]|resumed[.]|is already active[.])" \
+    <<<"$recovery_output" ||
+    fail "the harbor merchant schedule was reset but autopilot did not start; inspect the reported route or persistence error"
+}
+
 refresh_merchant_state
 if [[ ! "$merchant_slot" =~ ^[1-9][0-9]*$ ||
   ! "$merchant_generation" =~ ^[1-9][0-9]*$ ||
@@ -572,6 +629,8 @@ fi
   fail "the harbor NPC merchant did not assemble an active hull"
 [[ "$merchant_generation" =~ ^[1-9][0-9]*$ ]] ||
   fail "the harbor NPC merchant has no lifecycle generation"
+repair_disabled_harbor_merchant
+refresh_merchant_state
 [[ "$merchant_runtime_valid" == 1 ]] ||
   fail "the harbor NPC merchant hull, route, pilot, or cargo is incomplete"
 
