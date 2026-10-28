@@ -3362,6 +3362,7 @@ proc run_vessel_customs_check {ship_slot prototype_id} {
     fail "customs seized none of the forbidden tomes"
   }
   set output [run_game_command "cargomanifest"]
+  require_game_output $output "Cargo manifest for $ship_name:" "post-customs manifest"
   if {$taken == 4} {
     if {[regexp {forbidden tomes +[0-9]+ units} $output]} {
       fail "the hold still lists confiscated forbidden tomes"
