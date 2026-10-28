@@ -9908,7 +9908,10 @@ holds up to 3 spells (4 with Brilliance and Blunder), all violent or all
 non-violent. The circle cap is 1st at artificer level 1, 2nd at 3, 3rd at
 5 and 4th at 11, and each circle has a number of spell slots by level. A
 spell on both lists takes its lower circle unless another circle's slot
-lets the whole device fit.
+lets the whole device fit. Spells that require an object or additional
+typed arguments cannot be used in devices and are omitted from the spell
+list. An older device containing such a spell cannot be activated; destroy
+it and build a new one.
 
 COMMANDS:
   device create <spell> [spell] [spell]   Build a device. Quote multi-word
