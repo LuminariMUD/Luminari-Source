@@ -419,6 +419,13 @@ one transaction, written by `objsave_write_player_save()`: it deletes the charac
 writes the header and a row for each object worn, sorted into a bag or carried, and commits.
 Nothing leaves memory while it is written.
 
+Object records carry `SpCt` followed by the complete ordered list of `SpAb` entries; a count of
+zero preserves an empty list. Records without `SpCt` retain the legacy behavior: one `SpAb`
+updates the matching prototype ability (or its first ability), leaving the others intact. Pet
+object loading rejects an invalid count or incomplete list, and database writers fail a record if
+the full list does not fit. Older binaries do not understand the count marker and cannot faithfully
+restore these new records; preserve compatible saves before rolling back to one.
+
 - **A lost connection** loses the whole save, and the last save's rows stay as they were
   (`docs/systems/DATABASE_INTEGRATION.md`, Transaction Management).
 - **A row the database refuses** on a good connection is left out. The rest is committed, since

@@ -33,6 +33,8 @@
 
 extern int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *pet,
                                           struct char_data *owner, long int pet_idnum, int locate);
+extern obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum,
+                                                      int sheath_slot, struct obj_data *sheath);
 
 static int query_single_int(MYSQL *connection, const char *query, int fallback);
 static char *filled_string(char letter, size_t length);
@@ -1325,6 +1327,13 @@ void Test_pet_object_decoder_validates_fields_and_preserves_text(CuTest *tc)
                            "#-1\nVals: not-a-number\n",
                            "#-1\nSpbk: 1\n",
                            "#-1\nSpAb: 61 30 48 0 0 0\n",
+                           "#-1\nSpCt: -1\n",
+                           "#-1\nSpCt: invalid\n",
+                           "#-1\nSpCt: 1\n",
+                           "#-1\nSpCt: 0\nSpAb: 1 2 3 4 5 6 7\n",
+                           "#-1\nSpCt: 1\nSpAb: 1 2 3 4 5 6\n",
+                           "#-1\nSpCt: 0\nSpCt: 0\n",
+                           "#-1\nSpCt: 1\n#-1\n",
                            "#-1\nType: 999\n",
                            "#-1\nLoc : -2147483648\n",
                            "#-1\nLoc : 999999\n",
@@ -3154,8 +3163,8 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
     matched = matched && newest_object_record(connection, record_tables[mode], record);
     length = strlen(record);
     kept = count_occurrences(record, "EDes:\noverflow~\n");
-    matched = matched && kept >= 1 && kept <= 9 && length >= 2 &&
-              strcmp(record + length - 2, "~\n") == 0 &&
+    matched = matched && kept >= 1 && kept <= 9 && length >= strlen("SpCt: 0\n") &&
+              strcmp(record + length - strlen("SpCt: 0\n"), "SpCt: 0\n") == 0 &&
               strstr(record, "EDes:\nkkkk~\nvisible~\n") != NULL;
   }
 
@@ -3509,6 +3518,344 @@ void Test_object_special_ability_record_keeps_the_rest_of_the_prototype_list(CuT
   CuAssertTrue(tc, word_first);
   CuAssertTrue(tc, from_player_rows);
   CuAssertTrue(tc, upgraded);
+}
+
+/* Ability order matters: oil and other callers choose the first eligible one. */
+static bool same_special_ability_order(const struct obj_data *saved, const struct obj_data *loaded)
+{
+  const struct obj_special_ability *a, *b;
+
+  if (loaded == NULL)
+    return false;
+  a = saved->special_abilities;
+  b = loaded->special_abilities;
+  while (a != NULL && b != NULL)
+  {
+    if (a->ability != b->ability || a->level != b->level ||
+        a->activation_method != b->activation_method ||
+        memcmp(a->value, b->value, sizeof(a->value)) != 0 ||
+        ((a->command_word == NULL) != (b->command_word == NULL)) ||
+        (a->command_word != NULL && strcmp(a->command_word, b->command_word) != 0))
+      return false;
+    a = a->next;
+    b = b->next;
+  }
+  return a == NULL && b == NULL;
+}
+
+void Test_object_full_ability_list_round_trips_across_save_paths(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct obj_special_ability bane = {.ability = WEAPON_SPECAB_BANE, .level = 8};
+  struct obj_special_ability burst = {.ability = WEAPON_SPECAB_FLAMING_BURST,
+                                      .level = 12,
+                                      .command_word = CuMutableString("ignitus"),
+                                      .next = &bane};
+  struct char_data owner, pet;
+  struct player_special_data specials = {0};
+  struct obj_data prototype;
+  struct index_data index = {.vnum = 91001};
+  struct zone_data zone = {.number = 910, .bot = 91000, .top = 91099};
+  struct obj_data *saved_proto = obj_proto, *objects[3], *oversized;
+  struct obj_special_ability *ability;
+  struct index_data *saved_index = obj_index;
+  struct zone_data *saved_zones = zone_table;
+  obj_rnum saved_top = top_of_objt;
+  zone_rnum saved_top_zone = top_of_zone_table;
+  MYSQL *connection = NULL, *saved_conn = conn;
+  bool saved_available = mysql_available;
+  bool file_ok = true, player_ok = true, house_ok = true, sheath_ok = true, pet_ok = true;
+  bool overflow_ok = true;
+  obj_save_data *loaded;
+  FILE *fixture;
+  int i;
+
+  clear_char(&owner);
+  owner.player_specials = &specials;
+  owner.player.name = CuMutableString("FullAbilityOwner");
+  clear_char(&pet);
+  SET_BIT_AR(MOB_FLAGS(&pet), MOB_ISNPC);
+  clear_object(&prototype);
+  prototype.item_number = 0;
+  prototype.name = CuMutableString("sword");
+  prototype.short_description = CuMutableString("a sword");
+  prototype.description = CuMutableString("A sword lies here.");
+  prototype.special_abilities = &burst;
+  obj_proto = &prototype;
+  obj_index = &index;
+  top_of_objt = 0;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+
+  objects[0] = create_obj();
+  CREATE(objects[0]->special_abilities, struct obj_special_ability, 1);
+  objects[0]->special_abilities->ability = WEAPON_SPECAB_BANE;
+  objects[0]->special_abilities->level = 7;
+  CREATE(objects[0]->special_abilities->next, struct obj_special_ability, 1);
+  objects[0]->special_abilities->next->ability = WEAPON_SPECAB_FLAMING_BURST;
+  objects[0]->special_abilities->next->level = 20;
+  objects[0]->special_abilities->next->command_word = filled_string('x', 490);
+  objects[0]->special_abilities->next->command_word[0] = ' ';
+  objects[0]->special_abilities->next->command_word[200] = ' ';
+  objects[0]->special_abilities->next->command_word[489] = ' ';
+  CREATE(objects[0]->special_abilities->next->next, struct obj_special_ability, 1);
+  objects[0]->special_abilities->next->next->ability = WEAPON_SPECAB_BANE;
+  objects[0]->special_abilities->next->next->level = 3;
+  objects[1] = read_object(index.vnum, VIRTUAL);
+  objects[1]->special_abilities->next->level = 20;
+  free(objects[1]->special_abilities->next->command_word);
+  objects[1]->special_abilities->next->command_word = strdup("red  flame");
+  objects[2] = read_object(index.vnum, VIRTUAL);
+  free_obj_special_abilities(objects[2]->special_abilities);
+  objects[2]->special_abilities = NULL;
+
+  if (enabled != NULL && strcmp(enabled, "1") == 0)
+  {
+    connection = open_test_database();
+    CuAssertPtrNotNull(tc, connection);
+    conn = connection;
+    mysql_available = true;
+    player_ok = mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs ("
+                                        "idnum INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), "
+                                        "serialized_obj TEXT, "
+                                        "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0;
+    house_ok = mysql_query(connection, "CREATE TEMPORARY TABLE house_data ("
+                                       "idnum INT AUTO_INCREMENT PRIMARY KEY, vnum INT, "
+                                       "serialized_obj TEXT, "
+                                       "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0;
+    sheath_ok = mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs_sheathed ("
+                                        "sheath_obj_id BIGINT, sheathed_position INT, "
+                                        "owner_name VARCHAR(100), serialized_obj TEXT)") == 0;
+    pet_ok = create_pet_snapshot_temporary_schema(connection);
+  }
+
+  for (i = 0; i < 3; i++)
+  {
+    fixture = tmpfile();
+    CuAssertPtrNotNull(tc, fixture);
+    if (!test_objsave_save_obj_record(objects[i], &owner, fixture, 0) || !rewind_stream(fixture))
+      file_ok = false;
+    else
+    {
+      loaded = objsave_parse_objects(fixture);
+      file_ok = file_ok && loaded != NULL && loaded->next == NULL &&
+                same_special_ability_order(objects[i], loaded->obj);
+      extract_loaded_objects(loaded);
+    }
+    if (connection != NULL)
+    {
+      if (mysql_query(connection, "DELETE FROM player_save_objs") ||
+          !objsave_save_obj_record_db(objects[i], &owner, NOWHERE, fixture, 0))
+        player_ok = false;
+      else
+      {
+        loaded = objsave_parse_objects_db(GET_NAME(&owner), NOWHERE);
+        player_ok = player_ok && loaded != NULL && loaded->next == NULL &&
+                    same_special_ability_order(objects[i], loaded->obj);
+        extract_loaded_objects(loaded);
+      }
+      if (mysql_query(connection, "DELETE FROM house_data") ||
+          !objsave_save_obj_record_db(objects[i], NULL, 900, fixture, 0))
+        house_ok = false;
+      else
+      {
+        loaded = objsave_parse_objects_db(NULL, 900);
+        house_ok = house_ok && loaded != NULL && loaded->next == NULL &&
+                   same_special_ability_order(objects[i], loaded->obj);
+        extract_loaded_objects(loaded);
+      }
+      if (mysql_query(connection, "DELETE FROM player_save_objs_sheathed") ||
+          !objsave_save_obj_record_db_sheath(objects[i], &owner, 77, 1))
+        sheath_ok = false;
+      else
+      {
+        loaded = objsave_parse_objects_db_sheath(GET_NAME(&owner), 77, 1, NULL);
+        sheath_ok = sheath_ok && loaded != NULL && loaded->next == NULL &&
+                    same_special_ability_order(objects[i], loaded->obj);
+        extract_loaded_objects(loaded);
+      }
+      if (mysql_query(connection, "DELETE FROM pet_save_objs") ||
+          !objsave_save_obj_record_db_pet(objects[i], &pet, &owner, 701, 0) ||
+          pet_load_objs(&pet, &owner, 701) != PET_OBJECT_LOAD_OK)
+        pet_ok = false;
+      else
+        pet_ok =
+            pet_ok && pet.carrying != NULL && same_special_ability_order(objects[i], pet.carrying);
+      while (pet.carrying != NULL)
+        extract_obj(pet.carrying);
+    }
+    fclose(fixture);
+  }
+
+  /* The database record has a finite limit. No writer may store a partial
+   * ability list when the complete list will not fit. */
+  if (connection != NULL)
+  {
+    oversized = create_obj();
+    for (i = 0; i < 11; i++)
+    {
+      CREATE(ability, struct obj_special_ability, 1);
+      ability->command_word = filled_string('z', 4000);
+      ability->next = oversized->special_abilities;
+      oversized->special_abilities = ability;
+    }
+    fixture = tmpfile();
+    CuAssertPtrNotNull(tc, fixture);
+    overflow_ok =
+        mysql_query(connection, "DELETE FROM player_save_objs") == 0 &&
+        mysql_query(connection, "DELETE FROM player_save_objs_sheathed") == 0 &&
+        mysql_query(connection, "DELETE FROM pet_save_objs") == 0 &&
+        !objsave_save_obj_record_db(oversized, &owner, NOWHERE, fixture, 0) &&
+        !objsave_save_obj_record_db_sheath(oversized, &owner, 77, 1) &&
+        !objsave_save_obj_record_db_pet(oversized, &pet, &owner, 701, 0) &&
+        query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 0 &&
+        query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs_sheathed", -1) == 0 &&
+        query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) == 0;
+    fclose(fixture);
+    extract_obj(oversized);
+  }
+
+  for (i = 0; i < 3; i++)
+    extract_obj(objects[i]);
+  obj_proto = saved_proto;
+  obj_index = saved_index;
+  top_of_objt = saved_top;
+  zone_table = saved_zones;
+  top_of_zone_table = saved_top_zone;
+  conn = saved_conn;
+  mysql_available = saved_available;
+  if (connection != NULL)
+    mysql_close(connection);
+  CuAssertTrue(tc, file_ok);
+  CuAssertTrue(tc, player_ok);
+  CuAssertTrue(tc, house_ok);
+  CuAssertTrue(tc, sheath_ok);
+  CuAssertTrue(tc, pet_ok);
+  CuAssertTrue(tc, overflow_ok);
+}
+
+/* Rows from the old format replace a matching prototype ability and retain
+ * the others; no complete-list marker is present. */
+void Test_object_legacy_single_ability_record_preserves_prototype(CuTest *tc)
+{
+  struct obj_special_ability bane = {.ability = WEAPON_SPECAB_BANE, .level = 8};
+  struct obj_special_ability burst = {.ability = WEAPON_SPECAB_FLAMING_BURST,
+                                      .level = 12,
+                                      .command_word = CuMutableString("ignitus"),
+                                      .next = &bane};
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  struct char_data owner, pet;
+  struct player_special_data specials = {0};
+  struct obj_data prototype, *expected;
+  struct index_data index = {.vnum = 91001};
+  struct zone_data zone = {.number = 910, .bot = 91000, .top = 91099};
+  struct obj_data *saved_proto = obj_proto;
+  struct index_data *saved_index = obj_index;
+  struct zone_data *saved_zones = zone_table;
+  obj_rnum saved_top = top_of_objt;
+  zone_rnum saved_top_zone = top_of_zone_table;
+  obj_save_data *loaded;
+  MYSQL *connection = NULL, *saved_conn = conn;
+  FILE *fixture;
+  char payload[256], escaped[512], query[1024];
+  bool saved_available = mysql_available;
+  bool valid, player_ok = true, house_ok = true, sheath_ok = true, pet_ok = true;
+
+  clear_object(&prototype);
+  prototype.item_number = 0;
+  prototype.name = CuMutableString("sword");
+  prototype.short_description = CuMutableString("a sword");
+  prototype.description = CuMutableString("A sword lies here.");
+  prototype.special_abilities = &burst;
+  obj_proto = &prototype;
+  obj_index = &index;
+  top_of_objt = 0;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+  expected = read_object(index.vnum, VIRTUAL);
+  expected->special_abilities->level = 20;
+  free(expected->special_abilities->command_word);
+  expected->special_abilities->command_word = strdup("legacy");
+  fixture = tmpfile();
+  CuAssertPtrNotNull(tc, fixture);
+  snprintf(payload, sizeof(payload), "#91001\nSpAb: %d 20 0 0 0 0 0 legacy extra\n",
+           expected->special_abilities->ability);
+  fputs(payload, fixture);
+  rewind(fixture);
+  loaded = objsave_parse_objects(fixture);
+  valid =
+      loaded != NULL && loaded->next == NULL && same_special_ability_order(expected, loaded->obj);
+  extract_loaded_objects(loaded);
+  if (enabled != NULL && strcmp(enabled, "1") == 0)
+  {
+    connection = open_test_database();
+    CuAssertPtrNotNull(tc, connection);
+    conn = connection;
+    mysql_available = true;
+    clear_char(&owner);
+    owner.player_specials = &specials;
+    owner.player.name = CuMutableString("LegacyAbilityOwner");
+    clear_char(&pet);
+    SET_BIT_AR(MOB_FLAGS(&pet), MOB_ISNPC);
+    mysql_real_escape_string(connection, escaped, payload, (unsigned long)strlen(payload));
+    player_ok = mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs ("
+                                        "idnum INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), "
+                                        "serialized_obj TEXT, "
+                                        "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0;
+    snprintf(query, sizeof(query),
+             "INSERT INTO player_save_objs (name, serialized_obj) "
+             "VALUES ('LegacyAbilityOwner', '%s')",
+             escaped);
+    player_ok = player_ok && mysql_query(connection, query) == 0;
+    loaded = player_ok ? objsave_parse_objects_db(GET_NAME(&owner), NOWHERE) : NULL;
+    player_ok =
+        loaded != NULL && loaded->next == NULL && same_special_ability_order(expected, loaded->obj);
+    extract_loaded_objects(loaded);
+    house_ok = mysql_query(connection, "CREATE TEMPORARY TABLE house_data ("
+                                       "idnum INT AUTO_INCREMENT PRIMARY KEY, vnum INT, "
+                                       "serialized_obj TEXT, "
+                                       "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)") == 0;
+    snprintf(query, sizeof(query),
+             "INSERT INTO house_data (vnum, serialized_obj) VALUES (900, '%s')", escaped);
+    house_ok = house_ok && mysql_query(connection, query) == 0;
+    loaded = house_ok ? objsave_parse_objects_db(NULL, 900) : NULL;
+    house_ok =
+        loaded != NULL && loaded->next == NULL && same_special_ability_order(expected, loaded->obj);
+    extract_loaded_objects(loaded);
+    sheath_ok = mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs_sheathed ("
+                                        "sheath_obj_id BIGINT, sheathed_position INT, "
+                                        "owner_name VARCHAR(100), serialized_obj TEXT)") == 0;
+    snprintf(query, sizeof(query),
+             "INSERT INTO player_save_objs_sheathed VALUES "
+             "(77, 1, 'LegacyAbilityOwner', '%s')",
+             escaped);
+    sheath_ok = sheath_ok && mysql_query(connection, query) == 0;
+    loaded = sheath_ok ? objsave_parse_objects_db_sheath(GET_NAME(&owner), 77, 1, NULL) : NULL;
+    sheath_ok =
+        loaded != NULL && loaded->next == NULL && same_special_ability_order(expected, loaded->obj);
+    extract_loaded_objects(loaded);
+    pet_ok = create_pet_snapshot_temporary_schema(connection) &&
+             pet_test_payload(connection, payload) &&
+             pet_load_objs(&pet, &owner, 701) == PET_OBJECT_LOAD_OK && pet.carrying != NULL &&
+             same_special_ability_order(expected, pet.carrying);
+    while (pet.carrying != NULL)
+      extract_obj(pet.carrying);
+    conn = saved_conn;
+    mysql_available = saved_available;
+    mysql_close(connection);
+  }
+  extract_obj(expected);
+  fclose(fixture);
+  obj_proto = saved_proto;
+  obj_index = saved_index;
+  top_of_objt = saved_top;
+  zone_table = saved_zones;
+  top_of_zone_table = saved_top_zone;
+  CuAssertTrue(tc, valid);
+  CuAssertTrue(tc, player_ok);
+  CuAssertTrue(tc, house_ok);
+  CuAssertTrue(tc, sheath_ok);
+  CuAssertTrue(tc, pet_ok);
 }
 
 /* Bounded restore: when capacity is short the durable follower wins, a spent
