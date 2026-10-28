@@ -442,6 +442,7 @@ void Test_vessel_admiralty_fee_is_refused_or_refunded(CuTest *tc)
   CuAssertIntEquals(tc, gold - 500, GET_GOLD(&berth.captain));
   CuAssertIntEquals(tc, gold - 500, vessel_test_file_gold(tc, &berth.stores));
 
+
   gold = GET_GOLD(&berth.captain);
   output = payment_command_unsaved(&berth, do_marque, "");
   CuAssertTrue(tc, strstr(output, "no gold was taken") != NULL);
@@ -583,5 +584,49 @@ void Test_vessel_delivery_is_undone_when_the_payout_cannot_be_saved(CuTest *tc)
   CuAssertTrue(tc, vessel_test_number(tc, &berth.stores, status) == CONTRACT_STATUS_DONE);
   CuAssertTrue(tc, vessel_test_number(tc, &berth.stores, manifest) == 0);
 
+  payment_end(tc, &berth);
+}
+
+/* A refund remains with the captain when its immediate player save fails. */
+void Test_vessel_refund_remains_in_memory_when_save_fails(CuTest *tc)
+{
+  struct payment_berth berth;
+  int before;
+
+  if (!payment_begin(tc, &berth))
+    return;
+  before = GET_GOLD(&berth.captain);
+  GET_PFILEPOS(&berth.captain) = -1;
+  vessel_refund(&berth.captain, 123);
+  GET_PFILEPOS(&berth.captain) = 0;
+  CuAssertIntEquals(tc, before + 123, GET_GOLD(&berth.captain));
+  CuAssertIntEquals(tc, before, vessel_test_file_gold(tc, &berth.stores));
+  CuAssertTrue(tc, save_char_checked(&berth.captain, 0));
+  CuAssertIntEquals(tc, before + 123, vessel_test_file_gold(tc, &berth.stores));
+  payment_end(tc, &berth);
+}
+
+/* Refusing the sale and its write-back keeps the old hull and pays nothing;
+ * rows may need the next successful save to repair a partial first write. */
+void Test_vessel_sale_refused_when_write_and_writeback_both_fail(CuTest *tc)
+{
+  struct payment_berth berth;
+  struct greyhawk_ship_data before;
+  const char *output;
+  int gold;
+
+  if (!payment_begin(tc, &berth))
+    return;
+  before = *berth.ship;
+  gold = GET_GOLD(&berth.captain);
+  mysql_test_drop_connection_at("INSERT INTO ship_interiors", 1, TRUE);
+  vessel_test_database_away(&berth.stores, TRUE);
+  output = payment_command(&berth, do_shipweapon, "sell 0");
+  vessel_test_database_away(&berth.stores, FALSE);
+  CuAssertTrue(tc, strstr(output, "nothing was sold") != NULL);
+  CuAssertTrue(tc, payment_hull_is(berth.ship, &before));
+  CuAssertIntEquals(tc, gold, GET_GOLD(&berth.captain));
+  CuAssertIntEquals(tc, gold, vessel_test_file_gold(tc, &berth.stores));
+  CuAssertTrue(tc, vessel_save_hull(berth.ship));
   payment_end(tc, &berth);
 }

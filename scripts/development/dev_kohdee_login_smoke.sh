@@ -3210,6 +3210,17 @@ proc run_vessel_economy_check {warship_id requested_character} {
   set output [run_game_command "shipdeed $captain"]
   require_game_output $output "You sign over $ship_name to $captain." "ship deed"
 
+  # Accept a known offer through the real player command before other trades.
+  set ::spawn_id $secondary_session
+  if {[info exists ::env(MUD_ECONOMY_CONTRACT_ID)]} {
+    if {![regexp {^[1-9][0-9]*$} $::env(MUD_ECONOMY_CONTRACT_ID)]} {
+      fail "the economy freight offer ID is invalid"
+    }
+    set output [run_game_command "contractaccept $::env(MUD_ECONOMY_CONTRACT_ID)"]
+    require_game_output $output "Contract $::env(MUD_ECONOMY_CONTRACT_ID) accepted:" "freight acceptance"
+    puts "PASS: the captain accepted the freight contract."
+  }
+
   # The dock sells its tomes only to a hull of renown or with an able
   # sailmaster and quartermaster.
   set ::spawn_id $secondary_session

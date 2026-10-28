@@ -26,6 +26,7 @@
 #include "../../src/obj/house.h"
 #include "../../src/obj/objsave.h"
 #include "../../src/olc/oasis.h"
+#include "../../src/olc/hedit.h"
 #include "../../src/vessels/vessels.h"
 
 #include <limits.h>
@@ -1693,6 +1694,60 @@ void Test_hedit_save_removes_keywords_and_is_whole_or_refused(CuTest *tc)
   CuAssertStrEquals(tc, "Fifth text.\n", transactions_help_text());
   CuAssertIntEquals(tc, 2, transactions_help_keywords());
 
+  transactions_help_rows_end();
+  transactions_world_end(tc, &w);
+}
+
+/* Import and deletion must stop if the database session loses the sync lock. */
+void Test_hedit_import_and_delete_stop_when_sync_lock_is_lost(CuTest *tc)
+{
+  static char alpha[] = "sthirteenalpha";
+  char *keywords[] = {alpha, NULL};
+  struct transactions_world w;
+  struct descriptor_data *d;
+  FILE *help;
+  const char *heard;
+  char yes[] = "y";
+
+  if (!transactions_world_begin(tc, &w))
+    return;
+  transactions_help_rows_end();
+  IN_ROOM(&w.staff) = 0;
+  heard = transactions_hedit_save(&w, NULL, "Original text.\r\n", keywords);
+  CuAssertTrue(tc, strstr(heard, "Help saved successfully.") != NULL);
+
+  CuAssertIntEquals(tc, 0, mkdir("text", 0700));
+  CuAssertIntEquals(tc, 0, mkdir("text/help", 0700));
+  help = fopen("text/help/help.hlp", "w");
+  CuAssertPtrNotNull(tc, help);
+  fputs("STHIRTEENALPHA\nImported text.\n#0\n$~\n", help);
+  fclose(help);
+  mysql_test_drop_connection_at("START TRANSACTION", 1, FALSE);
+  do_helpgen(&w.staff, "import force", 0, 0);
+  heard = transactions_staff_heard(&w);
+  CuAssertTrue(tc, strstr(heard, "nothing was imported") != NULL);
+  CuAssertStrEquals(tc, "Original text.\n", transactions_help_text());
+  CuAssertIntEquals(tc, 1, transactions_help_keywords());
+
+  d = &w.staff_descriptor;
+  CREATE(d->olc, struct oasis_olc_data, 1);
+  CREATE(OLC_HELP(d), struct help_entry_list, 1);
+  OLC_HELP(d)->tag = strdup(TRANSACTIONS_HELP_TAG);
+  OLC_HELP(d)->entry = strdup("Original text.\n");
+  OLC_MODE(d) = HEDIT_CONFIRM_DELETE;
+  STATE(d) = CON_HEDIT;
+  mysql_test_drop_connection_at("START TRANSACTION", 1, FALSE);
+  hedit_parse(d, yes);
+  heard = transactions_staff_heard(&w);
+  CuAssertTrue(tc, strstr(heard, "Help deletion was rolled back") != NULL);
+  CuAssertStrEquals(tc, "Original text.\n", transactions_help_text());
+  CuAssertIntEquals(tc, 1, transactions_help_keywords());
+  cleanup_olc(d, CLEANUP_ALL);
+  STATE(d) = CON_PLAYING;
+
+  unlink("text/help/help.hlp");
+  rmdir("text/help");
+  rmdir("text");
   transactions_help_rows_end();
   transactions_world_end(tc, &w);
 }

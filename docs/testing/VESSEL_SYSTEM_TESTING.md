@@ -682,6 +682,27 @@ movement (106 s), damage (556 s), derelict (33 s), hunter (81 s), frontier
 and Vailand merchant gates on a fresh reload with the shortened first watch
 (`5a027dc4f`).
 
+## S9-S15 regression gaps
+
+The production-linked suite now exercises an unsaved refund, a sale whose
+initial write and write-back both fail, and help import and delete after the
+connection loses the synchronization lock. The economy gate also plants one
+small freight offer and has the actual captain accept it; it checks the saved
+contract state and removes the offer during cleanup.
+
+The remaining gaps and decisions are:
+
+- A simulated ship interior for `shipbuy` and trade-in is not worth a second
+  world generator in the unit suite: the loss gate already exercises a refused
+  write and successful undo with real interiors. The two-fault undo has a
+  recorded manual check in the Vessel Loss Check above. The trade-in payout
+  failure has no recorded test. Neither is covered by `make test-all`.
+- A lost reply after the prepared bounty update is not worth new database proxy
+  machinery for one case. The current fault hook shuts down a prepared-statement
+  connection before execution, even when asked to drop a reply after sending.
+  The existing test covers refusal before execution; it does not prove the
+  outcome when the server executed the prepared update and its reply was lost.
+
 ## Vessel Raider Check
 
 After the raider content is installed (`provision_vessel_harbor.sh` installs
