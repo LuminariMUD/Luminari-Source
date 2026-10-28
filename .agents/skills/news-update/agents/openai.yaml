@@ -1,0 +1,4 @@
+interface:
+  display_name: "Luminari News Update"
+  short_description: "Write and publish complete Luminari player news"
+  default_prompt: "Use $news-update to update and publish comprehensive player news to the authorized Luminari environment."

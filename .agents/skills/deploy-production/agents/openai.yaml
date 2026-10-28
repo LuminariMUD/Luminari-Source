@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deploy Luminari Production"
+  short_description: "Build, deploy, and verify a Luminari release"
+  default_prompt: "Use $deploy-production to deploy the reviewed Luminari release with a three-minute player countdown and verify the running game."
