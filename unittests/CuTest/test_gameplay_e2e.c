@@ -842,6 +842,75 @@ static void restoration_receive_commands(CuTest *tc, struct restoration_command_
   CuAssertIntEquals(tc, 1, process_input_for_test(&f->descriptor));
 }
 
+/* Exercise both prompt boundaries on a real socket while an action waits. */
+static void verify_queued_action_prompt_transcript(CuTest *tc, bool screen_reader)
+{
+  struct restoration_command_fixture f;
+  struct char_data *ch;
+  char admitted[4096] = {0}, completed[4096] = {0}, unexpected[8];
+  const char ga[] = {(char)255, (char)249, 0};
+  ssize_t admitted_len, completed_len, unexpected_len;
+  bool queued, executed, ack_has_one_ga, reply_has_one_ga, prompt_matches_mode, waiting_quiet;
+
+  begin_restoration_command_fixture(tc, &f, LUMINARI_IO_DRIVER_SELECT);
+  ch = &f.game.actor;
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPHP);
+  if (screen_reader)
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_SCREEN_READER);
+  f.descriptor.has_prompt = TRUE;
+  start_action_cooldown(ch, atSTANDARD, 2);
+  restoration_receive_commands(tc, &f, "layonhands self\n");
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  queued = pending_actions(ch) == 1 && strstr(f.descriptor.output, "added to the queue") != NULL;
+  prompt_matches_mode = screen_reader
+                            ? !strcmp(comm_make_prompt_for_test(&f.descriptor), ga)
+                            : strstr(comm_make_prompt_for_test(&f.descriptor), "100/1000H") != NULL;
+  process_output_for_test(&f.descriptor);
+  f.descriptor.has_prompt = TRUE; /* game loop sets this after process_output */
+  admitted_len = recv(f.sockets[1], admitted, sizeof(admitted) - 1, MSG_DONTWAIT);
+  if (admitted_len > 0)
+    admitted[admitted_len] = 0;
+  ack_has_one_ga = admitted_len >= 2 && strstr(admitted, ga) == admitted + admitted_len - 2;
+
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  unexpected_len = recv(f.sockets[1], unexpected, sizeof(unexpected), MSG_DONTWAIT);
+  waiting_quiet = unexpected_len < 0 && f.descriptor.has_prompt &&
+                  (errno == EAGAIN
+#if EWOULDBLOCK != EAGAIN
+                   || errno == EWOULDBLOCK
+#endif
+                  );
+  pulse++;
+  event_test_advance();
+  pulse++;
+  event_test_advance();
+  comm_process_descriptor_commands_for_test(&f.descriptor);
+  executed = pending_actions(ch) == 0 && GET_HIT(ch) > 100;
+  process_output_for_test(&f.descriptor);
+  completed_len = recv(f.sockets[1], completed, sizeof(completed) - 1, MSG_DONTWAIT);
+  if (completed_len > 0)
+    completed[completed_len] = 0;
+  reply_has_one_ga = completed_len >= 2 && strstr(completed, ga) == completed + completed_len - 2;
+  end_restoration_command_fixture(&f);
+
+  CuAssert(tc, "command must be acknowledged and queued", queued);
+  CuAssert(tc, "acknowledgement must end with exactly one prompt delimiter", ack_has_one_ga);
+  CuAssert(tc, "screen reader hides prompt text but keeps its delimiter", prompt_matches_mode);
+  CuAssert(tc, "the game loop has no prompt to send while the action waits", waiting_quiet);
+  CuAssert(tc, "queued command must execute after recovery", executed);
+  CuAssert(tc, "command reply must end with exactly one prompt delimiter", reply_has_one_ga);
+}
+
+void Test_gameplay_queued_action_prompt_transcript(CuTest *tc)
+{
+  verify_queued_action_prompt_transcript(tc, false);
+}
+
+void Test_gameplay_queued_action_screen_reader_prompt_transcript(CuTest *tc)
+{
+  verify_queued_action_prompt_transcript(tc, true);
+}
+
 static void verify_restoration_queue_wakeup(CuTest *tc, enum luminari_io_driver driver)
 {
   struct restoration_command_fixture f;
