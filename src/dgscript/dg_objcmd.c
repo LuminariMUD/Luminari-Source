@@ -19,7 +19,8 @@
 #include "core/handler.h"
 #include "core/db.h"
 #include "core/constants.h"
-#include "olc/genzon.h"   /* for access to real_zone_by_thing */
+#include "olc/genzon.h" /* for access to real_zone_by_thing */
+#include "olc/genobj.h"
 #include "combat/fight.h" /* for die() */
 #include "events/point_update_periodic.h"
 
@@ -317,6 +318,7 @@ static OCMD(do_otransform)
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   obj_data *o, tmpobj;
   struct char_data *wearer = NULL;
+  obj_rnum old_rnum;
   int pos = 0;
 
   one_argument(argument, arg, sizeof(arg));
@@ -345,8 +347,23 @@ static OCMD(do_otransform)
     autoproc_registry_remove(o);
     point_update_object_forget(obj);
     point_update_object_forget(o);
+    old_rnum = GET_OBJ_RNUM(obj);
+    remove_obj_from_rnum_hash(obj);
+    if (old_rnum != NOTHING && obj_index[old_rnum].number > 0)
+      obj_index[old_rnum].number--;
+    obj_index[GET_OBJ_RNUM(o)].number++;
+
+    /* Release the old instance's owned data before replacing its prototype. */
+    if (old_rnum == NOTHING)
+      free_object_strings(obj);
+    else
+      free_object_strings_proto(obj);
+    free_obj_special_abilities(obj->special_abilities);
+    free(obj->sbinfo);
+
     /* move new obj info over to old object and delete new obj */
     memcpy(&tmpobj, o, sizeof(*o));
+    tmpobj.char_sdesc = o->char_sdesc ? strdup(o->char_sdesc) : NULL;
     tmpobj.in_room = IN_ROOM(obj);
     tmpobj.carried_by = obj->carried_by;
     tmpobj.worn_by = obj->worn_by;
@@ -355,13 +372,47 @@ static OCMD(do_otransform)
     tmpobj.contains = obj->contains;
     tmpobj.id = obj->id;
     tmpobj.proto_script = obj->proto_script;
+    if (old_rnum != NOTHING && old_rnum != GET_OBJ_RNUM(o) &&
+        tmpobj.proto_script == obj_proto[old_rnum].proto_script)
+    {
+      tmpobj.proto_script = NULL;
+      copy_proto_script(obj->proto_script, &tmpobj.proto_script);
+    }
     tmpobj.script = obj->script;
     tmpobj.next_content = obj->next_content;
     tmpobj.next = obj->next;
+    tmpobj.next_gitem = obj->next_gitem;
+    tmpobj.object_list_member = obj->object_list_member;
+    tmpobj.sitting_here = obj->sitting_here;
+    tmpobj.events = obj->events;
+    tmpobj.event_owner_generation = obj->event_owner_generation;
+    tmpobj.periodic_event_generation = obj->periodic_event_generation;
+    tmpobj.transfer_source = obj->transfer_source;
+    tmpobj.transfer_bag = obj->transfer_bag;
+    tmpobj.transfer_pending = obj->transfer_pending;
+    tmpobj.transfer_extracting = obj->transfer_extracting;
+    tmpobj.transfer_disposed = obj->transfer_disposed;
+    tmpobj.limb_restore_slot = obj->limb_restore_slot;
+    tmpobj.trap = obj->trap;
+    tmpobj.missile_id = obj->missile_id;
+    tmpobj.perf_origin_zone_vnum = obj->perf_origin_zone_vnum;
+    tmpobj.perf_create_reason = obj->perf_create_reason;
+    tmpobj.rol_loot_sweep_at = obj->rol_loot_sweep_at;
+    tmpobj.rol_drow_decay_initialized = obj->rol_drow_decay_initialized;
+    tmpobj.rol_deaths_head_seed_initialized = obj->rol_deaths_head_seed_initialized;
     tmpobj.sheath_primary = obj->sheath_primary;
     tmpobj.sheath_secondary = obj->sheath_secondary;
     tmpobj.sheathed_in = obj->sheathed_in;
     memcpy(obj, &tmpobj, sizeof(*obj));
+    add_obj_to_rnum_hash(obj);
+
+    /* These allocations now belong to the transformed object. */
+    o->arcane_mark = NULL;
+    o->restring_identifier = NULL;
+    o->special_abilities = NULL;
+    o->sbinfo = NULL;
+    o->trap = NULL;
+    o->char_sdesc = NULL;
 
     if (wearer)
     {
