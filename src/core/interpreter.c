@@ -6703,6 +6703,21 @@ static bool is_device_cancel_command(int cmd, const char *line)
          is_abbrev(what, "cancel");
 }
 
+/* Match do_device()'s subcommand order, including ambiguous abbreviations. */
+static bool is_device_information_command(int cmd, const char *line)
+{
+  char subcommand[MAX_INPUT_LENGTH];
+
+  if (complete_cmd_info[cmd].command_pointer != do_device)
+    return false;
+  one_argument(line, subcommand, sizeof(subcommand));
+  if (is_abbrev(subcommand, "create") || is_abbrev(subcommand, "use"))
+    return false;
+  return is_abbrev(subcommand, "list") || is_abbrev(subcommand, "info") ||
+         is_abbrev(subcommand, "spells") || is_abbrev(subcommand, "usage") ||
+         is_abbrev(subcommand, "cooldown");
+}
+
 /* This is the actual command interpreter called from game_loop() in comm.c
  * It makes sure you are the proper level and position to execute the command,
  * then calls the appropriate function. */
@@ -7066,7 +7081,8 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
     default:
       break;
     }
-  else if (!IS_NPC(ch) && !command_actions_available(ch, complete_cmd_info[cmd].actions_required))
+  else if (!IS_NPC(ch) && !is_device_information_command(cmd, line) &&
+           !command_actions_available(ch, complete_cmd_info[cmd].actions_required))
   {
     if (!command_has_queue_preflight(cmd))
     {
