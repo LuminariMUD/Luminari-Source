@@ -74,6 +74,7 @@ warship_prototype_id=
 contraband_unstocked=false
 settlement_contract_id=
 economy_contract_id=
+economy_contract_marker=
 payment_refusal_planted=false
 snapshot_ready=false
 cleanup_needed=false
@@ -455,6 +456,9 @@ restore_baseline() {
   fi
   if [[ -n "$economy_contract_id" ]]; then
     database_query "DELETE FROM freight_contracts WHERE contract_id = $economy_contract_id;" || cleanup_status=1
+  elif [[ -n "$economy_contract_marker" ]]; then
+    # The insert may have committed even if its reply containing the ID was lost.
+    database_query "DELETE FROM freight_contracts WHERE status = 0 AND taken_by = '$economy_contract_marker';" || cleanup_status=1
   fi
   if [[ "$payment_refusal_planted" == true ]]; then
     remove_payment_refusal || cleanup_status=1
@@ -1046,10 +1050,11 @@ elif [[ "$acceptance_mode" == economy ]]; then
     fail "the authoritative vessel economy help is stale"
 
   # A small deterministic offer ensures the live captain can afford and stow it.
+  economy_contract_marker="gate-$run_id"
   economy_contract_id=$(database_query "
     INSERT INTO freight_contracts
-      (origin_vnum, destination_vnum, commodity_id, quantity, payout, status)
-    SELECT 1000390, 1000390, commodity_id, 1, 100, 0
+      (origin_vnum, destination_vnum, commodity_id, quantity, payout, status, taken_by)
+    SELECT 1000390, 1000390, commodity_id, 1, 100, 0, '$economy_contract_marker'
       FROM trade_commodities WHERE name = 'salt';
     SELECT LAST_INSERT_ID();") || economy_contract_id=
   [[ "$economy_contract_id" =~ ^[1-9][0-9]*$ ]] ||
@@ -1078,6 +1083,7 @@ elif [[ "$acceptance_mode" == economy ]]; then
   database_query "DELETE FROM freight_contracts WHERE contract_id = $economy_contract_id;" ||
     fail "could not remove the economy freight offer"
   economy_contract_id=
+  economy_contract_marker=
 
   # The captain's trades were settled in two phases (study step S14): no
   # settlement is left open, and his player file names the last one.
