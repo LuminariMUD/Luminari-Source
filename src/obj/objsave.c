@@ -46,22 +46,17 @@
 #define MAX_BAG_ROWS 5
 
 /* A saved object's record in player_save_objs, house_data and
- * player_save_objs_sheathed. Its bounded parts come to 36,175 bytes at their
- * longest: 25,599 ahead of the extra descriptions (five strings and the
- * action description at a line each, the numeric lines), and the 10,576 the
- * writers keep for the spellbook, special-ability and activation lines after
- * them. So only extra descriptions, of which an object may carry any number,
- * can overfill a record, and one that does not fit is left out. A string in
- * one of the single-line fields is cut at a line, 4,088 bytes of text; the
- * game enters those through one line of input, at most 512 bytes. The live
- * serialized_obj columns are BLOBs: 65,535 bytes. */
+ * player_save_objs_sheathed. The writers reserve space for the spellbook,
+ * all special abilities and the activation after extra descriptions. An
+ * extra description that will not fit is omitted whole; an ability list
+ * that exceeds the remaining record fails the save instead of truncating it.
+ * Single-line fields are cut at 4,088 bytes of text. The live serialized_obj
+ * columns are BLOBs: 65,535 bytes. */
 #define OBJSAVE_RECORD_SIZE 36767
 #define OBJSAVE_LINE_SIZE 4096
 
-/* A pet's objects are saved as the same records, in pet_save_objs. The pet
- * writer builds its lines in buffers of the record's size, so only its extra
- * descriptions are held to the record: a pet save is all or nothing, and a
- * string that overfills a record still fails it. */
+/* A pet's objects use the same records in pet_save_objs. A pet save is all
+ * or nothing: a string or list that overfills a record fails the save. */
 #define PET_OBJECT_BUFFER_SIZE OBJSAVE_RECORD_SIZE
 
 /* local functions */
@@ -94,7 +89,7 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
                                             room_vnum house_vnum, FILE *fp, int locate,
                                             bool persist_database);
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch);
-static bool objsave_replace_special_ability(struct obj_data *obj, const char *line);
+static bool objsave_read_special_ability(struct obj_data *obj, const char *line, bool append);
 static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner,
                           long int pet_idnum, int location);
 int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch,
@@ -107,38 +102,58 @@ static void log_pet_object_failure(const char *operation, struct char_data *owne
 obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum, int sheath_slot,
                                                struct obj_data *sheath);
 
-/* The writers store seven numbers and the command word, which is empty for an
- * ability that has none. They store the first ability only: it replaces the
- * ability of its kind, or else the first one, and the rest of the list the
- * prototype gave the object stays. */
-static bool objsave_replace_special_ability(struct obj_data *obj, const char *line)
+/* Old rows override one prototype ability; complete-list rows append each
+ * saved ability in order after the marker has cleared the prototype list. */
+static bool objsave_read_special_ability(struct obj_data *obj, const char *line, bool append)
 {
   struct obj_special_ability *ability;
+  struct obj_special_ability **tail;
   int values[7];
-  char command[128];
+  const char *word;
+  const char *after_word;
+  size_t word_length;
+  int consumed = -1;
   int fields = 0;
 
   if (obj != NULL && line != NULL)
-    fields = strict_sscanf(line, "%d %d %d %d %d %d %d %127s", &values[0], &values[1], &values[2],
-                           &values[3], &values[4], &values[5], &values[6], command);
-  if (fields < 7)
+    fields = strict_sscanf(line, "%d %d %d %d %d %d %d %n", &values[0], &values[1], &values[2],
+                           &values[3], &values[4], &values[5], &values[6], &consumed);
+  if (fields != 7 || consumed < 0)
   {
     log("SYSERR: Invalid SpAb record in object save data: %s", line ? line : "(null)");
     return false;
   }
+  word = line + consumed;
+  word_length = strcspn(word, " \t\r\n");
+  after_word = word + word_length;
+  after_word += strspn(after_word, " \t\r\n");
+  if (append && *after_word != '\0')
+    return false;
 
-  for (ability = obj->special_abilities; ability != NULL; ability = ability->next)
-    if (ability->ability == values[0])
-      break;
-  if (ability == NULL)
-    ability = obj->special_abilities;
-  if (ability == NULL)
+  ability = NULL;
+  if (append)
   {
+    tail = &obj->special_abilities;
+    while (*tail != NULL)
+      tail = &(*tail)->next;
     CREATE(ability, struct obj_special_ability, 1);
-    obj->special_abilities = ability;
+    *tail = ability;
   }
-  else if (ability->command_word != NULL)
-    free(ability->command_word);
+  else
+  {
+    for (ability = obj->special_abilities; ability != NULL; ability = ability->next)
+      if (ability->ability == values[0])
+        break;
+    if (ability == NULL)
+      ability = obj->special_abilities;
+    if (ability == NULL)
+    {
+      CREATE(ability, struct obj_special_ability, 1);
+      obj->special_abilities = ability;
+    }
+    else if (ability->command_word != NULL)
+      free(ability->command_word);
+  }
 
   ability->ability = values[0];
   ability->level = values[1];
@@ -147,11 +162,44 @@ static bool objsave_replace_special_ability(struct obj_data *obj, const char *li
   ability->value[1] = values[4];
   ability->value[2] = values[5];
   ability->value[3] = values[6];
-  ability->command_word = fields == 8 ? strdup(command) : NULL;
+  ability->command_word = word_length > 0 ? strndup(word, word_length) : NULL;
 
   return true;
 }
 
+static int objsave_ability_count(const struct obj_data *obj)
+{
+  const struct obj_special_ability *ability;
+  int count = 0;
+
+  for (ability = obj->special_abilities; ability != NULL; ability = ability->next)
+    count++;
+  return count;
+}
+
+/* A count, including zero, distinguishes complete lists from old overrides. */
+static bool objsave_begin_ability_list(struct obj_data *obj, const char *line, int *remaining)
+{
+  int count;
+
+  if (obj == NULL || strict_sscanf(line, "%d", &count) != 1 || count < 0 || *remaining != -1)
+    return false;
+  free_obj_special_abilities(obj->special_abilities);
+  obj->special_abilities = NULL;
+  *remaining = count;
+  return true;
+}
+
+static bool objsave_load_ability(struct obj_data *obj, const char *line, int *remaining)
+{
+  if (*remaining == 0)
+    return false;
+  if (!objsave_read_special_ability(obj, line, *remaining > 0))
+    return false;
+  if (*remaining > 0)
+    (*remaining)--;
+  return true;
+}
 
 int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate)
 {
@@ -166,12 +214,24 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 
 #ifdef OBJSAVE_DB
 /* The room a record's extra descriptions must leave for the lines the writers
- * put after them: a spellbook's, the special ability's and the activation's. */
+ * put after them: a spellbook, every special ability, and the activation. */
 static size_t objsave_record_tail(const struct obj_data *obj)
 {
-  return (obj->sbinfo != NULL ? SPELLBOOK_SIZE * 32 : 0) +
-         (obj->special_abilities != NULL ? OBJSAVE_LINE_SIZE : 0) +
-         (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0 ? 80 : 0);
+  const struct obj_special_ability *ability;
+  size_t size = (obj->sbinfo != NULL ? SPELLBOOK_SIZE * 32 : 0) + 32 +
+                (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0 ? 80 : 0);
+  int length;
+
+  for (ability = obj->special_abilities; ability != NULL; ability = ability->next)
+  {
+    length = snprintf(NULL, 0, "SpAb: %d %d %d %d %d %d %d %s\n", ability->ability, ability->level,
+                      ability->activation_method, ability->value[0], ability->value[1],
+                      ability->value[2], ability->value[3],
+                      ability->command_word ? ability->command_word : "");
+    if (length > 0)
+      size += MIN((size_t)length, (size_t)OBJSAVE_LINE_SIZE - 1);
+  }
+  return size;
 }
 
 /* Append one extra description to an object's record; a '~' ends the keyword
@@ -226,6 +286,9 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
   char buf1[4096]; /* Reduced from MAX_STRING_LENGTH */
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
+#ifdef OBJSAVE_DB
+  bool ability_lines_ok = true;
+#endif
 
   /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
@@ -546,19 +609,25 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
     }
   }
 
-  // weapon and armor special abilities
-  if (obj->special_abilities)
-  { /* Yes, save them too. */
-    specab = obj->special_abilities;
+  /* Save the entire list, including an empty list. */
+  fprintf(fp, "SpCt: %d\n", objsave_ability_count(obj));
+#ifdef OBJSAVE_DB
+  snprintf(line_buf, sizeof(line_buf), "SpCt: %d\n", objsave_ability_count(obj));
+  strlcat(ins_buf, line_buf, sizeof(ins_buf));
+#endif
+  for (specab = obj->special_abilities; specab != NULL; specab = specab->next)
+  {
     fprintf(fp, "SpAb: %d %d %d %d %d %d %d %s\n", specab->ability, specab->level,
             specab->activation_method, specab->value[0], specab->value[1], specab->value[2],
             specab->value[3],
             (specab->command_word && *specab->command_word) ? specab->command_word : "");
 #ifdef OBJSAVE_DB
-    snprintf(line_buf, sizeof(line_buf), "SpAb: %d %d %d %d %d %d %d %s\n", specab->ability,
-             specab->level, specab->activation_method, specab->value[0], specab->value[1],
-             specab->value[2], specab->value[3],
-             (specab->command_word && *specab->command_word) ? specab->command_word : "");
+    if (snprintf(line_buf, sizeof(line_buf), "SpAb: %d %d %d %d %d %d %d %s\n", specab->ability,
+                 specab->level, specab->activation_method, specab->value[0], specab->value[1],
+                 specab->value[2], specab->value[3],
+                 (specab->command_word && *specab->command_word) ? specab->command_word : "") >=
+        (int)sizeof(line_buf))
+      ability_lines_ok = false;
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
@@ -592,7 +661,7 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
     query = ch != NULL ? "INSERT INTO player_save_objs (name, serialized_obj) VALUES (?, ?)"
                        : "INSERT INTO house_data (vnum, serialized_obj) VALUES (?, ?)";
     statement = mysql_stmt_create(conn);
-    saved = strlen(ins_buf) < sizeof(ins_buf) - 1 && statement != NULL &&
+    saved = ability_lines_ok && strlen(ins_buf) < sizeof(ins_buf) - 1 && statement != NULL &&
             mysql_stmt_prepare_query(statement, query) &&
             (ch != NULL ? mysql_stmt_bind_param_string(statement, 0, GET_NAME(ch))
                         : mysql_stmt_bind_param_int(statement, 0, house_vnum)) &&
@@ -1956,7 +2025,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
 {
   obj_save_data *head, *current, *tempsave;
   char f1[128], f2[128], f3[128], f4[128], line[READ_SIZE];
-  int t[NUM_OBJ_VAL_POSITIONS], i, j = 0, nr;
+  int t[NUM_OBJ_VAL_POSITIONS], i, j = 0, nr, abilities_left = -1;
   struct obj_data *temp;
 
   CREATE(current, obj_save_data, 1);
@@ -2011,6 +2080,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     /* if it's a new record, wrap up the old one, and make space for a new one */
     if (*line == '#')
     {
+      abilities_left = -1;
       /* check for false alarm. */
       if (strict_sscanf(line, "#%d", &nr) == 1)
       {
@@ -2286,9 +2356,15 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           j++;
         }
       }
+      else if (!strcmp(tag, "SpCt"))
+      {
+        if (!objsave_begin_ability_list(temp, line, &abilities_left))
+          log("SYSERR: Invalid special ability list in object save data.");
+      }
       else if (!strcmp(tag, "SpAb"))
       {
-        objsave_replace_special_ability(temp, line);
+        if (!objsave_load_ability(temp, line, &abilities_left))
+          log("SYSERR: Invalid special ability in object save data.");
       }
       break;
     case 'T':
@@ -2457,7 +2533,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   while ((row = mysql_fetch_row(result)))
   {
     char tag[8];
-    int num, j = 0;
+    int num, j = 0, abilities_left = -1;
 
     /* Get the data from the row structure. */
     if (row[0] == NULL)
@@ -2501,6 +2577,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
 
       if (**line == '#')
       {
+        abilities_left = -1;
         /* check for false alarm. */
         if (strict_sscanf(*line, "#%d", &nr) == 1)
         {
@@ -2786,9 +2863,15 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
             j++;
           }
         }
+        else if (!strcmp(tag, "SpCt"))
+        {
+          if (!objsave_begin_ability_list(temp, *line, &abilities_left))
+            log("SYSERR: Invalid special ability list in object save data.");
+        }
         else if (!strcmp(tag, "SpAb"))
         {
-          objsave_replace_special_ability(temp, *line);
+          if (!objsave_load_ability(temp, *line, &abilities_left))
+            log("SYSERR: Invalid special ability in object save data.");
         }
         break;
       case 'T':
@@ -3518,10 +3601,10 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
     }
   }
 
-  // weapon and armor special abilities
-  if (obj->special_abilities)
-  { /* Yes, save them too. */
-    specab = obj->special_abilities;
+  snprintf(line_buf, sizeof(line_buf), "SpCt: %d\n", objsave_ability_count(obj));
+  strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  for (specab = obj->special_abilities; specab != NULL; specab = specab->next)
+  {
     snprintf(line_buf, sizeof(line_buf), "SpAb: %d %d %d %d %d %d %d %s\n", specab->ability,
              specab->level, specab->activation_method, specab->value[0], specab->value[1],
              specab->value[2], specab->value[3],
@@ -3922,7 +4005,7 @@ static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long
   while ((row = mysql_fetch_row(result)))
   {
     char tag[8];
-    int num, j = 0;
+    int num, j = 0, abilities_left = -1;
 
     obj_save_data *row_start = current;
 
@@ -3956,6 +4039,9 @@ static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long
         continue;
       if (**line == '#')
       {
+        if (temp != NULL && abilities_left > 0)
+          goto malformed;
+        abilities_left = -1;
         /* check for false alarm. */
         if (pet_object_integers(*line + 1, &nr, 1, 1))
         {
@@ -4254,9 +4340,15 @@ static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long
             j++;
           }
         }
+        else if (!strcmp(tag, "SpCt"))
+        {
+          if (!pet_object_integers(*line, &num, 1, 1) ||
+              !objsave_begin_ability_list(temp, *line, &abilities_left))
+            goto malformed;
+        }
         else if (!strcmp(tag, "SpAb"))
         {
-          if (!objsave_replace_special_ability(temp, *line))
+          if (!objsave_load_ability(temp, *line, &abilities_left))
             goto malformed;
         }
         break;
@@ -4292,6 +4384,9 @@ static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long
 
       /* Lines borrow storage from serialized_obj. */
     }
+
+    if (abilities_left > 0)
+      goto malformed;
 
     /* So now if temp is not null, we have an object.
      * Create space for it and add it to the list.  */
@@ -4367,7 +4462,7 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
   PREPARED_STMT *statement;
-  bool saved;
+  bool saved, ability_lines_ok = true;
 
   /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
@@ -4553,14 +4648,16 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
     }
   }
 
-  // weapon and armor special abilities
-  if (obj->special_abilities)
-  { /* Yes, save them too. */
-    specab = obj->special_abilities;
-    snprintf(line_buf, sizeof(line_buf), "SpAb: %d %d %d %d %d %d %d %s\n", specab->ability,
-             specab->level, specab->activation_method, specab->value[0], specab->value[1],
-             specab->value[2], specab->value[3],
-             (specab->command_word && *specab->command_word) ? specab->command_word : "");
+  snprintf(line_buf, sizeof(line_buf), "SpCt: %d\n", objsave_ability_count(obj));
+  strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  for (specab = obj->special_abilities; specab != NULL; specab = specab->next)
+  {
+    if (snprintf(line_buf, sizeof(line_buf), "SpAb: %d %d %d %d %d %d %d %s\n", specab->ability,
+                 specab->level, specab->activation_method, specab->value[0], specab->value[1],
+                 specab->value[2], specab->value[3],
+                 (specab->command_word && *specab->command_word) ? specab->command_word : "") >=
+        (int)sizeof(line_buf))
+      ability_lines_ok = false;
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
   }
 
@@ -4577,7 +4674,7 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
 
   statement = mysql_stmt_create(conn);
   saved =
-      strlen(ins_buf) < sizeof(ins_buf) - 1 && statement != NULL &&
+      ability_lines_ok && strlen(ins_buf) < sizeof(ins_buf) - 1 && statement != NULL &&
       mysql_stmt_prepare_query(statement, "INSERT INTO player_save_objs_sheathed (sheath_obj_id, "
                                           "sheathed_position, owner_name, serialized_obj) "
                                           "VALUES (?, ?, ?, ?)") &&
@@ -4675,7 +4772,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
   while ((row = mysql_fetch_row(result)))
   {
     char tag[8];
-    int num, j = 0;
+    int num, j = 0, abilities_left = -1;
 
     /* Get the data from the row structure. */
     serialized_obj = strdup(row[0]);
@@ -4697,6 +4794,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
     {
       if (**line == '#')
       {
+        abilities_left = -1;
         /* check for false alarm. */
         if (strict_sscanf(*line, "#%d", &nr) == 1)
         {
@@ -4964,9 +5062,15 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
             j++;
           }
         }
+        else if (!strcmp(tag, "SpCt"))
+        {
+          if (!objsave_begin_ability_list(temp, *line, &abilities_left))
+            log("SYSERR: Invalid special ability list in object save data.");
+        }
         else if (!strcmp(tag, "SpAb"))
         {
-          objsave_replace_special_ability(temp, *line);
+          if (!objsave_load_ability(temp, *line, &abilities_left))
+            log("SYSERR: Invalid special ability in object save data.");
         }
         break;
       case 'T':
