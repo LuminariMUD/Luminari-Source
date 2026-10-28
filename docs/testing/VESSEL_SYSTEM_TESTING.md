@@ -43,6 +43,12 @@ one command:
 ./scripts/vessels/provision_vessel_harbor.sh
 ```
 
+The development-only command detects a disabled schedule for the existing harbor
+merchant, repairs its hull, and uses staff commands to reapply the harbor route
+and schedule before restarting autopilot. If the route cannot be scheduled or
+the repair fails, it reports the cause and directs the operator to repair the
+route or hull position. The final checks require the schedule to be enabled.
+
 The development-only command merges the tracked world package, seeds three
 representative prototypes and the four-waypoint, two-stop channel route,
 creates the public ferry only if absent, and performs a hard-restart
