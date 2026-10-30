@@ -22,6 +22,14 @@ the existing crafting routine once, after the manager releases the activity.
 The dormant resize adapter retains the generation identity of its admitted
 object and cannot silently finish on a replacement with the same prototype.
 
+Crafting-kit resize keeps the requested size text for timer rechecks and completion.
+Resizing to the character's own size takes six seconds and costs no gold; paid
+resizing retains its supply cost and utility timer. Completion updates the item, kit and carried
+weight totals together before returning the item to inventory. A failed recheck
+leaves the item in the kit without changing its size or spending gold. The kit
+resize tests exercise free and paid completion, size abbreviations, and cancellation
+when the character sits down during work.
+
 Work requires hands and attention. Informational and unrelated commands follow
 the activity manager's capability rules. Committed relocation, combat, damage,
 invalid targets or a failed recheck cancel work. The synthetic owned-craft
@@ -82,6 +90,6 @@ capability checks, cancellation and owner lifecycle.
 `unittests/CuTest/test_crafting_projects.c` starts equipment work through the
 `craft start` handler and golem work through `begin_golem_craft()`, covers the
 edit lock while work runs and the supply-order and golem work rules, and calls
-the create and golem completion routines directly. No test lets a crafting
-timer run to completion, so the timed create, material-golem and supply-order
-lifecycles are not covered end to end.
+the create and golem completion routines directly. The kit resize coverage above
+does not establish the timed equipment-project, material-golem and supply-order
+lifecycles end to end.

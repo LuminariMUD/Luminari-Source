@@ -2802,6 +2802,119 @@ static struct obj_data *craft_project_kit(struct char_data *ch)
   return kit;
 }
 
+/** Run the player's put/resize flow through the kit special and the real activity timer. */
+static void check_kit_resize(CuTest *tc, const char *size, int expected_size, int cost,
+                             int expected_weight, bool interrupt)
+{
+  struct craft_project_fixture f;
+  struct char_data *ch = &f.ch;
+  struct obj_data *kit, *item;
+  struct primary_activity_snapshot snapshot;
+  enum domain_event_status runtime;
+  bool created_commands = false, admitted, unchanged, running, completed, cancelled;
+  bool held, idle, no_repeat;
+  int resize_cmd, size_after, gold_after, kit_weight, carried_weight, item_weight;
+
+  craft_project_begin(&f);
+  craft_project_start_events();
+  runtime = domain_event_runtime_init();
+  if (complete_cmd_info == NULL)
+  {
+    created_commands = true;
+    create_command_list();
+  }
+  resize_cmd = find_command("resize");
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_HOLYLIGHT);
+  GET_POS(ch) = POS_STANDING;
+  GET_REAL_SIZE(ch) = ch->points.size = SIZE_MEDIUM;
+  GET_GOLD(ch) = 10000;
+  kit = read_object(WEAPON_PROTO, VIRTUAL);
+  item = read_object(ITEM_PROTOTYPE, VIRTUAL);
+  CuAssertPtrNotNull(tc, kit);
+  CuAssertPtrNotNull(tc, item);
+  kit->name = strdup("kit crafting");
+  kit->short_description = strdup("a crafting kit");
+  GET_OBJ_TYPE(kit) = ITEM_CONTAINER;
+  GET_OBJ_BOUND_ID(kit) = (int)NOBODY;
+  GET_OBJ_VAL(kit, 0) = 500;
+  GET_OBJ_WEIGHT(kit) = 1;
+  obj_to_char(kit, ch);
+  item->name = strdup("runic gauntlets");
+  item->short_description = strdup("a pair of runic gauntlets");
+  GET_OBJ_TYPE(item) = ITEM_WORN;
+  GET_OBJ_SIZE(item) = SIZE_LARGE;
+  GET_OBJ_WEIGHT(item) = 9;
+  GET_OBJ_COST(item) = 15001;
+  SET_BIT_AR(GET_OBJ_WEAR(item), ITEM_WEAR_TAKE);
+  SET_BIT_AR(GET_OBJ_WEAR(item), ITEM_WEAR_HANDS);
+  obj_to_char(item, ch);
+  do_put(ch, "runic kit", 0, 0);
+
+  craft_project_reset_output(&f);
+  crafting_kit(ch, kit, resize_cmd, size);
+  admitted = primary_activity_snapshot(ch, &snapshot) &&
+             craft_project_output_has(&f, cost == 0 ? "This will take 6 seconds."
+                                                    : "This will take 30 seconds.");
+  unchanged = item->in_obj == kit && GET_OBJ_SIZE(item) == SIZE_LARGE &&
+              GET_OBJ_WEIGHT(item) == 9 && GET_GOLD(ch) == 10000;
+  craft_project_advance_seconds(1);
+  running = primary_activity_snapshot(ch, &snapshot);
+  if (interrupt)
+    GET_POS(ch) = POS_SITTING;
+  craft_project_advance_seconds(40);
+  completed = craft_project_output_has(&f, "You resize a pair of runic gauntlets.");
+  cancelled = craft_project_output_has(&f, "conditions changed");
+  idle = !primary_activity_snapshot(ch, &snapshot);
+  size_after = GET_OBJ_SIZE(item);
+  gold_after = GET_GOLD(ch);
+  kit_weight = GET_OBJ_WEIGHT(kit);
+  carried_weight = IS_CARRYING_W(ch);
+  item_weight = GET_OBJ_WEIGHT(item);
+  held = interrupt ? item->in_obj == kit && kit->contains == item
+                   : item->carried_by == ch && item->in_obj == NULL && kit->contains == NULL;
+  craft_project_reset_output(&f);
+  craft_project_advance_seconds(40);
+  no_repeat = GET_GOLD(ch) == gold_after && GET_OBJ_SIZE(item) == size_after &&
+              !craft_project_output_has(&f, "You resize");
+
+  if (created_commands)
+    free_command_list();
+  domain_event_runtime_shutdown();
+  event_free_all();
+  craft_project_end(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, runtime);
+  CuAssertTrue(tc, resize_cmd >= 0);
+  CuAssertTrue(tc, admitted);
+  CuAssertTrue(tc, unchanged);
+  CuAssertTrue(tc, running);
+  CuAssertIntEquals(tc, !interrupt, completed);
+  CuAssertIntEquals(tc, interrupt, cancelled);
+  CuAssertTrue(tc, idle);
+  CuAssertTrue(tc, held);
+  CuAssertTrue(tc, no_repeat);
+  CuAssertIntEquals(tc, interrupt ? SIZE_LARGE : expected_size, size_after);
+  CuAssertIntEquals(tc, interrupt ? 10000 : 10000 - cost, gold_after);
+  CuAssertIntEquals(tc, interrupt ? 9 : expected_weight, item_weight);
+  CuAssertIntEquals(tc, interrupt ? 10 : 1, kit_weight);
+  CuAssertIntEquals(tc, interrupt ? 10 : 1 + expected_weight, carried_weight);
+}
+
+void Test_kit_resize_to_own_size_finishes_without_charging(CuTest *tc)
+{
+  check_kit_resize(tc, "medium", SIZE_MEDIUM, 0, 1, false);
+}
+
+void Test_kit_resize_to_another_size_charges_once(CuTest *tc)
+{
+  check_kit_resize(tc, "hu", SIZE_HUGE, 7500, 18, false);
+}
+
+void Test_kit_resize_changed_conditions_preserve_item_and_gold(CuTest *tc)
+{
+  check_kit_resize(tc, "huge", SIZE_HUGE, 7500, 18, true);
+}
+
 /** A body-armor mold of the given material and level, weighing enough for five units. */
 static struct obj_data *craft_project_mold(int material, int level)
 {
