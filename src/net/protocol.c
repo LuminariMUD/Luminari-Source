@@ -3777,6 +3777,8 @@ static void ParseGMCP(descriptor_t *apDescriptor, const char *apData, int aSize)
   size_t package_length;
   size_t json_length;
   size_t parse_end;
+  char ascii_json[MAX_PROTOCOL_BUFFER * 3 + 1];
+  size_t ascii_length;
   bool valid;
 
   if (apDescriptor == NULL || apDescriptor->pProtocol == NULL || apData == NULL || aSize <= 0)
@@ -3802,6 +3804,13 @@ static void ParseGMCP(descriptor_t *apDescriptor, const char *apData, int aSize)
     return;
   }
 
+  if (msdp_json_escape_non_ascii(json_data, json_length, ascii_json, sizeof(ascii_json),
+                                 &ascii_length) != PROTOCOL_SUCCESS)
+  {
+    ReportBug("ParseGMCP: Invalid UTF-8 in MSDP JSON payload rejected\n");
+    return;
+  }
+
   tokener = json_tokener_new();
   if (tokener == NULL)
   {
@@ -3810,13 +3819,13 @@ static void ParseGMCP(descriptor_t *apDescriptor, const char *apData, int aSize)
   }
 
   json_tokener_set_flags(tokener, JSON_TOKENER_STRICT | JSON_TOKENER_VALIDATE_UTF8);
-  root = json_tokener_parse_ex(tokener, json_data, (int)json_length);
+  root = json_tokener_parse_ex(tokener, ascii_json, (int)ascii_length);
   json_error = json_tokener_get_error(tokener);
   parse_end = json_tokener_get_parse_end(tokener);
-  while (parse_end < json_length && isspace((unsigned char)json_data[parse_end]))
+  while (parse_end < ascii_length && isspace((unsigned char)ascii_json[parse_end]))
     parse_end++;
 
-  if (json_error != json_tokener_success || root == NULL || parse_end != json_length ||
+  if (json_error != json_tokener_success || root == NULL || parse_end != ascii_length ||
       !json_object_is_type(root, json_type_object))
   {
     ReportBug("ParseGMCP: Invalid MSDP JSON payload rejected\n");

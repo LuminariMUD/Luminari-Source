@@ -20,6 +20,7 @@
 #include "../../src/core/utils.h"
 #include "../../src/core/comm.h"
 #include "../../src/net/protocol.h"
+#include "../../src/net/msdp_json.h"
 #include "../../src/net/onboarding.h"
 
 #define TEST_CAPTURE_SIZE 65536
@@ -147,6 +148,8 @@ static json_object *parse_captured_msdp_json(CuTest *tc)
   size_t payload_length;
   size_t json_length;
   size_t parse_end;
+  char ascii_json[MAX_PROTOCOL_BUFFER * 3 + 1];
+  size_t ascii_length;
 
   CuAssert(tc, "captured frame is too short", s_output_capture_len >= 10);
   CuAssertIntEquals(tc, IAC, s_output_capture[0]);
@@ -162,15 +165,19 @@ static json_object *parse_captured_msdp_json(CuTest *tc)
   json_data = payload + 5;
   json_length = payload_length - 5;
 
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS,
+                    msdp_json_escape_non_ascii(json_data, json_length, ascii_json,
+                                               sizeof(ascii_json), &ascii_length));
+
   tokener = json_tokener_new();
   CuAssertPtrNotNullMsg(tc, "could not allocate strict JSON parser", tokener);
   json_tokener_set_flags(tokener, JSON_TOKENER_STRICT | JSON_TOKENER_VALIDATE_UTF8);
-  root = json_tokener_parse_ex(tokener, json_data, (int)json_length);
+  root = json_tokener_parse_ex(tokener, ascii_json, (int)ascii_length);
   error = json_tokener_get_error(tokener);
   parse_end = json_tokener_get_parse_end(tokener);
 
   CuAssertIntEquals(tc, json_tokener_success, error);
-  CuAssertIntEquals(tc, (int)json_length, (int)parse_end);
+  CuAssertIntEquals(tc, (int)ascii_length, (int)parse_end);
   CuAssertPtrNotNullMsg(tc, "GMCP payload did not parse as JSON", root);
   CuAssert(tc, "GMCP MSDP payload is not a JSON object",
            json_object_is_type(root, json_type_object));
@@ -1032,7 +1039,8 @@ void TestProtocolParser_GmcpMsdpScalarUsesStrictJson(CuTest *tc)
   protocol_harness_t harness;
   json_object *root;
   json_object *title;
-  const char value[] = "quote=\" slash=/ backslash=\\\b\f\n\r\t\007\013\037 caf\303\251";
+  const char value[] = "quote=\" slash=/ backslash=\\\b\f\n\r\t\007\013\037 "
+                       "caf\303\251 \342\202\254 \360\237\230\200";
   const unsigned char legacy_package[] = "MSDP.";
   const unsigned char escaped_quote[] = "\\\"";
   const unsigned char escaped_backslash[] = "\\\\";
@@ -1330,6 +1338,45 @@ void TestProtocolParser_GmcpMsdpCommandsUseJsonObject(CuTest *tc)
   harness_destroy(&harness);
 }
 
+void TestProtocolParser_GmcpUtf8KeepsStrictSyntax(CuTest *tc)
+{
+  static const struct
+  {
+    const char *payload;
+    bool accepted;
+  } cases[] = {
+      {"MSDP {\"REPORT\":\"TITLE\",\"CLIENT_ID\":\"caf\303\251 \342\202\254 "
+       "\360\237\230\200\"} \t",
+       true},
+      {"MSDP {\"REPORT\":\"TITLE\",\"CLIENT_ID\":\"\\\\\303\251\"}", true},
+      {"MSDP {\"REPORT\":\"TITLE\",\"CLIENT_ID\":\"\\\303\251\"}", false},
+      {"MSDP {\"REPORT\":\"TITLE\",\"CLIENT_ID\":\"\303(\"}", false},
+      {"MSDP {\"REPORT\":\"TITLE\",\"CLIENT_ID\":\"\360\237\230\"}", false},
+      {"MSDP {\"REPORT\":\"TITLE\",\"CLIENT_ID\":\"raw\ncontrol\"}", false},
+      {"MSDP {\"REPORT\":\"TITLE\",}", false},
+      {"MSDP {/* comment */\"REPORT\":\"TITLE\"}", false},
+      {"MSDP {\"REPORT\":\"TITLE\"} trailing", false},
+  };
+  size_t i;
+
+  for (i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+  {
+    protocol_harness_t harness;
+    protocol_fixture_t fixture;
+
+    harness_init(tc, &harness);
+    harness.descriptor.pProtocol->bGMCP = bool_t_true;
+    fixture_init(&fixture);
+    fixture_subnegotiation(&fixture, (unsigned char)TELOPT_GMCP,
+                           (const unsigned char *)cases[i].payload, strlen(cases[i].payload));
+    assert_fixture_valid(tc, &fixture);
+    CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+    CuAssertIntEquals_Msg(tc, cases[i].payload, cases[i].accepted,
+                          harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport);
+    harness_destroy(&harness);
+  }
+}
+
 void TestProtocolParser_MsdpFrameRetriesWithoutPartialQueueWrite(CuTest *tc)
 {
   protocol_harness_t harness;
@@ -1513,6 +1560,7 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_MsdpRejectsMalformedStoredValues);
   SUITE_ADD_TEST(suite, TestProtocolParser_GmcpMsdpRejectsInvalidUtf8AndEscapedOverflow);
   SUITE_ADD_TEST(suite, TestProtocolParser_GmcpMsdpCommandsUseJsonObject);
+  SUITE_ADD_TEST(suite, TestProtocolParser_GmcpUtf8KeepsStrictSyntax);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsdpFrameRetriesWithoutPartialQueueWrite);
   SUITE_ADD_TEST(suite, TestProtocolParser_GmcpFrameRetriesWithoutPartialQueueWrite);
   SUITE_ADD_TEST(suite, TestProtocolParser_MudletPackageUsesStableIdentity);

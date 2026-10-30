@@ -99,9 +99,10 @@ static size_t strict_scan_integer_text(struct strict_scan_input *in, int *base, 
         digits = 0;
       else
       {
-        /* "0x" with no digit after it reads as 0, the x consumed, as scanf does. */
-        buffer[length - 1] = '\0';
-        return digits;
+        /* An incomplete hexadecimal prefix is a matching failure. Older libc scanf
+         * implementations accepted it as zero; keep our strict result independent of libc. */
+        buffer[length] = '\0';
+        return 0;
       }
     }
     else if (*base == 0)
@@ -520,10 +521,8 @@ static int strict_vscan(struct strict_scan_input *in, const char *format, va_lis
         return assigned;
       errno = 0;
       value = strtold(text, &end);
-      /* An exponent marker with no digits ("1e", "1e-") is consumed and ignored, as scanf does. */
-      if ((*end != '\0' && ((*end != 'e' && *end != 'E') ||
-                            strspn(end + 1, "+-") != strlen(end + 1) || strlen(end + 1) > 1)) ||
-          (errno == ERANGE && isinf(value)))
+      /* Incomplete exponents are matching failures, independently of libc scanf. */
+      if (*end != '\0' || (errno == ERANGE && isinf(value)))
         return assigned;
       /* Converting a value outside the target type's range is undefined, so it fails too. */
       if ((length == 'l' && (value > (long double)DBL_MAX || value < -(long double)DBL_MAX)) ||

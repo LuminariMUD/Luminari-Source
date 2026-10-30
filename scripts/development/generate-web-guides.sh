@@ -57,10 +57,9 @@ for entry in "${GUIDES[@]}"; do
     --metadata subtitle="$subtitle" \
     --toc --toc-depth=2
 
-  # Strip trailing whitespace so the output matches what the repository's
-  # pre-commit hook would produce. Without this the hook rewrites the file
-  # after generation and --check then reports it stale forever.
-  sed -i 's/[[:space:]]*$//' "$tmp"
+  # Pandoc 3.7 stopped adding these unused table-row classes. Normalize older
+  # writers too, and strip whitespace as the pre-commit hook does.
+  sed -i -E 's/<tr class="(header|odd|even)">/<tr>/g; s/[[:space:]]*$//' "$tmp"
 
   if [ "$CHECK_ONLY" -eq 1 ]; then
     if ! cmp -s "$tmp" "$target"; then

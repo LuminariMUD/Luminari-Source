@@ -407,6 +407,9 @@ pandoc renders `docs/web/guides/*.html` from
 editing one of those sources, let the mdformat hook format it first, then run
 `scripts/development/generate-web-guides.sh`: pandoc reads the formatted
 Markdown, and `wtool.py docs --check` fails until the pages are regenerated.
+The generator removes Pandoc's legacy `header`, `odd`, and `even` table-row
+classes, which Pandoc 3.7 no longer emits. Pandoc 3.1 and 3.7 produce the same
+checked-in pages after this normalization.
 
 ### Upgrading a formatter
 
