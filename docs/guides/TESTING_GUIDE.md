@@ -281,7 +281,8 @@ newer and Pandoc are required.
 
 The hosted Ubuntu 26.04 environment uses glibc 2.43, json-c 0.18, Pandoc 3.7,
 and multicall coreutils. The strict scanner rejects incomplete hexadecimal
-prefixes and exponents independently of libc's `scanf` behavior. GMCP parsing validates UTF-8
+prefixes and exponents, and treats a short `%c` field as an input failure,
+independently of libc's `scanf` behavior. GMCP parsing validates UTF-8
 and converts non-ASCII characters to equivalent JSON Unicode escapes before
 strict json-c parsing, avoiding json-c 0.18's signed-character control check.
 The protocol harness exercises two-, three-, and four-byte UTF-8 round trips

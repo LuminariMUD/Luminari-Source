@@ -412,7 +412,6 @@ void Test_strict_scan_matches_scanf_and_stops_at_overflow(CuTest *tc)
       {"%lf", ".5"},
       {"%3s", "abcdef"},
       {"%c%c", "ab"},
-      {"%3c", "ab"},
       {"%[^,],%d", "a b,7"},
       {"%d \"%19[^\"]\" \"%19[^\"]\" %s", "5 \"one two\" \"three\" four"},
       {"%*d %d", "1"},
@@ -556,6 +555,24 @@ void Test_strict_scan_rejects_incomplete_exponent(CuTest *tc)
     fclose(stream);
     CuAssertStrEquals(tc, unread[i], rest);
   }
+}
+
+void Test_strict_scan_short_character_field_is_input_failure(CuTest *tc)
+{
+  char value[4] = "???";
+  FILE *stream = tmpfile();
+  int first = 0;
+
+  CuAssertPtrNotNull(tc, stream);
+  CuAssertIntEquals(tc, EOF, strict_sscanf("ab", "%3c", value));
+  CuAssertStrEquals(tc, "ab?", value);
+  fputs("ab", stream);
+  rewind(stream);
+  CuAssertIntEquals(tc, EOF, strict_fscanf(stream, "%3c", value));
+  CuAssertIntEquals(tc, EOF, fgetc(stream));
+  fclose(stream);
+  CuAssertIntEquals(tc, 1, strict_sscanf("1 ab", "%d %3c", &first, value));
+  CuAssertIntEquals(tc, 1, first);
 }
 
 void Test_fopen_restricted_blocks_world_write(CuTest *tc)

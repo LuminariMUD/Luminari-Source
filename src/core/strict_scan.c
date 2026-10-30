@@ -297,9 +297,9 @@ static int strict_vscan(struct strict_scan_input *in, const char *format, va_lis
           out[i] = (char)c;
         strict_scan_advance(in);
       }
-      /* Characters short of the width still count, as in scanf; none at all is an input
-       * failure. */
-      if (i == 0)
+      /* %c requires the full field width. Older libc versions counted a short field
+       * as an assignment; keep input failure consistent across supported versions. */
+      if (i < count)
         return assigned > 0 ? assigned : EOF;
       if (!suppress)
         assigned++;
