@@ -2009,13 +2009,13 @@ void Test_vessel_waypoints_and_routes_record_their_creator(CuTest *tc)
   row = mysql_fetch_row(result);
   CuAssertPtrNotNull(tc, row);
   CuAssertStrEquals(tc, "Harbor 'mark", row[0]);
-  CuAssertDblEquals(tc, -1.23, atof(row[1]), 0.001);
-  CuAssertDblEquals(tc, 25.68, atof(row[2]), 0.001);
-  CuAssertDblEquals(tc, -3.46, atof(row[3]), 0.001);
-  CuAssertDblEquals(tc, 0.88, atof(row[4]), 0.001);
-  CuAssertIntEquals(tc, 12, atoi(row[5]));
-  CuAssertIntEquals(tc, 3, atoi(row[6]));
-  CuAssertIntEquals(tc, MOVEMENT_CAPTAIN_ID, atoi(row[7]));
+  CuAssertDblEquals(tc, -1.23, parse_double(row[1]), 0.001);
+  CuAssertDblEquals(tc, 25.68, parse_double(row[2]), 0.001);
+  CuAssertDblEquals(tc, -3.46, parse_double(row[3]), 0.001);
+  CuAssertDblEquals(tc, 0.88, parse_double(row[4]), 0.001);
+  CuAssertIntEquals(tc, 12, parse_int(row[5]));
+  CuAssertIntEquals(tc, 3, parse_int(row[6]));
+  CuAssertIntEquals(tc, MOVEMENT_CAPTAIN_ID, parse_int(row[7]));
   mysql_free_result(result);
   snprintf(query, sizeof(query),
            "SELECT name, loop_route, active, creator_id "
@@ -2027,9 +2027,9 @@ void Test_vessel_waypoints_and_routes_record_their_creator(CuTest *tc)
   row = mysql_fetch_row(result);
   CuAssertPtrNotNull(tc, row);
   CuAssertStrEquals(tc, "Captain 'route", row[0]);
-  CuAssertIntEquals(tc, 1, atoi(row[1]));
-  CuAssertIntEquals(tc, 1, atoi(row[2]));
-  CuAssertIntEquals(tc, MOVEMENT_CAPTAIN_ID, atoi(row[3]));
+  CuAssertIntEquals(tc, 1, parse_int(row[1]));
+  CuAssertIntEquals(tc, 1, parse_int(row[2]));
+  CuAssertIntEquals(tc, MOVEMENT_CAPTAIN_ID, parse_int(row[3]));
   mysql_free_result(result);
 
   waypoint_cache_clear();

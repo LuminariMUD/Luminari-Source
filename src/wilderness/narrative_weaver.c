@@ -384,7 +384,7 @@ static int get_season_from_time(void)
 double parse_json_double_value(const char *json, const char *key)
 {
   char search_key[100];
-  char *start, *end;
+  const char *start, *end;
 
   if (!json || !key)
     return 1.0;
@@ -582,7 +582,7 @@ double get_time_weight_for_category(const char *json_weights, const char *time_c
   char search_pattern[64];
   snprintf(search_pattern, sizeof(search_pattern), "\"%s\":", time_category);
 
-  char *pos = strstr(json_weights, search_pattern);
+  const char *pos = strstr(json_weights, search_pattern);
   if (pos)
   {
     pos += strlen(search_pattern);
@@ -2430,7 +2430,7 @@ static char *replace_string_safe(const char *str, const char *find, const char *
   if (!str || !find || !replace)
     return strdup(str ? str : "");
 
-  char *pos = strstr(str, find);
+  const char *pos = strstr(str, find);
   if (!pos)
     return strdup(str);
 

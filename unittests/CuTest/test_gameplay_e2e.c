@@ -7981,7 +7981,7 @@ void Test_gameplay_relay_note_has_no_prototype_and_round_trips(CuTest *tc)
   round_tripped = false;
   if (letter != NULL && file != NULL && test_objsave_save_obj_record(letter, &game.victim, file, 0))
   {
-    rewind(file);
+    CuAssertIntEquals(tc, 0, fseek(file, 0, SEEK_SET));
     loaded = objsave_parse_objects(file);
     if (loaded != NULL)
     {

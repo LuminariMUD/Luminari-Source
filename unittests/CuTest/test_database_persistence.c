@@ -3838,7 +3838,7 @@ void Test_object_legacy_single_ability_record_preserves_prototype(CuTest *tc)
   snprintf(payload, sizeof(payload), "#91001\nSpAb: %d 20 0 0 0 0 0 legacy extra\n",
            expected->special_abilities->ability);
   fputs(payload, fixture);
-  rewind(fixture);
+  CuAssertIntEquals(tc, 0, fseek(fixture, 0, SEEK_SET));
   loaded = objsave_parse_objects(fixture);
   valid =
       loaded != NULL && loaded->next == NULL && same_special_ability_order(expected, loaded->obj);

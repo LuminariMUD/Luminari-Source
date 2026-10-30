@@ -240,7 +240,7 @@ static size_t objsave_record_tail(const struct obj_data *obj)
                       ability->value[2], ability->value[3],
                       ability->command_word ? ability->command_word : "");
     if (length > 0)
-      size += MIN((size_t)length, (size_t)OBJSAVE_LINE_SIZE - 1);
+      size += (size_t)MIN(length, OBJSAVE_LINE_SIZE - 1);
   }
   return size;
 }

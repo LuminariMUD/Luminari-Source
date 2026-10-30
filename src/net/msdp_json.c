@@ -126,6 +126,75 @@ static bool msdp_json_is_valid_utf8(const unsigned char *text, size_t length)
   return true;
 }
 
+/* json-c 0.18 compares signed UTF-8 bytes with 0x1f in strict mode and rejects valid
+ * strings. Feed its strict parser equivalent ASCII JSON, keeping syntax checks enabled.
+ * UTF-8 validation happens before decoding; each input byte needs at most three output
+ * bytes, including supplementary characters encoded as a pair of JSON surrogates. */
+protocol_error_t msdp_json_escape_non_ascii(const char *text, size_t length, char *output,
+                                            size_t capacity, size_t *output_length)
+{
+  struct msdp_json_writer writer = {output, capacity, 0};
+  const unsigned char *bytes = (const unsigned char *)text;
+  size_t index = 0;
+  protocol_error_t result;
+  bool escaped_byte = false;
+  bool in_string = false;
+
+  if (text == NULL || output == NULL || output_length == NULL)
+    return PROTOCOL_ERROR_NULL_POINTER;
+  *output_length = 0;
+  if (capacity == 0)
+    return PROTOCOL_ERROR_BUFFER_FULL;
+  output[0] = '\0';
+  if (!msdp_json_is_valid_utf8(bytes, length))
+    return PROTOCOL_ERROR_INVALID_INPUT;
+
+  while (index < length)
+  {
+    unsigned int codepoint;
+    size_t count;
+    size_t continuation;
+    char escaped[13];
+    int written;
+
+    if (bytes[index] < 0x80)
+    {
+      /* Older json-c releases also need the JSON control-byte rule enforced here. */
+      if (in_string && bytes[index] < 0x20)
+        return PROTOCOL_ERROR_INVALID_INPUT;
+      if (bytes[index] == '"' && !escaped_byte)
+        in_string = !in_string;
+      escaped_byte = bytes[index] == '\\' && !escaped_byte;
+      result = msdp_json_append_char(&writer, bytes[index++]);
+    }
+    else
+    {
+      /* A raw non-ASCII byte cannot be a JSON escape. Do not repair malformed syntax. */
+      if (escaped_byte)
+        return PROTOCOL_ERROR_INVALID_INPUT;
+      count = bytes[index] < 0xe0 ? 2 : bytes[index] < 0xf0 ? 3 : 4;
+      codepoint = bytes[index] & (0x7fU >> count);
+      for (continuation = 1; continuation < count; continuation++)
+        codepoint = (codepoint << 6) | (bytes[index + continuation] & 0x3fU);
+      index += count;
+      if (codepoint <= 0xffff)
+        written = snprintf(escaped, sizeof(escaped), "\\u%04x", codepoint);
+      else
+      {
+        codepoint -= 0x10000;
+        written = snprintf(escaped, sizeof(escaped), "\\u%04x\\u%04x", 0xd800U + (codepoint >> 10),
+                           0xdc00U + (codepoint & 0x3ffU));
+      }
+      result = msdp_json_append(&writer, escaped, (size_t)written);
+    }
+    if (result != PROTOCOL_SUCCESS)
+      return result;
+  }
+
+  *output_length = writer.length;
+  return PROTOCOL_SUCCESS;
+}
+
 static protocol_error_t msdp_json_append_quoted(struct msdp_json_writer *writer,
                                                 const unsigned char *text, size_t length,
                                                 bool require_utf8)
