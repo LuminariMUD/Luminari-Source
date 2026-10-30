@@ -1371,7 +1371,7 @@ static char *build_json_request(const char *prompt)
  */
 static char *parse_json_response(const char *json_str)
 {
-  char *content_start, *content_end;
+  const char *content_start, *content_end;
   char *result;
   size_t len;
 
@@ -1436,7 +1436,7 @@ static char *parse_json_response(const char *json_str)
       quotes_found++;
       /* Count consecutive backslashes before this quote */
       int backslash_count = 0;
-      char *p = content_end - 1;
+      const char *p = content_end - 1;
       while (p >= content_start && *p == '\\')
       {
         backslash_count++;
@@ -1490,7 +1490,7 @@ static char *parse_json_response(const char *json_str)
 
   /* Copy while unescaping */
   AI_DEBUG("Starting content unescaping process");
-  char *src = content_start;
+  const char *src = content_start;
   char *dst = result;
   int escape_sequences = 0;
   int chars_processed = 0;

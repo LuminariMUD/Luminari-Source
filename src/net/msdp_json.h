@@ -9,6 +9,9 @@ protocol_error_t msdp_json_validate_name(const char *name);
 protocol_error_t msdp_json_validate_scalar(const char *value);
 protocol_error_t msdp_json_validate_structured(const char *value);
 
+protocol_error_t msdp_json_escape_non_ascii(const char *text, size_t length, char *output,
+                                            size_t capacity, size_t *output_length);
+
 protocol_error_t msdp_json_build_string_frame(char *frame, size_t capacity, const char *variable,
                                               const char *value, size_t *frame_length);
 protocol_error_t msdp_json_build_number_frame(char *frame, size_t capacity, const char *variable,

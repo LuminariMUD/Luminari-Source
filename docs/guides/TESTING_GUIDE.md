@@ -279,6 +279,17 @@ constants manifest, checks the audited world-building documentation and
 generated HTML, and smoke-tests `lib/world/validate-zone.sh`. Python 3.10 or
 newer and Pandoc are required.
 
+The hosted Ubuntu 26.04 environment uses glibc 2.43, json-c 0.18, Pandoc 3.7,
+and multicall coreutils. The strict scanner rejects incomplete hexadecimal
+prefixes and exponents, and treats a short `%c` field as an input failure,
+independently of libc's `scanf` behavior. GMCP parsing validates UTF-8
+and converts non-ASCII characters to equivalent JSON Unicode escapes before
+strict json-c parsing, avoiding json-c 0.18's signed-character control check.
+The protocol harness exercises two-, three-, and four-byte UTF-8 round trips
+and rejects malformed UTF-8 and JSON syntax. Process-monitor tests compile a
+small sleeping executable with `${CC:-cc}` instead of renaming a utility that
+may dispatch commands from its executable name.
+
 The tracked complete fixture covers all eight validator datasets: `.zon`,
 `.wld`, `.mob`, `.obj`, `.shp`, `.trg`, `.qst`, and `.hlq`. The RoL inventory
 fixtures separately cover the four source manifests, all seven source kinds,

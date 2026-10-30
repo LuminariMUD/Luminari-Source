@@ -143,13 +143,27 @@ auto_root="$test_root/auto-sandbox"
 auto_output="$auto_root/log/process-memory-timeseries.tsv"
 auto_release="$auto_root/bin/releases/aaaabbbbccccdddd"
 mkdir -p "$auto_root/log" "$auto_release"
-cp "$(command -v sleep)" "$auto_release/luminari"
-chmod 0755 "$auto_release/luminari"
+# Build a real process fixture. A renamed multicall coreutils executable can
+# select its command from /proc/self/exe and cannot act as a copied sleep.
+"${CC:-cc}" -x c -o "$auto_release/luminari" - <<'EOF'
+#include <unistd.h>
+#include <stdlib.h>
+int main(void)
+{
+  /* The sampler requires a heap mapping, just as the real server has. */
+  void *heap = malloc(1024);
+  if (heap == NULL)
+    return 1;
+  sleep(30);
+  free(heap);
+  return 0;
+}
+EOF
 ln -sf "releases/aaaabbbbccccdddd/luminari" "$auto_root/bin/luminari"
 
-"$auto_release/luminari" 30 &
+"$auto_release/luminari" &
 target_one=$!
-"$auto_release/luminari" 30 &
+"$auto_release/luminari" &
 target_two=$!
 wait_for_exec "$target_one" "$(readlink -f -- "$auto_release/luminari")"
 wait_for_exec "$target_two" "$(readlink -f -- "$auto_release/luminari")"

@@ -13,6 +13,7 @@
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
 #include "../../src/core/comm.h"
+#include "../../src/core/db.h"
 #include "../../src/core/modify.h"
 #include "../../src/act/act.h"
 #include "../../src/magic/spells.h"
@@ -408,13 +409,10 @@ void Test_strict_scan_matches_scanf_and_stops_at_overflow(CuTest *tc)
       {"%lu", "18446744073709551615"},
       {"%ld %lld", "-9223372036854775807 9223372036854775807"},
       {"%2x%2x", "0aff"},
-      {"%2x", "0x"},
       {"%lf", "1.5e3"},
-      {"%lf", "1e"},
       {"%lf", ".5"},
       {"%3s", "abcdef"},
       {"%c%c", "ab"},
-      {"%3c", "ab"},
       {"%[^,],%d", "a b,7"},
       {"%d \"%19[^\"]\" \"%19[^\"]\" %s", "5 \"one two\" \"three\" four"},
       {"%*d %d", "1"},
@@ -504,6 +502,98 @@ void Test_strict_scan_matches_scanf_and_stops_at_overflow(CuTest *tc)
   CuAssertDblEquals(tc, 15.0, real, 0.0);
   CuAssertIntEquals(tc, EOF, strict_sscanf(NULL, "%d", &first));
   CuAssertIntEquals(tc, EOF, strict_fscanf(NULL, "%d", &first));
+}
+
+/* libc versions disagree on an incomplete 0x prefix. The strict scanner consumes the
+ * prefix but never assigns a value, including when the field width truncates the digits. */
+void Test_strict_scan_rejects_incomplete_hex_prefix(CuTest *tc)
+{
+  static const char *inputs[] = {"0x", "0Xg", "-0x!", "0x12"};
+  static const char *formats[] = {"%x", "%i", "%x", "%2x"};
+  static const char *unread[] = {"", "g", "!", "12"};
+  size_t i;
+
+  for (i = 0; i < sizeof(inputs) / sizeof(inputs[0]); i++)
+  {
+    unsigned int value = 42;
+    FILE *stream = tmpfile();
+    char rest[8];
+
+    CuAssertPtrNotNull(tc, stream);
+    CuAssertIntEquals(tc, 0, strict_sscanf(inputs[i], formats[i], &value));
+    CuAssertIntEquals(tc, 42, (int)value);
+    fputs(inputs[i], stream);
+    CuAssertIntEquals(tc, 0, fseek(stream, 0, SEEK_SET));
+    CuAssertIntEquals(tc, 0, strict_fscanf(stream, formats[i], &value));
+    CuAssertIntEquals(tc, 42, (int)value);
+    rest[fread(rest, 1, sizeof(rest) - 1, stream)] = '\0';
+    fclose(stream);
+    CuAssertStrEquals(tc, unread[i], rest);
+  }
+}
+
+void Test_strict_scan_rejects_incomplete_exponent(CuTest *tc)
+{
+  static const char *inputs[] = {"1e", "1e-", "1e+tail", "1e9"};
+  static const char *formats[] = {"%lf", "%lf", "%lf", "%2lf"};
+  static const char *unread[] = {"", "", "tail", "9"};
+  size_t i;
+
+  for (i = 0; i < sizeof(inputs) / sizeof(inputs[0]); i++)
+  {
+    double value = 42.0;
+    FILE *stream = tmpfile();
+    char rest[8];
+
+    CuAssertPtrNotNull(tc, stream);
+    CuAssertIntEquals(tc, 0, strict_sscanf(inputs[i], formats[i], &value));
+    CuAssertDblEquals(tc, 42.0, value, 0.0);
+    fputs(inputs[i], stream);
+    CuAssertIntEquals(tc, 0, fseek(stream, 0, SEEK_SET));
+    CuAssertIntEquals(tc, 0, strict_fscanf(stream, formats[i], &value));
+    CuAssertDblEquals(tc, 42.0, value, 0.0);
+    rest[fread(rest, 1, sizeof(rest) - 1, stream)] = '\0';
+    fclose(stream);
+    CuAssertStrEquals(tc, unread[i], rest);
+  }
+}
+
+void Test_strict_scan_short_character_field_is_input_failure(CuTest *tc)
+{
+  char value[4] = "???";
+  FILE *stream = tmpfile();
+  int first = 0;
+
+  CuAssertPtrNotNull(tc, stream);
+  CuAssertIntEquals(tc, EOF, strict_sscanf("ab", "%3c", value));
+  CuAssertStrEquals(tc, "ab?", value);
+  fputs("ab", stream);
+  CuAssertIntEquals(tc, 0, fseek(stream, 0, SEEK_SET));
+  CuAssertIntEquals(tc, EOF, strict_fscanf(stream, "%3c", value));
+  CuAssertIntEquals(tc, EOF, fgetc(stream));
+  fclose(stream);
+  CuAssertIntEquals(tc, 1, strict_sscanf("1 ab", "%d %3c", &first, value));
+  CuAssertIntEquals(tc, 1, first);
+}
+
+/* Saved object text can contain lines shorter than the four-character tag width. */
+void Test_tag_argument_handles_short_saved_lines(CuTest *tc)
+{
+  static const char *inputs[] = {"", "~", "A", "AB", "ABC", "Name: value"};
+  static const char *tags[] = {"", "~", "A", "AB", "ABC", "Name"};
+  size_t i;
+
+  for (i = 0; i < sizeof(inputs) / sizeof(inputs[0]); i++)
+  {
+    char *input = strdup(inputs[i]);
+    char tag[5];
+
+    CuAssertPtrNotNull(tc, input);
+    tag_argument(input, tag);
+    CuAssertStrEquals(tc, tags[i], tag);
+    CuAssertStrEquals(tc, i == 5 ? "value" : "", input);
+    free(input);
+  }
 }
 
 void Test_fopen_restricted_blocks_world_write(CuTest *tc)

@@ -4320,7 +4320,7 @@ void tag_argument(char *argument, char *tag)
   char *tmp = argument, *ttag = tag, *wrt = argument;
   int i;
 
-  for (i = 0; i < 4; i++)
+  for (i = 0; i < 4 && *tmp; i++)
     *(ttag++) = *(tmp++);
   *ttag = '\0';
 
