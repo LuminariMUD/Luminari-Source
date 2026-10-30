@@ -19,6 +19,7 @@
 #include "conf.h"
 #include "core/sysdep.h"
 #include "core/structs.h"
+#include "act/act.h"
 #include "database/mysql.h"
 #include "core/utils.h"
 #include "core/comm.h"
@@ -1074,13 +1075,14 @@ static bool plan_resize(struct char_data *ch, struct obj_data *kit, const char *
   op->cost = op->new_size == GET_SIZE(ch) ? 0 : GET_OBJ_COST(obj) / 2;
   op->seconds = kit_seconds(ch, -1, 5, op->cost);
   op->legacy_exp = 0;
+  snprintf(op->text, sizeof(op->text), "%s", argument);
   return true;
 }
 
 /* Resize applies the weapon damage chart first; an invalid shift leaves the item alone. */
 static bool apply_resize(struct char_data *ch, struct obj_data *obj, struct kit_operation *op)
 {
-  int num_dice, size_dice;
+  int num_dice, size_dice, new_weight;
 
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
   {
@@ -1094,10 +1096,10 @@ static bool apply_resize(struct char_data *ch, struct obj_data *obj, struct kit_
     send_to_char(ch, "Weapon change:  %dd%d to %dd%d\r\n", num_dice, size_dice, GET_OBJ_VAL(obj, 1),
                  GET_OBJ_VAL(obj, 2));
   }
-  GET_OBJ_WEIGHT(obj) += (op->new_size - GET_OBJ_SIZE(obj)) * GET_OBJ_WEIGHT(obj);
+  new_weight =
+      MAX(1, GET_OBJ_WEIGHT(obj) + (op->new_size - GET_OBJ_SIZE(obj)) * GET_OBJ_WEIGHT(obj));
+  weight_change_object(obj, new_weight - GET_OBJ_WEIGHT(obj));
   GET_OBJ_SIZE(obj) = op->new_size;
-  if (GET_OBJ_WEIGHT(obj) <= 0)
-    GET_OBJ_WEIGHT(obj) = 1;
   return true;
 }
 
