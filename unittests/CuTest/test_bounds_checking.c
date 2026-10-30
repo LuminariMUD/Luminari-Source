@@ -13,6 +13,7 @@
 #include "../../src/core/structs.h"
 #include "../../src/core/utils.h"
 #include "../../src/core/comm.h"
+#include "../../src/core/db.h"
 #include "../../src/core/modify.h"
 #include "../../src/act/act.h"
 #include "../../src/magic/spells.h"
@@ -522,7 +523,7 @@ void Test_strict_scan_rejects_incomplete_hex_prefix(CuTest *tc)
     CuAssertIntEquals(tc, 0, strict_sscanf(inputs[i], formats[i], &value));
     CuAssertIntEquals(tc, 42, (int)value);
     fputs(inputs[i], stream);
-    rewind(stream);
+    CuAssertIntEquals(tc, 0, fseek(stream, 0, SEEK_SET));
     CuAssertIntEquals(tc, 0, strict_fscanf(stream, formats[i], &value));
     CuAssertIntEquals(tc, 42, (int)value);
     rest[fread(rest, 1, sizeof(rest) - 1, stream)] = '\0';
@@ -548,7 +549,7 @@ void Test_strict_scan_rejects_incomplete_exponent(CuTest *tc)
     CuAssertIntEquals(tc, 0, strict_sscanf(inputs[i], formats[i], &value));
     CuAssertDblEquals(tc, 42.0, value, 0.0);
     fputs(inputs[i], stream);
-    rewind(stream);
+    CuAssertIntEquals(tc, 0, fseek(stream, 0, SEEK_SET));
     CuAssertIntEquals(tc, 0, strict_fscanf(stream, formats[i], &value));
     CuAssertDblEquals(tc, 42.0, value, 0.0);
     rest[fread(rest, 1, sizeof(rest) - 1, stream)] = '\0';
@@ -567,12 +568,32 @@ void Test_strict_scan_short_character_field_is_input_failure(CuTest *tc)
   CuAssertIntEquals(tc, EOF, strict_sscanf("ab", "%3c", value));
   CuAssertStrEquals(tc, "ab?", value);
   fputs("ab", stream);
-  rewind(stream);
+  CuAssertIntEquals(tc, 0, fseek(stream, 0, SEEK_SET));
   CuAssertIntEquals(tc, EOF, strict_fscanf(stream, "%3c", value));
   CuAssertIntEquals(tc, EOF, fgetc(stream));
   fclose(stream);
   CuAssertIntEquals(tc, 1, strict_sscanf("1 ab", "%d %3c", &first, value));
   CuAssertIntEquals(tc, 1, first);
+}
+
+/* Saved object text can contain lines shorter than the four-character tag width. */
+void Test_tag_argument_handles_short_saved_lines(CuTest *tc)
+{
+  static const char *inputs[] = {"", "~", "A", "AB", "ABC", "Name: value"};
+  static const char *tags[] = {"", "~", "A", "AB", "ABC", "Name"};
+  size_t i;
+
+  for (i = 0; i < sizeof(inputs) / sizeof(inputs[0]); i++)
+  {
+    char *input = strdup(inputs[i]);
+    char tag[5];
+
+    CuAssertPtrNotNull(tc, input);
+    tag_argument(input, tag);
+    CuAssertStrEquals(tc, tags[i], tag);
+    CuAssertStrEquals(tc, i == 5 ? "value" : "", input);
+    free(input);
+  }
 }
 
 void Test_fopen_restricted_blocks_world_write(CuTest *tc)

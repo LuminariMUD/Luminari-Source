@@ -9076,13 +9076,6 @@ ACMD(do_downgrade)
     send_to_char(ch, "To abort the downgrade, type: downgrade %s %d cancel\tn\r\n", arg, level);
     return;
   }
-  else if (!*arg3)
-  {
-    send_to_char(ch, "To proceed with this downgrade type: downgrade %s %d %s\r\n", arg, level,
-                 ch->player_specials->downgrade_confirm);
-    send_to_char(ch, "To abort the downgrade, type: downgrade %s %d cancel\r\n", arg, level);
-    return;
-  }
   else if (is_abbrev(arg3, "cancel"))
   {
     send_to_char(ch, "You've aborted the downgrade.\r\n");
