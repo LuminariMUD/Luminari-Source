@@ -941,6 +941,7 @@ long award_points(struct char_data *ch, int type, long amount);
 long award_set_points(struct char_data *ch, int type, long value);
 long award_capacity(struct char_data *ch, int type);
 int award_experience(struct char_data *ch, int gain, int mode);
+int award_experience_for_kill(struct char_data *ch, int gain, int mode, int64_t level_gap);
 int award_experience_uncapped(struct char_data *ch, int gain, bool is_ress);
 int award_gold(struct char_data *ch, int amount);
 int award_bank_gold(struct char_data *ch, int amount);
@@ -960,6 +961,12 @@ int award_account_experience(struct char_data *ch, int amount);
   Callers pass the gain without happy hour; the bonus is added once, after the mode caps. A
   negative gain is a death or drain loss capped by `CONFIG_MAX_EXP_LOSS`. NPCs keep half of a
   gain, and charmed followers gain nothing.
+- `award_experience_for_kill()` uses the same caps and bonuses, then reduces the award for
+  weaker victims. At `exp_level_difference` (default 5), the kill pays 25% of the capped award.
+  Each additional level of difference halves it again, rounding down to a minimum of 1 XP
+  for a positive award. Solo kills use the killer's credited level. Group kills use the
+  rounded-down average of group members in the room, excluding pets. Penalized kills use
+  the reduced award to calculate account XP.
 - `award_experience_uncapped()` applies experience without earned caps for staff `advance` and
   resurrection. Unless restoring a resurrection, it adds the happy-hour bonus and advances every
   level the new total reaches.

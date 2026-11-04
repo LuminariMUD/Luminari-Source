@@ -29,6 +29,7 @@
 #include "../../src/character/rewards.h"
 #include "../../src/net/protocol.h"
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -614,6 +615,7 @@ void Test_happy_hour_kill_experience_is_boosted_once(CuTest *tc)
   long group_award;
   bool solo_reported;
   bool group_reported;
+  int saved_gap;
   int saved_max_exp_gain;
   int saved_experience_multiplier;
 
@@ -646,8 +648,10 @@ void Test_happy_hour_kill_experience_is_boosted_once(CuTest *tc)
     return;
   }
 
+  saved_gap = CONFIG_EXP_LEVEL_DIFFERENCE;
   saved_max_exp_gain = CONFIG_MAX_EXP_GAIN;
   saved_experience_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
+  CONFIG_EXP_LEVEL_DIFFERENCE = 5;
   CONFIG_MAX_EXP_GAIN = 100000;
   CONFIG_EXPERIENCE_MULTIPLIER = 100;
   memset(&happy_data, 0, sizeof(happy_data));
@@ -673,6 +677,7 @@ void Test_happy_hour_kill_experience_is_boosted_once(CuTest *tc)
   happy_data = saved_happy;
   ch.desc = NULL;
   ProtocolDestroy(descriptor.pProtocol);
+  CONFIG_EXP_LEVEL_DIFFERENCE = saved_gap;
   CONFIG_MAX_EXP_GAIN = saved_max_exp_gain;
   CONFIG_EXPERIENCE_MULTIPLIER = saved_experience_multiplier;
 
@@ -680,6 +685,106 @@ void Test_happy_hour_kill_experience_is_boosted_once(CuTest *tc)
   CuAssertTrue(tc, solo_reported);
   CuAssertIntEquals(tc, 40, (int)group_award);
   CuAssertTrue(tc, group_reported);
+}
+
+void Test_kill_experience_falls_off_after_caps_for_solo_and_group(CuTest *tc)
+{
+  const int mob_levels[] = {11, 10, 9, 8, 7, 6, 1, INT_MIN};
+  const int expected[] = {401, 100, 50, 25, 12, 6, 1, 1};
+  struct char_data killer = {0}, ally = {0}, victim = {0};
+  struct player_special_data killer_specials = {0}, ally_specials = {0};
+  struct group_data party = {0};
+  struct happyhour saved_happy = happy_data;
+  int saved_gap = CONFIG_EXP_LEVEL_DIFFERENCE;
+  int saved_cap = CONFIG_MAX_EXP_GAIN;
+  int saved_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
+  int solo_gains[sizeof(mob_levels) / sizeof(mob_levels[0])];
+  int group_gains[sizeof(mob_levels) / sizeof(mob_levels[0])];
+  int ally_gains[sizeof(mob_levels) / sizeof(mob_levels[0])];
+  long killer_start, ally_start, banked_exp;
+  int expected_mode_cap_gain, solo_mode_cap_gain, group_mode_cap_gain;
+  size_t i;
+
+  party.members = create_list();
+  CuAssertPtrNotNull(tc, party.members);
+  party.leader = &killer;
+  add_to_list(&killer, party.members);
+  add_to_list(&ally, party.members);
+  killer.player_specials = &killer_specials;
+  ally.player_specials = &ally_specials;
+  victim.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&victim), MOB_ISNPC);
+  GET_CLASS(&killer) = GET_CLASS(&ally) = CLASS_WARRIOR;
+  GET_LEVEL(&killer) = GET_LEVEL(&ally) = 15;
+  IN_ROOM(&killer) = IN_ROOM(&ally) = IN_ROOM(&victim) = NOWHERE;
+  GET_EXP(&victim) = 180000;
+  killer_specials.saved.stage_info.current_stage = 1;
+  ally_specials.saved.stage_info.current_stage = 1;
+
+  CONFIG_EXP_LEVEL_DIFFERENCE = 5;
+  CONFIG_MAX_EXP_GAIN = 401;
+  CONFIG_EXPERIENCE_MULTIPLIER = 100;
+  memset(&happy_data, 0, sizeof(happy_data));
+  HAPPY_EXP = 100;
+  HAPPY_TIME = 5;
+  killer_start = level_exp(&killer, 15);
+
+  for (i = 0; i < sizeof(mob_levels) / sizeof(mob_levels[0]); i++)
+  {
+    GET_LEVEL(&victim) = mob_levels[i];
+    GET_EXP(&killer) = killer_start;
+    test_gain_kill_experience(&killer, &victim);
+    solo_gains[i] = (int)(GET_EXP(&killer) - killer_start);
+  }
+
+  /* A 15.5 average rounds down to 15. Both members use the party gap. */
+  killer.group = ally.group = &party;
+  GET_LEVEL(&ally) = 16;
+  ally_start = level_exp(&ally, 16);
+  for (i = 0; i < sizeof(mob_levels) / sizeof(mob_levels[0]); i++)
+  {
+    GET_LEVEL(&victim) = mob_levels[i];
+    GET_EXP(&killer) = killer_start;
+    GET_EXP(&ally) = ally_start;
+    test_gain_kill_experience(&ally, &victim);
+    group_gains[i] = (int)(GET_EXP(&killer) - killer_start);
+    ally_gains[i] = (int)(GET_EXP(&ally) - ally_start);
+  }
+
+  /* Expose the progression-based cap separately from the configured maximum. */
+  expected_mode_cap_gain = (int)((level_exp(&killer, 16) - killer_start) / 24 / 4);
+  CONFIG_MAX_EXP_GAIN = 120000;
+  HAPPY_TIME = 0;
+  GET_LEVEL(&victim) = 10;
+  GET_EXP(&killer) = killer_start;
+  test_gain_kill_experience(&ally, &victim);
+  group_mode_cap_gain = (int)(GET_EXP(&killer) - killer_start);
+  killer.group = NULL;
+  GET_EXP(&killer) = killer_start;
+  test_gain_kill_experience(&killer, &victim);
+  solo_mode_cap_gain = (int)(GET_EXP(&killer) - killer_start);
+
+  /* The floor applies to eligible awards. A banked-XP cap still blocks the kill. */
+  banked_exp = level_exp(&killer, 17) + 1;
+  GET_EXP(&killer) = banked_exp;
+  test_gain_kill_experience(&killer, &victim);
+  banked_exp = GET_EXP(&killer) - banked_exp;
+
+  free_list(party.members);
+  CONFIG_EXP_LEVEL_DIFFERENCE = saved_gap;
+  CONFIG_MAX_EXP_GAIN = saved_cap;
+  CONFIG_EXPERIENCE_MULTIPLIER = saved_multiplier;
+  happy_data = saved_happy;
+
+  for (i = 0; i < sizeof(expected) / sizeof(expected[0]); i++)
+  {
+    CuAssertIntEquals(tc, expected[i], solo_gains[i]);
+    CuAssertIntEquals(tc, expected[i], group_gains[i]);
+    CuAssertIntEquals(tc, expected[i], ally_gains[i]);
+  }
+  CuAssertIntEquals(tc, expected_mode_cap_gain, solo_mode_cap_gain);
+  CuAssertIntEquals(tc, solo_mode_cap_gain, group_mode_cap_gain);
+  CuAssertTrue(tc, banked_exp == 0);
 }
 
 void Test_random_encounters_respect_peaceful_rooms(CuTest *tc)

@@ -362,12 +362,8 @@ int spellcasting_time_mode = 0; // 0 = standard action, 1 = per-spell seconds
 
 int arcane_moon_phases = 0; // 0 = OFF, 1 = ON
 
-// This is the maximum difference in level between the
-// level of the player and the mob, to gain exp.
-// If 3, and the player level is 20, the player will
-// gain exp over any mobs level 17+. Anything 16 or
-// less will yeild no exp.
-int exp_level_difference = 3;
+// Kill XP drops to 25% when the victim is this many levels below the player or group.
+int exp_level_difference = 5;
 
 // This affects how much exp is lost when a player dies.
 int death_exp_loss_penalty = 100;

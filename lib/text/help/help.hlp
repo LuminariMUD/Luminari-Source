@@ -13243,6 +13243,13 @@ XP is earned by:
 - Harvesting raw resources (mining, forestry, gathering, hunting).
 - Exploring uncharted wilderness regions.
 
+KILL EXPERIENCE:
+At the default setting, a monster exactly 5 levels below you pays 25% of its
+normal kill XP after the per-kill caps. Each additional level below you halves
+that award again, rounded down to a minimum of 1 XP for an eligible kill.
+For groups, compare the monster to the average level of group members in the
+room, rounded down and excluding pets.
+
 ACCOUNT EXPERIENCE (ACCEXP):
 Luminari features an account-wide progression system where earned experience also
 accumulates at the account level. Account XP unlocks account perks, account storage,

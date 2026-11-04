@@ -66,6 +66,10 @@ long award_capacity(struct char_data *ch, int type);
  * AWARD_EXP_MODE_*.  A negative gain is a capped loss. */
 int award_experience(struct char_data *ch, int gain, int mode);
 
+/* Kill experience applies a level-gap reduction after the per-kill caps.
+ * level_gap is the solo or average group level minus the victim's level. */
+int award_experience_for_kill(struct char_data *ch, int gain, int mode, int64_t level_gap);
+
 /* Experience without earned caps, as used by staff advancement and
  * resurrection.  Unless is_ress is set, happy hour applies and the character
  * advances every level the new total reaches. */

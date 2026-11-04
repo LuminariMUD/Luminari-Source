@@ -263,13 +263,21 @@ int award_account_experience(struct char_data *ch, int amount)
 #define MIN_NUM_MOBS_TO_KILL_15 59
 #define MIN_NUM_MOBS_TO_KILL_20 120
 #define MIN_NUM_MOBS_TO_KILL_25 185
-int award_experience(struct char_data *ch, int gain, int mode)
+
+static int reduce_kill_experience(int gain, int64_t halvings)
+{
+  for (; halvings > 0 && gain > 1; halvings--)
+    gain /= 2;
+  return gain;
+}
+
+static int apply_experience(struct char_data *ch, int gain, int mode, int64_t halvings)
 {
   long int xp_to_lvl = 0;
   long int xp_to_lvl_cap = 0;
   long int gain_cap = 0;
   long lost = 0;
-  int account_gain = 0;
+  int account_exp_base;
 
   if (ch == NULL)
     return 0;
@@ -284,7 +292,7 @@ int award_experience(struct char_data *ch, int gain, int mode)
   }
 
   if (IS_NPC(ch))
-    return (int)award_points(ch, AWARD_EXPERIENCE, gain / 2);
+    return (int)award_points(ch, AWARD_EXPERIENCE, reduce_kill_experience(gain / 2, halvings));
 
   xp_to_lvl_cap = level_exp(ch, GET_LEVEL(ch) + 2);
 
@@ -309,25 +317,7 @@ int award_experience(struct char_data *ch, int gain, int mode)
     if (HAS_FEAT(ch, FEAT_BG_HERMIT) && get_party_size_same_room(ch) == 1)
       gain += (int)((double)gain * .05);
 
-    /* flat rate for now! (halfed the rate for testing purposes) */
-    if (rand_number(0, 1) && ch && ch->desc && ch->desc->account)
-    {
-      if (gain >= 3000)
-      {
-        account_gain = award_account_experience(ch, (gain / 3000));
-        if (!ch->char_specials.post_combat_messages)
-        {
-          if (account_gain >= 4)
-          {
-            send_to_char(ch, "You gain %d account experience points!\r\n", account_gain);
-          }
-        }
-        else
-        {
-          ch->char_specials.post_combat_account_exp = account_gain;
-        }
-      }
-    }
+    account_exp_base = gain;
 
     /* some limited xp cap conditions */
     switch (mode)
@@ -415,6 +405,23 @@ int award_experience(struct char_data *ch, int gain, int mode)
     /* put an absolute cap on the max gain per kill */
     gain = MIN(CONFIG_MAX_EXP_GAIN, gain);
 
+    if (halvings > 0)
+    {
+      gain = reduce_kill_experience(gain, halvings);
+      account_exp_base = gain;
+    }
+
+    /* Account XP normally uses the uncapped base. Reduced kills use their reduced award. */
+    if (rand_number(0, 1) && ch->desc && ch->desc->account && account_exp_base >= 3000)
+    {
+      int account_gain = award_account_experience(ch, account_exp_base / 3000);
+
+      if (ch->char_specials.post_combat_messages)
+        ch->char_specials.post_combat_account_exp = account_gain;
+      else if (account_gain >= 4)
+        send_to_char(ch, "You gain %d account experience points!\r\n", account_gain);
+    }
+
     /* new gain xp cap -zusuk */
     gain = (int)award_points(ch, AWARD_EXPERIENCE, gain);
 
@@ -452,6 +459,20 @@ int award_experience(struct char_data *ch, int gain, int mode)
     ch->char_specials.post_combat_exp = gain;
 
   return gain;
+}
+
+int award_experience(struct char_data *ch, int gain, int mode)
+{
+  return apply_experience(ch, gain, mode, 0);
+}
+
+int award_experience_for_kill(struct char_data *ch, int gain, int mode, int64_t level_gap)
+{
+  int threshold = MAX(0, CONFIG_EXP_LEVEL_DIFFERENCE);
+  /* Two halvings at the threshold give 25%, then halve for each extra level. */
+  int64_t halvings = level_gap >= threshold ? level_gap - threshold + 2 : 0;
+
+  return apply_experience(ch, gain, mode, halvings);
 }
 
 int award_experience_uncapped(struct char_data *ch, int gain, bool is_ress)

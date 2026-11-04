@@ -149,7 +149,8 @@ int test_get_bard_warbeat_opening_attacks(void)
 /* local file scope utility functions */
 static struct obj_data *pair_two_hander(struct char_data *ch, int attack_type);
 static bool spare_hand_for_attack(struct char_data *ch, int attack_type);
-static void perform_group_gain(struct char_data *ch, int base, struct char_data *victim);
+static void perform_group_gain(struct char_data *ch, int base, struct char_data *victim,
+                               int64_t level_gap);
 static int compute_attack_bonus_full_with_weapon(struct char_data *ch, struct char_data *victim,
                                                  int attack_type, bool display,
                                                  struct obj_data *wielded,
@@ -158,7 +159,7 @@ static struct domain_entity_handle make_corpse(struct char_data *ch, bool animat
 static void change_alignment(struct char_data *ch, struct char_data *victim);
 static void group_gain(struct char_data *ch, struct char_data *victim);
 static void solo_gain(struct char_data *ch, struct char_data *victim);
-static int award_kill_experience(struct char_data *ch, int exp, int mode);
+static int award_kill_experience(struct char_data *ch, int exp, int mode, int64_t level_gap);
 static int cap_combat_damage(struct char_data *ch, int dam, int w_type);
 
 /************ utility functions *********************/
@@ -2900,14 +2901,15 @@ void die(struct char_data *ch, struct char_data *killer)
 }
 
 /* called for splitting xp in a group (engine) */
-static void perform_group_gain(struct char_data *ch, int base, struct char_data *victim)
+static void perform_group_gain(struct char_data *ch, int base, struct char_data *victim,
+                               int64_t level_gap)
 {
   int share;
 
   /* award_experience() adds any happy-hour bonus after its caps */
   share = MIN(CONFIG_MAX_EXP_GAIN, MAX(1, base));
 
-  award_kill_experience(ch, share, AWARD_EXP_MODE_GROUP);
+  award_kill_experience(ch, share, AWARD_EXP_MODE_GROUP, level_gap);
 
   change_alignment(ch, victim);
 }
@@ -2968,10 +2970,6 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
   else
     base = 0;
 
-  /* if mob isn't within X levels, don't give xp -zusuk */
-  if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < party_level)
-    base = 1;
-
   /* XP bonus for groupping */
   if (tot_members > 1)
     base = 1 + base * ((100 + (tot_members * BONUS_PER_MEMBER)) / 100);
@@ -2988,7 +2986,7 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
     if (IS_PET(k))
       continue;
     if (IN_ROOM(k) == IN_ROOM(ch))
-      perform_group_gain(k, base, victim);
+      perform_group_gain(k, base, victim, (int64_t)party_level - GET_LEVEL(victim));
   }
 }
 #undef BONUS_PER_MEMBER
@@ -3013,23 +3011,19 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   /* minimum of 1 xp point */
   exp = MAX(exp, 1);
 
-  /* if mob isn't within X levels, don't give xp -zusuk */
-  if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < GET_LEVEL(ch))
-    exp = 1;
-
   /* avoid xp abuse in PvP */
   if (!IS_NPC(victim))
     exp = MIN(CONFIG_MAX_EXP_LOSS * 2 / 3, exp);
 
   /* award_experience() adds any happy-hour bonus after its caps */
-  award_kill_experience(ch, exp, AWARD_EXP_MODE_SOLO);
+  award_kill_experience(ch, exp, AWARD_EXP_MODE_SOLO, (int64_t)GET_LEVEL(ch) - GET_LEVEL(victim));
 
   change_alignment(ch, victim);
 }
 
-static int award_kill_experience(struct char_data *ch, int exp, int mode)
+static int award_kill_experience(struct char_data *ch, int exp, int mode, int64_t level_gap)
 {
-  int gained = award_experience(ch, exp, mode);
+  int gained = award_experience_for_kill(ch, exp, mode, level_gap);
 
   if (ch->char_specials.post_combat_messages)
   {
@@ -3080,7 +3074,7 @@ static void gain_kill_experience(struct char_data *ch, struct char_data *victim)
 #ifdef LUMINARI_CUTEST
 int test_award_kill_experience(struct char_data *ch, int exp, int mode)
 {
-  return award_kill_experience(ch, exp, mode);
+  return award_kill_experience(ch, exp, mode, -1);
 }
 
 void test_gain_kill_experience(struct char_data *ch, struct char_data *victim)
@@ -3095,7 +3089,7 @@ void test_solo_gain(struct char_data *ch, struct char_data *victim)
 
 void test_perform_group_gain(struct char_data *ch, int base, struct char_data *victim)
 {
-  perform_group_gain(ch, base, victim);
+  perform_group_gain(ch, base, victim, (int64_t)GET_LEVEL(ch) - GET_LEVEL(victim));
 }
 
 int test_cap_combat_damage(struct char_data *ch, int dam, int w_type)
