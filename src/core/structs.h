@@ -8136,11 +8136,7 @@ struct player_config_data
   // No player armor class can go above this value
   int armor_class_cap;
 
-  // This is the maximum difference in level between the
-  // level of the player and the mob, to gain exp.
-  // If 3, and the player level is 20, the player will
-  // gain exp over any mobs level 17+. Anything 16 or
-  // less will yeild no exp.
+  // Levels below the player or group at which kill XP drops to 25%.
   int group_level_difference_restriction;
 
   // these values apply to mobs created with any kind

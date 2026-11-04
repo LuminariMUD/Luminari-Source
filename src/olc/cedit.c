@@ -929,7 +929,7 @@ int save_config(IDXTYPE nowhere __attribute__((unused)))
           "ac_cap = %d\n\n",
           CONFIG_PLAYER_AC_CAP);
   fprintf(fl,
-          "* Maximum difference in player and mob level for exp.\n"
+          "* Levels below the player or group at which kill XP drops to 25%%.\n"
           "exp_level_difference = %d\n\n",
           CONFIG_EXP_LEVEL_DIFFERENCE);
   fprintf(fl,
@@ -1159,7 +1159,7 @@ static void cedit_disp_player_options(struct descriptor_data *d)
       "%s8%s) Extra Hit Points per Level                   : %s%d\r\n"
       "%s9%s) Extra Movement Points per Level              : %s%d\r\n"
       "%sA%s) Armor Class Cap                              : %s%d\r\n"
-      "%sB%s) Player-Mob Level Difference to Gain Exp      : %s%d\r\n"
+      "%sB%s) Kill XP Reduction Level Gap                  : %s%d\r\n"
       "%sC%s) Death Experience Less Penalty                : %s%d%%\r\n"
       "\r\n"
       "%sD%s) Level 1-10 Summon HP Percentage              : %s%d%%\r\n"
@@ -1723,8 +1723,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       return;
     case 'b':
     case 'B':
-      write_to_output(d, "Enter the maximum difference in player-mob level in order to gain "
-                         "experience from the kill : ");
+      write_to_output(d, "Enter the level gap at which kill XP drops to 25%%: ");
       OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_EXP_LEVEL_DIFF;
       return;
     case 'c':
@@ -2740,8 +2739,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (!*arg)
     {
       write_to_output(d, "That is an invalid choice!\r\n"
-                         "Enter the maximum difference in level between player and mob for the "
-                         "player to gain exp on the kill : ");
+                         "Enter the level gap at which kill XP drops to 25%%: ");
     }
     else
     {

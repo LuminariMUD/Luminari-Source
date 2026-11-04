@@ -8281,6 +8281,7 @@ static void load_default_config(void)
   CONFIG_TUNNEL_SIZE = tunnel_size;
   CONFIG_MAX_EXP_GAIN = max_exp_gain;
   CONFIG_MAX_EXP_LOSS = max_exp_loss;
+  CONFIG_EXP_LEVEL_DIFFERENCE = exp_level_difference;
   CONFIG_EXPERIENCE_MULTIPLIER = experience_multiplier;
   CONFIG_MAX_NPC_CORPSE_TIME = max_npc_corpse_time;
   CONFIG_MAX_PC_CORPSE_TIME = max_pc_corpse_time;
