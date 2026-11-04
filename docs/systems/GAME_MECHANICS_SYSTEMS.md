@@ -941,7 +941,7 @@ long award_points(struct char_data *ch, int type, long amount);
 long award_set_points(struct char_data *ch, int type, long value);
 long award_capacity(struct char_data *ch, int type);
 int award_experience(struct char_data *ch, int gain, int mode);
-int award_experience_for_kill(struct char_data *ch, int gain, int mode, int level_gap);
+int award_experience_for_kill(struct char_data *ch, int gain, int mode, int64_t level_gap);
 int award_experience_uncapped(struct char_data *ch, int gain, bool is_ress);
 int award_gold(struct char_data *ch, int amount);
 int award_bank_gold(struct char_data *ch, int amount);

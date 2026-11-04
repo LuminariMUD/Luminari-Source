@@ -264,14 +264,14 @@ int award_account_experience(struct char_data *ch, int amount)
 #define MIN_NUM_MOBS_TO_KILL_20 120
 #define MIN_NUM_MOBS_TO_KILL_25 185
 
-static int reduce_kill_experience(int gain, int halvings)
+static int reduce_kill_experience(int gain, int64_t halvings)
 {
   for (; halvings > 0 && gain > 1; halvings--)
     gain /= 2;
   return gain;
 }
 
-static int apply_experience(struct char_data *ch, int gain, int mode, int halvings)
+static int apply_experience(struct char_data *ch, int gain, int mode, int64_t halvings)
 {
   long int xp_to_lvl = 0;
   long int xp_to_lvl_cap = 0;
@@ -466,11 +466,11 @@ int award_experience(struct char_data *ch, int gain, int mode)
   return apply_experience(ch, gain, mode, 0);
 }
 
-int award_experience_for_kill(struct char_data *ch, int gain, int mode, int level_gap)
+int award_experience_for_kill(struct char_data *ch, int gain, int mode, int64_t level_gap)
 {
   int threshold = MAX(0, CONFIG_EXP_LEVEL_DIFFERENCE);
   /* Two halvings at the threshold give 25%, then halve for each extra level. */
-  int halvings = level_gap >= threshold ? level_gap - threshold + 2 : 0;
+  int64_t halvings = level_gap >= threshold ? level_gap - threshold + 2 : 0;
 
   return apply_experience(ch, gain, mode, halvings);
 }

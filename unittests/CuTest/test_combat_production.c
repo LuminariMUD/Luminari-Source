@@ -29,6 +29,7 @@
 #include "../../src/character/rewards.h"
 #include "../../src/net/protocol.h"
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -688,8 +689,8 @@ void Test_happy_hour_kill_experience_is_boosted_once(CuTest *tc)
 
 void Test_kill_experience_falls_off_after_caps_for_solo_and_group(CuTest *tc)
 {
-  const int mob_levels[] = {11, 10, 9, 8, 7, 6, 1};
-  const int expected[] = {401, 100, 50, 25, 12, 6, 1};
+  const int mob_levels[] = {11, 10, 9, 8, 7, 6, 1, INT_MIN};
+  const int expected[] = {401, 100, 50, 25, 12, 6, 1, 1};
   struct char_data killer = {0}, ally = {0}, victim = {0};
   struct player_special_data killer_specials = {0}, ally_specials = {0};
   struct group_data party = {0};
