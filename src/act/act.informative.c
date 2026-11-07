@@ -7276,7 +7276,11 @@ static void show_bags_summary(struct char_data *ch)
 
 #define BAGS_CMD_SYNTAX                                                                            \
   "\r\nUsage is: bags (bag number)|(bag name)\r\nEg. bags 1 - will show contents of bag "          \
-  "1.\r\nEg. bags materials - will show contents of a bag named 'materials'\r\n"
+  "1.\r\nEg. bags materials - will show contents of a bag named 'materials'\r\n"                   \
+  "\r\nTo take items out and move them to your inventory:\r\n"                                     \
+  "  get sword bag1 - take one item matching 'sword' from bag 1.\r\n"                              \
+  "  get all bag1   - take everything from bag 1.\r\n"                                             \
+  "Use bag1 through bag10 with no space between 'bag' and the number.\r\n"
 
 ACMD(do_bags)
 {
